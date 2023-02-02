@@ -2,6 +2,7 @@ import scipy
 import sklearn.metrics
 import timesynth as ts
 import matplotlib.pyplot as plt
+from ordpy import ordpy
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.model_selection import train_test_split, cross_val_predict, cross_validate
@@ -19,6 +20,7 @@ from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 
 DEBUG = True
+EXTRA_PLOTS = False
 
 
 def generate_sine_curve_time_series(noise: bool):
@@ -227,13 +229,16 @@ def compute_CSR(X, Y, radius, model, max=0.6):
     :param max:
     :return:
     """
-    Y_pred = model.predict(X)
+    if model == "PerfectModel":
+        Y_pred = Y
+    else:
+        Y_pred = model.predict(X)
 
     assert Y.max() <= max
 
     # discretise the regression values
-    Y_pred = np.digitize(Y_pred, bins=list(np.arange(0, 1, 0.1))).flatten()
-    Y = np.digitize(Y, bins=list(np.arange(0, 1, 0.1))).flatten()
+    Y_pred = np.digitize(Y_pred, bins=list(np.arange(0, max, 0.1))).flatten()
+    Y = np.digitize(Y, bins=list(np.arange(0, max, 0.1))).flatten()
 
     dists = sklearn.metrics.pairwise.euclidean_distances(X)
     # dists = np.triu(scipy.spatial.distance.pdist(X, 'minkowski', p=50))
@@ -241,7 +246,7 @@ def compute_CSR(X, Y, radius, model, max=0.6):
     csr_indices = []
     for ind in tqdm(range(X.shape[0]), "Computing CSR: "):
         cols = np.where(dists[ind, :] < radius)
-        if (Y_pred[cols] != Y[cols]).any():
+        if (Y_pred[cols] != Y_pred[ind]).any():
             csr_indices.append(ind)
             # sprint ((Y_pred[cols] != Y[cols]).any(), len(csr_indices), len(cols))
     CSR = len(csr_indices) / X.shape[0]
@@ -318,11 +323,15 @@ def train_and_predict_NN(data_splits, data_dict_combined, hidden_layer, pred_hor
         plt.savefig("debug_plots" + str(depth) + "_" + str(width) + ".png", dpi=400)
         plt.legend()
         plt.title("mean_mape: " + str(np.mean(mape_test)) + " NN (d,w):, " + str(depth) + "_" + str(width))
+        plt.xlim(2000, 3000)
         plt.show()
+
     return mape_val, mse_val, mape_test, mse_test, mape_train, mse_train, fitted_model_list
 
     # y_multirf = regr_multirf.predict(X_test)
     # y_rf = regr_multirf.predict(X_test)
+
+
 
 
 def plot_random_100_predictions(data):
@@ -351,6 +360,11 @@ def read_real_data(sensor_id, cutoff_for_plotting=1200):
         plt.show()
     return a
 
+def compute_data_complexity(list_of_time_series, dx=4):
+    PC_SC = [ordpy.complexity_entropy(series, dx=dx) for series in list_of_time_series]
+    PC, SC = list(list(zip(*PC_SC))[0]), list(list(zip(*PC_SC))[0])
+    return PC, SC
+
 
 if __name__ == "__main__":
 
@@ -361,7 +375,7 @@ if __name__ == "__main__":
 
     samples = read_real_data(sensor_id=1, cutoff_for_plotting=1200)
 
-    with open("results.csv", "w") as f:
+    with open("NN_depth_1_and_2/results.csv", "a") as f:
         csvwriter = csv.writer(f)
         csvwriter.writerow(
             [
@@ -384,6 +398,7 @@ if __name__ == "__main__":
                 "csr",
                 "depth",
                 "width",
+                "csr_perfect_model"
             ]
         )
         input_seq_list = [12]
@@ -396,13 +411,13 @@ if __name__ == "__main__":
             n_estimators = 1
             max_depth = 1
             # for deg in range(1,10):
-            for depth in range(1, 2):
-                for width in range(1, 1200, 20):
+            for depth in range(2, 3):
+                for width in range(2, 400, 3):
                     data_dict_combined, data_splits = time_series_to_supervised(
                         samples,
                         input_seq_len=input_seq_len,
                         output_seq_len=output_seq_len,
-                        tvt_ratio=[0.1, 0.8, 0.1],
+                        tvt_ratio=[0.5, 0.1, 0.5],
                         n_blocks=1,
                         horizon=6,
                     )
@@ -428,7 +443,74 @@ if __name__ == "__main__":
                         model=model_list[-1],
                         max=0.6,
                     )
+
+                    csr_index_list_perfect_model, csr_perfect_model = compute_CSR(
+                        data_dict_combined["X_test"],
+                        data_dict_combined["Y_test"],
+                        radius=0.025,
+                        model="PerfectModel",
+                        max=0.6,
+                    )
+
                     sprint(csr, np.mean(mape_train), width)
+
+
+                    if EXTRA_PLOTS:
+                        data_dict_combined, data_splits = time_series_to_supervised(
+                            samples,
+                            input_seq_len=input_seq_len,
+                            output_seq_len=1,
+                            tvt_ratio=[0.5, 0.1, 0.1],
+                            n_blocks=1,
+                            horizon=6,
+                        )
+                        y_pred = model_list[-1].predict(data_dict_combined["X_test"])
+                        y_test = (data_dict_combined["Y_test"])
+                        y_test = y_test.flatten()
+                        mape = np.abs(y_test - y_pred) / (y_test)
+                        mape = mape / 4
+                        #
+                        # plt.plot(np.convolve(y_pred, [1 / 30] * 30), label="y_pred")
+                        # plt.plot(np.convolve(y_test, [1 / 20] * 20), label="y_test")
+                        # plt.plot(np.convolve(mape[~np.isinf(mape)], [1 / 20] * 20), label="mape")
+                        # plt.legend()
+                        # plt.xlim(2000, 4000)
+                        # plt.ylim(0, 0.4)
+                        # plt.show()
+
+                        mape = np.abs(y_pred - y_test) / y_test / 4;
+                        mape = mape.flatten();
+                        mape[np.isinf(mape)] = 2;
+
+                        # rescale mape for plotting
+                        mape = np.clip(mape, 0, 1) * 0.2
+
+                        mse = np.abs(y_pred - y_test) ** 2
+                        mse = mape.flatten()
+                        mse = np.convolve(mse, [1 / 20] * 20)
+
+
+                        plt.plot(np.convolve(y_pred, [1 / 20] * 20), label="y_pred")
+                        plt.plot(np.convolve(y_test, [1 / 20] * 20), label="y_GT")
+                        # plt.plot(np.convolve(mape, [1 / 20] * 20), label="mape")
+                        # plt.plot(np.convolve(mse, [1 / 20] * 20), label="mse")
+                        plt.plot(y_pred - y_test, label="diff")
+                        plt.legend()
+                        plt.ylim(-0.2, 0.2)
+                        plt.xlim(2000, 4000)
+                        plt.show()
+
+                    # for dx in range(1, 20):
+                    #     PC, SC = compute_data_complexity(np.column_stack([data_dict_combined["X_test"], data_dict_combined["Y_test"]]).tolist(), dx=dx)
+                    #     max_ = max(PC)
+                    #     PC = [x/max_ for x in PC]
+                    #     mean_vals = np.column_stack([data_dict_combined["X_test"], data_dict_combined["Y_test"]]).mean(axis=1)
+                    #     plt.plot(np.convolve(PC, [1/25] * 100, )[500:-500], label="PC")
+                    #     plt.plot((mean_vals[500:-500] * 60).tolist(), label="Data")
+                    #     plt.legend()
+                    #     plt.title(str(dx))
+                    #     plt.show()
+
 
                     # print(
                     #     [
@@ -467,6 +549,7 @@ if __name__ == "__main__":
                             csr,
                             depth,
                             width,
+                            csr_perfect_model
                         ]
                     )
                     f.flush()
