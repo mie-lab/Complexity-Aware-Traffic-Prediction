@@ -34,11 +34,15 @@ class TemporalHorizon:
             sprint(t, v, l)
             if self.model_class_str == "ConvLSTM":
                 model = self.model_class(
-                    t, v, l, shape=(2, 1, 32, 32, 1), validation_csv_file=str((t, v, l)) + "_val.csv"
+                    t,
+                    v,
+                    l,
+                    shape=(2, 1, 32, 32, 1),
+                    validation_csv_file=str(t) + "_" + str(v) + "_" + str(l) + "_val.csv",
                 )
                 model.train()
             else:
-                raise (Exception("Wrong model class; Probably not implemeted!"))
+                raise (Exception("Wrong model class; Probably not implemented!"))
 
 
 if __name__ == "__main__":

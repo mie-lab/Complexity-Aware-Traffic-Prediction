@@ -4,7 +4,7 @@ DEBUG = True
 HOME_FOLDER = "/Users/nishant/Documents/GitHub/CTP/exploration"
 
 
-INTERMEDIATE_FILES = os.path.join(HOME_FOLDER, "intermediate_folder")
+INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
 
 ######################## complexity class params #########################
 cx_max_dist = 4000

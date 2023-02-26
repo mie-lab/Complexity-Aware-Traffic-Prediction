@@ -10,6 +10,7 @@ from tensorflow.keras import layers, optimizers
 from tensorflow.keras.callbacks import EarlyStopping, CSVLogger
 from preprocessing.datagen import CustomDataGenerator
 from complexity import complexity
+from smartprint import smartprint as sprint
 
 # In[ ]:
 
@@ -25,13 +26,8 @@ from tensorflow.keras.callbacks import Callback
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-
         for PM in [True, False]:
-            cx = complexity(
-                training_data_folder=self.model.training_folder,
-                model_predict=self.model.predict,
-                PM=PM
-            )
+            cx = complexity(training_data_folder=self.model.training_folder, model_predict=self.model.predict, PM=PM)
             logs["CSR_train_data_" + config.cx_method + str(PM)] = np.mean(cx.complexity_each_sample)
 
 
@@ -43,9 +39,9 @@ class ConvLSTM:
         self.train_data_folder = os.path.join(config.HOME_FOLDER, training_data_folder)
         self.validation_data_folder = os.path.join(config.HOME_FOLDER, validation_data_folder)
         self.shape = shape
-        self.log_dir = log_dir
+        self.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, validation_csv_file)
+        self.log_dir = os.path.join(config.INTERMEDIATE_FOLDER, log_dir)
         self.model = self.create_model()
-        self.validation_csv_file = os.path.join(config.HOME_FOLDER, validation_csv_file)
 
     def create_model(self):
         _, a, b, c, d = self.shape
@@ -116,15 +112,12 @@ class ConvLSTM:
         filename = os.path.join(config.HOME_FOLDER, self.validation_csv_file)
 
         csv_logger = CSVLogger(filename)
-        tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(
-            log_dir=os.path.join(config.HOME_FOLDER, self.log_dir)
-        )
+        tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(log_dir=self.log_dir)
 
         earlystop = EarlyStopping(
             monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=2, mode="auto"
         )
         self.model.training_folder = self.train_data_folder
-
 
         self.model.fit(
             train_gen,
@@ -134,8 +127,16 @@ class ConvLSTM:
             workers=config.cl_dataloader_workers,
         )
 
-    def print_model(self):
-        self.model.summary()
+    def print_model_and_class_values(self):
+        sprint(
+            self.train_data_folder,
+            self.validation_data_folder,
+            self.shape,
+            self.validation_csv_file,
+            self.log_dir,
+            self.model,
+            self.model.summary(),
+        )
 
 
 if __name__ == "__main__":
@@ -144,6 +145,7 @@ if __name__ == "__main__":
         validation_data_folder="validation_data_8_4_8",
         shape=(2, 8, 32, 32, 1),
         validation_csv_file="validation.csv",
+        log_dir="log_dir",
     )
-    model.print_model()
+    model.print_model_and_class_values()
     model.train()
