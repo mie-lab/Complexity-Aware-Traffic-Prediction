@@ -1,8 +1,8 @@
 import os
 
 DEBUG = True
-HOME_FOLDER = "/Users/nishant/Documents/GitHub/CTP/exploration"
-
+HOME_FOLDER = "/Users/nishant/Documents/GitHub/CTP/exploration/CATP"
+DATA_FOLDER = "/Users/nishant/Documents/GitHub/CTP/exploration"
 
 INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
 

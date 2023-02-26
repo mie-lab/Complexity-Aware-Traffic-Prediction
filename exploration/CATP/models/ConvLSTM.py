@@ -36,10 +36,11 @@ class ConvLSTM:
         """
         Input and output shapes are the same (tuple of length 5)
         """
-        self.train_data_folder = os.path.join(config.HOME_FOLDER, training_data_folder)
-        self.validation_data_folder = os.path.join(config.HOME_FOLDER, validation_data_folder)
+        self.train_data_folder = os.path.join(config.DATA_FOLDER, training_data_folder)
+        self.validation_data_folder = os.path.join(config.DATA_FOLDER, validation_data_folder)
         self.shape = shape
         self.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, validation_csv_file)
+        sprint (validation_csv_file, self.validation_csv_file)
         self.log_dir = os.path.join(config.INTERMEDIATE_FOLDER, log_dir)
         self.model = self.create_model()
 
@@ -109,13 +110,12 @@ class ConvLSTM:
             shuffle=True,
         )
 
-        filename = os.path.join(config.HOME_FOLDER, self.validation_csv_file)
-
-        csv_logger = CSVLogger(filename)
+        csv_logger = CSVLogger(self.validation_csv_file)
+        sprint (csv_logger, self.validation_data_folder)
         tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(log_dir=self.log_dir)
 
         earlystop = EarlyStopping(
-            monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=2, mode="auto"
+            monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=1, mode="auto"
         )
         self.model.training_folder = self.train_data_folder
 

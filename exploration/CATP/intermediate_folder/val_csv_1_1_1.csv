@@ -1,0 +1,2 @@
+epoch,CSR_train_data_fractionalFalse,CSR_train_data_fractionalTrue,loss,non_zero_mape,val_loss,val_non_zero_mape
+0,0.06433333333333334,0.07066666666666667,56553.25,0.5938859581947327,2294.504638671875,0.4169096052646637

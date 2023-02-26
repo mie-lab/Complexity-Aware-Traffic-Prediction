@@ -22,7 +22,8 @@ class TemporalHorizon:
                 (
                     "training_data_" + self.i + "_" + str(r) + "_" + self.o,
                     "validation_data_" + self.i + "_" + str(r) + "_" + self.o,
-                    "logs_dir" + self.i + "_" + str(r) + "_" + self.o,
+                    "logs_dir_" + self.i + "_" + str(r) + "_" + self.o,
+                    "val_csv_" + self.i + "_" + str(r) + "_" + self.o + ".csv",
                 )
             )
         if model_class_str == "ConvLSTM":
@@ -30,15 +31,15 @@ class TemporalHorizon:
             self.model_class = ConvLSTM
 
     def run_experiments(self):
-        for t, v, l in self.list_of_folders:
-            sprint(t, v, l)
+        for t, v, l, v_csv in self.list_of_folders:
+            sprint(t, v, l, v_csv)
             if self.model_class_str == "ConvLSTM":
                 model = self.model_class(
                     t,
                     v,
                     l,
                     shape=(2, 1, 32, 32, 1),
-                    validation_csv_file=str(t) + "_" + str(v) + "_" + str(l) + "_val.csv",
+                    validation_csv_file=v_csv,
                 )
                 model.train()
             else:
