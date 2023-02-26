@@ -20,7 +20,8 @@ from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 
 DEBUG = True
-EXTRA_PLOTS = False
+EXTRA_PLOTS = True
+PLOT_CSR_INDICES = False
 
 
 def generate_sine_curve_time_series(noise: bool):
@@ -412,7 +413,7 @@ if __name__ == "__main__":
             max_depth = 1
             # for deg in range(1,10):
             for depth in range(2, 3):
-                for width in range(2, 400, 3):
+                for width in range(20, 21):
                     data_dict_combined, data_splits = time_series_to_supervised(
                         samples,
                         input_seq_len=input_seq_len,
@@ -455,6 +456,7 @@ if __name__ == "__main__":
                     sprint(csr, np.mean(mape_train), width)
 
 
+
                     if EXTRA_PLOTS:
                         data_dict_combined, data_splits = time_series_to_supervised(
                             samples,
@@ -494,10 +496,18 @@ if __name__ == "__main__":
                         plt.plot(np.convolve(y_test, [1 / 20] * 20), label="y_GT")
                         # plt.plot(np.convolve(mape, [1 / 20] * 20), label="mape")
                         # plt.plot(np.convolve(mse, [1 / 20] * 20), label="mse")
-                        plt.plot(y_pred - y_test, label="diff")
-                        plt.legend()
+                        plt.plot(y_pred - y_test, label="diff", alpha=0.5)
                         plt.ylim(-0.2, 0.2)
                         plt.xlim(2000, 4000)
+                        plt.legend()
+
+                        if PLOT_CSR_INDICES:
+                            plt.scatter(csr_index_list_perfect_model, [0] * len(csr_index_list_perfect_model),
+                                        label="Critical Sample", s=0.3, color="r")
+                            plt.legend()
+
+                            # plt.title("CSR index scatter plot")
+                            # plt.show()
                         plt.show()
 
                     # for dx in range(1, 20):
