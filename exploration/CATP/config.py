@@ -1,5 +1,6 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 DEBUG = False
@@ -33,10 +34,10 @@ dg_debug = False
 
 
 ######################## ConvLSTM class params #########################
-cl_dataloader_workers = 8
+cl_dataloader_workers = 4
 cl_early_stopping_patience = 4
 cl_percentage_of_train_data = 0.5  # for fast tryouts
 cl_loss_func = "mse"
 cl_batch_size = 32
-cl_epochs = 30
+cl_epochs = 30  # 30
 cl_n_depth = 3

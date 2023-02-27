@@ -67,7 +67,10 @@ if __name__ == "__main__":
         data_dir=train_data_folder, num_samples=int(num_train * r), batch_size=config.cl_batch_size, shuffle=True
     )
     validation_gen = CustomDataGenerator(
-        data_dir=validation_data_folder, num_samples=int(num_validation * r), batch_size=config.cl_batch_size, shuffle=True
+        data_dir=validation_data_folder,
+        num_samples=int(num_validation * r),
+        batch_size=config.cl_batch_size,
+        shuffle=True,
     )
 
     for x, y in train_gen:

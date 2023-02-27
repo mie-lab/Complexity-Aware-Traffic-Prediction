@@ -10,7 +10,7 @@ from smartprint import smartprint as sprint
 class TemporalIOLength:
     def __init__(self, range_of_io_ranges, base_folder_name_i_h_o, model_class_str):
         """
-        :param range_of_horizons: list of horizons
+        :param range_of_io_ranges: list of i/o values
         :param base_folder_name_i_h_o: must follow this format training_data_8_4_8
         """
         assert model_class_str in ["ConvLSTM"]  # others not implemented yet

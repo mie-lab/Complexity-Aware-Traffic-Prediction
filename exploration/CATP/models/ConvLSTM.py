@@ -40,7 +40,7 @@ class ConvLSTM:
         self.validation_data_folder = os.path.join(config.DATA_FOLDER, validation_data_folder)
         self.shape = shape
         self.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, validation_csv_file)
-        sprint (validation_csv_file, self.validation_csv_file)
+        sprint(validation_csv_file, self.validation_csv_file)
         self.log_dir = os.path.join(config.INTERMEDIATE_FOLDER, log_dir)
         self.model = self.create_model()
 
@@ -112,7 +112,7 @@ class ConvLSTM:
         )
 
         csv_logger = CSVLogger(self.validation_csv_file)
-        sprint (csv_logger, self.validation_data_folder)
+        sprint(csv_logger, self.validation_data_folder)
         tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(log_dir=self.log_dir)
 
         earlystop = EarlyStopping(
