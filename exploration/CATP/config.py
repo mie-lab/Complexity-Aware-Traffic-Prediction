@@ -1,8 +1,19 @@
 import os
 
 DEBUG = True
-HOME_FOLDER = "/Users/nishant/Documents/GitHub/CTP/exploration/CATP"
-DATA_FOLDER = "/Users/nishant/Documents/GitHub/CTP/exploration"
+
+DATA_FOLDER_LOCAL = "/Users/nishant/Documents/GitHub/CTP/exploration"
+HOME_FOLDER_LOCAL = "/Users/nishant/Documents/GitHub/CTP/exploration/CATP"
+DATA_FOLDER_SERVER = "/home/niskumar/NeurIPS2022-traffic4cast/exploration"
+HOME_FOLDER_SERVER = "/home/niskumar/NeurIPS2022-traffic4cast/exploration/CATP"
+
+cur_dir = os.getcwd()
+if cur_dir.split("/")[1] == "home":
+    HOME_FOLDER = HOME_FOLDER_SERVER
+    DATA_FOLDER = DATA_FOLDER_SERVER
+elif cur_dir.split("/")[1] == "Users":
+    HOME_FOLDER = HOME_FOLDER_LOCAL
+    DATA_FOLDER = DATA_FOLDER_LOCAL
 
 INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
 
