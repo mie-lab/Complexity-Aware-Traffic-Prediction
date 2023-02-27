@@ -100,6 +100,7 @@ class ConvLSTM:
         num_validation = len(glob.glob(os.path.join(config.HOME_FOLDER, self.validation_data_folder) + "/*_x.npy"))
 
         r = config.cl_percentage_of_train_data  # np.random.rand()
+
         train_gen = CustomDataGenerator(
             data_dir=self.train_data_folder, num_samples=int(num_train * r), batch_size=batch_size, shuffle=True
         )

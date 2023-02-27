@@ -22,8 +22,8 @@ class TemporalHorizon:
                 (
                     "training_data_" + self.i + "_" + str(r) + "_" + self.o,
                     "validation_data_" + self.i + "_" + str(r) + "_" + self.o,
-                    "logs_dir_" + self.i + "_" + str(r) + "_" + self.o,
-                    "val_csv_" + self.i + "_" + str(r) + "_" + self.o + ".csv",
+                    "logs_dir_horiz_" + self.i + "_" + str(r) + "_" + self.o,
+                    "val_csv_horiz_" + self.i + "_" + str(r) + "_" + self.o + ".csv",
                 )
             )
         if model_class_str == "ConvLSTM":
@@ -47,4 +47,4 @@ class TemporalHorizon:
 
 
 if __name__ == "__main__":
-    th = TemporalHorizon(range(1, 8, 2), "training_data_1_4_1", "ConvLSTM").run_experiments()
+    th = TemporalHorizon(range(1, 9, 1), "training_data_1_4_1", "ConvLSTM").run_experiments()

@@ -1,6 +1,8 @@
 import os
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
-DEBUG = True
+
+DEBUG = False
 
 DATA_FOLDER_LOCAL = "/Users/nishant/Documents/GitHub/CTP/exploration"
 HOME_FOLDER_LOCAL = "/Users/nishant/Documents/GitHub/CTP/exploration/CATP"
@@ -21,7 +23,7 @@ INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
 cx_max_dist = 4000
 cx_method = "fractional"
 cx_tnl = 8
-cx_N = 200
+cx_N = 2000
 cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
 cx_y_thresh = 1250
 
@@ -31,10 +33,10 @@ dg_debug = False
 
 
 ######################## ConvLSTM class params #########################
-cl_dataloader_workers = 3
-cl_early_stopping_patience = 3
-cl_percentage_of_train_data = 0.005  # for fast tryouts
+cl_dataloader_workers = 8
+cl_early_stopping_patience = 4
+cl_percentage_of_train_data = 0.5  # for fast tryouts
 cl_loss_func = "mse"
-cl_batch_size = 2
-cl_epochs = 5
+cl_batch_size = 32
+cl_epochs = 30
 cl_n_depth = 3
