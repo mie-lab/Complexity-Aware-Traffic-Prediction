@@ -28,7 +28,7 @@ cx_tnl = 8
 if cur_dir.split("/")[1] == "home":
     cx_N = 4000
 else:
-    cx_N = 20
+    cx_N = 5
 cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
 
 

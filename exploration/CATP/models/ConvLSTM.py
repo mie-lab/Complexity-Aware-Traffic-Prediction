@@ -12,8 +12,8 @@ from tensorflow.keras.callbacks import EarlyStopping, CSVLogger
 from preprocessing.datagen import CustomDataGenerator
 from complexity import complexity
 from smartprint import smartprint as sprint
+from tqdm import tqdm
 
-# In[ ]:
 
 
 import numpy as np
@@ -27,7 +27,7 @@ from tensorflow.keras.callbacks import Callback
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        for custom_thresh in np.arange(200, config.cx_max_dist, 100):
+        for custom_thresh in tqdm(np.arange(200, config.cx_max_dist, 100), "Different thresholds"):
             for method in ["fractional", "default"]:
                 cx = complexity(
                     training_data_folder=self.model.training_folder,
