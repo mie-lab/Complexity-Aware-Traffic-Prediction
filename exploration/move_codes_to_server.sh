@@ -1,3 +1,5 @@
+rm -rf CATP/intermediate_folder
+mkdir CATP/intermediate_folder
 tar -czvf CATP.tar.gz CATP
 echo "zipped CATP folder; moving to server"
 scp CATP.tar.gz niskumar@kelut.sec.sg:

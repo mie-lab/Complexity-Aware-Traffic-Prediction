@@ -123,7 +123,7 @@ class complexity:
         std = {}
         mean = {}
 
-        for i in tqdm(np.arange(0, config.max_dist, abs(0 - config.max_dist) / 10), desc="Determining y_thresh"):
+        for i in tqdm(np.arange(0, config.cx_max_dist, abs(0 - config.cx_max_dist) / 10), desc="Determining y_thresh"):
             l = self.compute_criticality_smooth(model_predict, y_thresh=i, PM=PM)
             std[i] = np.std(l)
             mean[i] = np.mean(l)

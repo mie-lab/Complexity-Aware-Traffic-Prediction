@@ -1,10 +1,11 @@
 import os
 import sys
 
-from validation_metrics.custom_losses import non_zero_mape
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))  # location of config file
 import config
+
+from validation_metrics.custom_losses import non_zero_mape
 
 from tensorflow.keras import layers, optimizers
 from tensorflow.keras.callbacks import EarlyStopping, CSVLogger
@@ -26,9 +27,35 @@ from tensorflow.keras.callbacks import Callback
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        for PM in [True, False]:
-            cx = complexity(training_data_folder=self.model.training_folder, model_predict=self.model.predict, PM=PM)
-            logs["CSR_train_data_" + config.cx_method + str(PM)] = np.mean(cx.complexity_each_sample)
+        if epoch == 0:
+            config.cx_re_compute_y_thresh = True
+            cx_PM = complexity(training_data_folder=self.model.training_folder, model_predict="dummy", PM=True)
+            config.cx_y_thresh = cx_PM.y_thresh
+            config.cx_re_compute_y_thresh = False
+
+            logs["CSR_train_data_PM"] = np.mean(cx_PM.complexity_each_sample)
+            logs["CSR_y_thresh_PM"] = cx_PM.y_thresh
+
+            cx_DL = complexity(training_data_folder=self.model.training_folder, model_predict=self.model.predict, PM=False)
+            logs["CSR_train_data_DL"] = np.mean(cx_DL.complexity_each_sample)
+            logs["CSR_y_thresh_DL"] = cx_DL.y_thresh
+
+        elif epoch>0:
+            cx = complexity(training_data_folder=self.model.training_folder, model_predict=self.model.predict,
+                               PM=False)
+            logs["CSR_train_data_DL"] = np.mean(cx.complexity_each_sample)
+            logs["CSR_y_thresh_DL"] = cx.y_thresh
+            logs["CSR_train_data_PM"] = -1
+            logs["CSR_y_thresh_PM"] = cx.y_thresh
+
+
+        # save the model to disk
+        self.model.save(
+            os.path.join(
+                config.INTERMEDIATE_FOLDER,
+                os.path.basename(os.path.normpath(self.model.training_folder)) + "_epoch_" + str(epoch) + ".h5",
+            )
+        )
 
 
 class ConvLSTM:
