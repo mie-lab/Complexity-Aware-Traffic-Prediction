@@ -27,7 +27,7 @@ from tensorflow.keras.callbacks import Callback
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        for custom_thresh in [np.arange(200, config.cx_max_dist, 100)]:
+        for custom_thresh in np.arange(200, config.cx_max_dist, 100):
             for method in ["fractional", "default"]:
                 cx = complexity(
                     training_data_folder=self.model.training_folder,
