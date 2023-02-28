@@ -22,12 +22,14 @@ INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
 RESULTS_FOLDER = os.path.join(DATA_FOLDER, "results")
 
 ######################## complexity class params #########################
-cx_max_dist = 4000
+cx_max_dist = 2500
 cx_method = "fractional"
 cx_tnl = 8
-cx_N = 20
-cx_re_compute_y_thresh = True  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
-cx_y_thresh = 1250
+if cur_dir.split("/")[1] == "home":
+    cx_N = 4000
+else:
+    cx_N = 20
+cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
 
 
 ######################## Datagen class params #########################
@@ -35,10 +37,18 @@ dg_debug = False
 
 
 ######################## ConvLSTM class params #########################
-cl_dataloader_workers = 8
+
 cl_early_stopping_patience = 4
-cl_percentage_of_train_data = 0.0025  # can be reduced for fast tryouts
+if cur_dir.split("/")[1] == "home":
+    cl_percentage_of_train_data = 0.5  # can be reduced for fast tryouts
+    cl_batch_size = 32
+    cl_dataloader_workers = 8
+    cl_epochs = 20
+elif cur_dir.split("/")[1] == "Users":
+    cl_percentage_of_train_data = 0.0025  # can be reduced for fast tryouts
+    cl_batch_size = 2
+    cl_dataloader_workers = 4
+    cl_epochs = 2
+
 cl_loss_func = "mse"
-cl_batch_size = 2 # 32
-cl_epochs = 2
 cl_n_depth = 3

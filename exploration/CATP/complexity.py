@@ -13,21 +13,21 @@ import matplotlib.pyplot as plt
 
 
 class complexity:
-    def __init__(self, training_data_folder, y_thresh=-1, model_predict="dummy", PM=True):
+    def __init__(self, training_data_folder, y_thresh=-1, model_predict="dummy", PM=True, method="default"):
         """
         tnl: temporal_neighbour_limit (defined using DL based traffic prediction)
         model_predict = model.predict Or a dummy value if Perfect model is True
         method: ["default", "fractional"]
         """
-        self.method = config.cx_method
+        self.method = method  # config.cx_method
         self.training_data_folder = training_data_folder
         self.y_thresh = y_thresh
         self.tnl = config.cx_tnl
         self.N = config.cx_N
-        if not config.cx_re_compute_y_thresh:
-            self.y_thresh = config.cx_y_thresh
-        else:
-            self.y_thresh = self.determine_y_thresh_maxvar()
+        # if not config.cx_re_compute_y_thresh:
+        #     self.y_thresh = config.cx_y_thresh
+        # else:
+        #     self.y_thresh = self.determine_y_thresh_maxvar()
         self.complexity_each_sample = self.compute_criticality_smooth(
             model_predict=model_predict, PM=PM, y_thresh=self.y_thresh
         )
@@ -123,7 +123,7 @@ class complexity:
         std = {}
         mean = {}
 
-        for i in tqdm(np.arange(0, config.cx_max_dist, abs(0 - config.cx_max_dist) / 10), desc="Determining y_thresh"):
+        for i in tqdm(np.arange(0, config.cx_max_dist, abs(0 - config.cx_max_dist) / 50), desc="Determining y_thresh"):
             l = self.compute_criticality_smooth(model_predict, y_thresh=i, PM=PM)
             std[i] = np.std(l)
             mean[i] = np.mean(l)

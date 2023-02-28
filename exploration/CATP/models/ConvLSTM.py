@@ -27,27 +27,25 @@ from tensorflow.keras.callbacks import Callback
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        if epoch == 0:
-            config.cx_re_compute_y_thresh = True
-            cx_PM = complexity(training_data_folder=self.model.training_folder, model_predict="dummy", PM=True)
-            config.cx_y_thresh = cx_PM.y_thresh
-            config.cx_re_compute_y_thresh = False
+        for custom_thresh in [np.arange(200, config.cx_max_dist, 100)]:
+            for method in ["fractional", "default"]:
+                cx = complexity(
+                    training_data_folder=self.model.training_folder,
+                    model_predict=self.model.predict,
+                    PM=False,
+                    y_thresh=custom_thresh,
+                    method=method,
+                )
+                logs["CSR_train_data_DL_" + method + str(custom_thresh)] = np.mean(cx.complexity_each_sample)
 
-            logs["CSR_train_data_PM"] = np.mean(cx_PM.complexity_each_sample)
-            logs["CSR_y_thresh_PM"] = cx_PM.y_thresh
-
-            cx_DL = complexity(training_data_folder=self.model.training_folder, model_predict=self.model.predict, PM=False)
-            logs["CSR_train_data_DL"] = np.mean(cx_DL.complexity_each_sample)
-            logs["CSR_y_thresh_DL"] = cx_DL.y_thresh
-
-        elif epoch>0:
-            cx = complexity(training_data_folder=self.model.training_folder, model_predict=self.model.predict,
-                               PM=False)
-            logs["CSR_train_data_DL"] = np.mean(cx.complexity_each_sample)
-            logs["CSR_y_thresh_DL"] = cx.y_thresh
-            logs["CSR_train_data_PM"] = -1
-            logs["CSR_y_thresh_PM"] = cx.y_thresh
-
+                cx = complexity(
+                    training_data_folder=self.model.training_folder,
+                    model_predict=self.model.predict,
+                    PM=True,
+                    y_thresh=custom_thresh,
+                    method=method,
+                )
+                logs["CSR_train_data_PM_" + method + str(custom_thresh)] = np.mean(cx.complexity_each_sample)
 
         # save the model to disk
         self.model.save(

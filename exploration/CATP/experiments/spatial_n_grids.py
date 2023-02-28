@@ -56,5 +56,5 @@ class SpatialNGrids:
 
 if __name__ == "__main__":
     th = SpatialNGrids(
-        [1, 16, 32, 64, 128, 252], "training_data_1_4_1_hh32xx32ww", "ConvLSTM"
+        [1, 16, 32, 64, 128, 256], "training_data_1_4_1_hh32xx32ww", "ConvLSTM"
     ).run_experiments()  # 1, 16, 32, 64, 128, 252
