@@ -48,4 +48,4 @@ class TemporalIOLength:
 
 
 if __name__ == "__main__":
-    th = TemporalIOLength(range(2, 9, 1), "training_data_1_4_1", "ConvLSTM").run_experiments()
+    th = TemporalIOLength(range(1, 9, 1), "training_data_1_4_1", "ConvLSTM").run_experiments()

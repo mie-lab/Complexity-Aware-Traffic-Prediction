@@ -26,7 +26,7 @@ cx_max_dist = 2500
 cx_method = "fractional"
 cx_tnl = 8
 if cur_dir.split("/")[1] == "home":
-    cx_N = 4000
+    cx_N = 300
 else:
     cx_N = 5
 cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
@@ -37,12 +37,14 @@ dg_debug = False
 
 
 ######################## ConvLSTM class params #########################
+cl_model_save = False
+cl_early_stopping_patience = -1
+cl_tensorboard = False
 
-cl_early_stopping_patience = 4
 if cur_dir.split("/")[1] == "home":
-    cl_percentage_of_train_data = 0.5  # can be reduced for fast tryouts
-    cl_batch_size = 32
-    cl_dataloader_workers = 8
+    cl_percentage_of_train_data = 0.1  # can be reduced for fast tryouts
+    cl_batch_size = 128
+    cl_dataloader_workers = 16
     cl_epochs = 20
 elif cur_dir.split("/")[1] == "Users":
     cl_percentage_of_train_data = 0.0025  # can be reduced for fast tryouts

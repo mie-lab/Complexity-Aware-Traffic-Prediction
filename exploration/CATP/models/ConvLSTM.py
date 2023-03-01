@@ -27,7 +27,7 @@ from tensorflow.keras.callbacks import Callback
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        for custom_thresh in tqdm(np.arange(200, config.cx_max_dist, 100), "Different thresholds"):
+        for custom_thresh in [800, 1400]:# tqdm(np.arange(200, config.cx_max_dist, 100), "Different thresholds"):
             for method in ["fractional", "default"]:
                 cx = complexity(
                     training_data_folder=self.model.training_folder,
@@ -46,14 +46,16 @@ class ComputeMetrics(Callback):
                     method=method,
                 )
                 logs["CSR_train_data_PM_" + method + str(custom_thresh)] = np.mean(cx.complexity_each_sample)
+                # logs["CSR_y_thresh"] = custom_thresh
 
         # save the model to disk
-        self.model.save(
-            os.path.join(
-                config.INTERMEDIATE_FOLDER,
-                os.path.basename(os.path.normpath(self.model.training_folder)) + "_epoch_" + str(epoch) + ".h5",
+        if config.cl_model_save:
+            self.model.save(
+                os.path.join(
+                    config.INTERMEDIATE_FOLDER,
+                    os.path.basename(os.path.normpath(self.model.training_folder)) + "_epoch_" + str(epoch) + ".h5",
+                )
             )
-        )
 
 
 class ConvLSTM:
@@ -140,16 +142,26 @@ class ConvLSTM:
         sprint(csv_logger, self.validation_data_folder)
         tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(log_dir=self.log_dir)
 
-        earlystop = EarlyStopping(
-            monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=1, mode="auto"
-        )
+
         self.model.training_folder = self.train_data_folder
+
+        callbacks = []
+        if config.cl_early_stopping_patience!=-1:
+            earlystop = EarlyStopping(
+                monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=1, mode="auto"
+            )
+            callbacks.append(earlystop)
+
+        if config.cl_tensorboard:
+            callbacks.extend ( [tensorboard_callback, ComputeMetrics(), csv_logger])
+        else:
+            callbacks.extend ( [ComputeMetrics(), csv_logger])
 
         self.model.fit(
             train_gen,
             validation_data=validation_gen,
             epochs=epochs,
-            callbacks=[earlystop, tensorboard_callback, ComputeMetrics(), csv_logger],
+            callbacks=callbacks,
             workers=config.cl_dataloader_workers,
         )
 
