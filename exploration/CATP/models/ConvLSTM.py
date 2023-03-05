@@ -15,7 +15,6 @@ from smartprint import smartprint as sprint
 from tqdm import tqdm
 
 
-
 import numpy as np
 import tensorflow
 import os
@@ -27,7 +26,7 @@ from tensorflow.keras.callbacks import Callback
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        for custom_thresh in [800, 1400]:# tqdm(np.arange(200, config.cx_max_dist, 100), "Different thresholds"):
+        for custom_thresh in [800, 1400]:  # tqdm(np.arange(200, config.cx_max_dist, 100), "Different thresholds"):
             for method in ["fractional", "default"]:
                 cx = complexity(
                     training_data_folder=self.model.training_folder,
@@ -48,6 +47,8 @@ class ComputeMetrics(Callback):
                 logs["CSR_train_data_PM_" + method + str(custom_thresh)] = np.mean(cx.complexity_each_sample)
                 # logs["CSR_y_thresh"] = custom_thresh
 
+        logs["naive-model"] = NaiveBaseline.from_dataloader(self.model.train_gen, 50)
+
         # save the model to disk
         if config.cl_model_save:
             self.model.save(
@@ -56,6 +57,9 @@ class ComputeMetrics(Callback):
                     os.path.basename(os.path.normpath(self.model.training_folder)) + "_epoch_" + str(epoch) + ".h5",
                 )
             )
+
+        # def on_train_end(self, logs):
+        #     ≈logs
 
 
 class ConvLSTM:
@@ -142,20 +146,20 @@ class ConvLSTM:
         sprint(csv_logger, self.validation_data_folder)
         tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(log_dir=self.log_dir)
 
-
         self.model.training_folder = self.train_data_folder
+        self.model.train_gen = train_gen
 
         callbacks = []
-        if config.cl_early_stopping_patience!=-1:
+        if config.cl_early_stopping_patience != -1:
             earlystop = EarlyStopping(
                 monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=1, mode="auto"
             )
             callbacks.append(earlystop)
 
         if config.cl_tensorboard:
-            callbacks.extend ( [tensorboard_callback, ComputeMetrics(), csv_logger])
+            callbacks.extend([tensorboard_callback, ComputeMetrics(), csv_logger])
         else:
-            callbacks.extend ( [ComputeMetrics(), csv_logger])
+            callbacks.extend([ComputeMetrics(), csv_logger])
 
         self.model.fit(
             train_gen,
@@ -179,8 +183,8 @@ class ConvLSTM:
 
 if __name__ == "__main__":
     model = ConvLSTM(
-        training_data_folder="training_data_8_4_8",
-        validation_data_folder="validation_data_8_4_8",
+        training_data_folder="training_data_1_4_1",
+        validation_data_folder="validation_data_1_4_1",
         shape=(2, 8, 32, 32, 1),
         validation_csv_file="validation.csv",
         log_dir="log_dir",

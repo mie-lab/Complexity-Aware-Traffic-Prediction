@@ -19,7 +19,7 @@ elif cur_dir.split("/")[1] == "Users":
     DATA_FOLDER = DATA_FOLDER_LOCAL
 
 INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
-RESULTS_FOLDER = os.path.join(DATA_FOLDER, "results")
+RESULTS_FOLDER = os.path.join(DATA_FOLDER, "results/latest")
 
 ######################## complexity class params #########################
 cx_max_dist = 2500

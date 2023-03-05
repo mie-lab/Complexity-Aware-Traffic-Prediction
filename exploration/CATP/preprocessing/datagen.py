@@ -32,8 +32,8 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
         x_batch = []
         y_batch = []
         for i in indexes:
-            file_x = os.path.join(config.HOME_FOLDER, self.data_dir, "{}_x.npy".format(i))
-            file_y = os.path.join(config.HOME_FOLDER, self.data_dir, "{}_y.npy".format(i))
+            file_x = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_x.npy".format(i))
+            file_y = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_y.npy".format(i))
             x = np.load(file_x)
             y = np.load(file_y)
             x_batch.append(x)
@@ -49,17 +49,49 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
 
         return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis])
 
+    def custom_get_item_with_file_name(self, index, specific_files=None):
+        """
+        Two functionalities:
+        1. If specific files is None; this functoion does the same thing as __get_item__ but also returns the file
+                                    names.
+        2. If specific files is a file number, this function returns the batch starting from the same file number
+        """
+        if specific_files == None:
+            indexes = self.indexes[index * self.batch_size : (index + 1) * self.batch_size]
+        else:
+            assert isinstance(specific_files, int)
+            indexes = [specific_files]
+        x_batch = []
+        y_batch = []
+        for i in indexes:
+            file_x = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_x.npy".format(i))
+            file_y = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_y.npy".format(i))
+            x = np.load(file_x)
+            y = np.load(file_y)
+            x_batch.append(x)
+            y_batch.append(y)
+        x_batch = np.array(x_batch)
+        y_batch = np.array(y_batch)
+        if config.dg_debug:
+            sprint(x_batch.shape, y_batch.shape)
+            sprint(file_y)
+            sprint(file_x)
+        x_batch = np.moveaxis(x_batch, [0, 1, 2, 3], [0, 2, 3, 1])
+        y_batch = np.moveaxis(y_batch, [0, 1, 2, 3], [0, 2, 3, 1])
+
+        return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis]), indexes
+
     def on_epoch_end(self):
         if self.shuffle:
             np.random.shuffle(self.indexes)
 
 
 if __name__ == "__main__":
-    train_data_folder = "training_data_8_4_8"
-    validation_data_folder = "validation_data_8_4_8"
+    train_data_folder = "training_data_1_4_1"
+    validation_data_folder = "validation_data_1_4_1"
 
-    num_train = len(glob.glob(os.path.join(config.HOME_FOLDER, train_data_folder) + "/*_x.npy"))
-    num_validation = len(glob.glob(os.path.join(config.HOME_FOLDER, validation_data_folder) + "/*_x.npy"))
+    num_train = len(glob.glob(os.path.join(config.DATA_FOLDER, train_data_folder) + "/*_x.npy"))
+    num_validation = len(glob.glob(os.path.join(config.DATA_FOLDER, validation_data_folder) + "/*_x.npy"))
     sprint(num_train, num_validation)
 
     r = 0.01  # np.random.rand()
