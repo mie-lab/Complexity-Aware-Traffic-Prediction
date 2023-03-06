@@ -51,11 +51,26 @@ class PlotValidation:
             # cols.remove("CSR_y_thresh_DL")
             # cols.remove("CSR_y_thresh_PM")
             # cols_filtered = ["val_loss"]
-            cols_filtered = ["CSR_train_data_DL_fractional800"]
+
+            # df = df.rename(columns={"CSR_train_data_DL_default800": "CSR_DEF_800"})
+            # cols_filtered = ["CSR_DEF_800"]
+
+            df = df.rename(columns={"CSR_train_data_PM_default800": "CSR_DEF_PM_800"})
+            cols_filtered = ["CSR_DEF_PM_800"]
+
+            # df = df.rename(columns={"CSR_train_data_DL_fractional800": "CSR_FRAC_800"})
+            # cols_filtered = ["CSR_FRAC_800"]
+            #
+            # df = df.rename(columns={"val_non_zero_mape": "val_non_zero_mape"})
+            # cols_filtered = ["val_non_zero_mape"]
+
+            # df = df.rename(columns={"val_loss": "val_loss"})
+            # cols_filtered = ["val_loss"]
+
             for c, col in enumerate(cols_filtered):
                 alpha = 1  #  - counter / (len(df_dict)) + 0.125
                 # if counter > -1 :# counter == 1: # color="rgbyo"[c]
-                plt.plot(df[x].to_list(), df[col].to_list(), label=col + str(key), alpha=alpha)
+                plt.plot(df[x].to_list(), np.convolve(df[col].to_list(), [1/2] * 2, "same"), label=col + str(key), alpha=alpha)
                 # else:
                 #     plt.plot(df[x].to_list(), df[col].to_list(), color="rgbyo"[c], alpha=alpha)
 
@@ -65,34 +80,34 @@ class PlotValidation:
         # ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         plt.xlabel("Epochs")
-        plt.title(self.cityname + "_" + "_csr_def_" + key_list[0].split("_")[0])
+        plt.title(self.cityname + "_" + col.upper() + key_list[0].split("_")[0])
         matplotx.line_labels()
 
         # plt.ylim(0, 30000)
         # plt.yscale("log")
         plt.tight_layout()
 
-        plt.savefig(os.path.join(config.RESULTS_FOLDER, filename) + ".png")
+        plt.savefig(os.path.join(config.RESULTS_FOLDER, filename+col) + ".png")
 
 
 if __name__ == "__main__":
     list_of_folders = []
     key_list = []
-    for io in range(1, 5):
+    for io in range(1, 9):
         list_of_folders.append("val_csv_IO_" + str(io) + "_" + "4" + "_" + str(io) + ".csv")
         key_list.append("_IO_" + str(io))
     PlotValidation(fname_list=list_of_folders, keylist=key_list, filename="combined_plot_IO")
 
     list_of_folders = []
     key_list = []
-    for horiz in range(1, 6):
+    for horiz in range(1, 9):
         list_of_folders.append("val_csv_horiz_" + "1" + "_" + str(horiz) + "_" + "1" + ".csv")
         key_list.append("_horiz_" + str(horiz))
     PlotValidation(fname_list=list_of_folders, keylist=key_list, filename="combined_plot_horiz")
 
     list_of_folders = []
     key_list = []
-    for n in [1, 16, 32, 64]:  # 256]:
+    for n in [16, 32, 64, 128, 256]:  # 256]:
         list_of_folders.append("val_csv_hh" + str(n) + "xx" + str(n) + "ww_1_4_1")
         key_list.append("_N_grid_" + str(n))
     PlotValidation(fname_list=list_of_folders, keylist=key_list, filename="combined_plot_grid")

@@ -22,7 +22,7 @@ import glob
 
 # Create CSVLogger callback with specified filename
 from tensorflow.keras.callbacks import Callback
-
+from baselines.NaiveBaseline import NaiveBaseline
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
@@ -46,8 +46,8 @@ class ComputeMetrics(Callback):
                 )
                 logs["CSR_train_data_PM_" + method + str(custom_thresh)] = np.mean(cx.complexity_each_sample)
                 # logs["CSR_y_thresh"] = custom_thresh
-
-        logs["naive-model"] = NaiveBaseline.from_dataloader(self.model.train_gen, 50)
+        # sprint (self.model.train_gen)
+        logs["naive-model"] = (NaiveBaseline(1,1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
 
         # save the model to disk
         if config.cl_model_save:
