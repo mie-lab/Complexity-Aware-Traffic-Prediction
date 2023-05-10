@@ -1,11 +1,11 @@
 import os
-
+import datetime
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 DEBUG = False
 
-DATA_FOLDER_LOCAL = "/Users/nishant/Documents/GitHub/CTP/exploration"
+DATA_FOLDER_LOCAL = "/Users/nishant/Downloads/NeurIPS2022-traffic4cast"
 HOME_FOLDER_LOCAL = "/Users/nishant/Documents/GitHub/CTP/exploration/CATP"
 DATA_FOLDER_SERVER = "/home/niskumar/NeurIPS2022-traffic4cast/exploration"
 HOME_FOLDER_SERVER = "/home/niskumar/NeurIPS2022-traffic4cast/exploration/CATP"
@@ -33,7 +33,7 @@ cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y
 
 
 ######################## Datagen class params #########################
-dg_debug = False
+dg_debug = True
 
 
 ######################## ConvLSTM class params #########################
@@ -54,3 +54,38 @@ elif cur_dir.split("/")[1] == "Users":
 
 cl_loss_func = "mse"
 cl_n_depth = 3
+
+
+
+######################### Dimensions for experiments ####################
+scales = [8] # [1, 8, 16, 32, 64, 128, 256]
+i_o_lengths = [4] # [1, 2, 3, 4, 5, 6, 7, 8]
+pred_horiz = [4] # [1, 2, 3, 4, 5, 6, 7, 8]
+DATA_START_DATE = {\
+    "london": datetime.date(2019, 7, 1), \
+    "madrid": datetime.date(2021, 6, 1), \
+    "melbourne": datetime.date(2020, 6, 1), \
+    }
+
+DATA_END_DATE = { \
+    "london": datetime.date(2020, 1, 31), \
+    "madrid": datetime.date(2021, 12, 31), \
+    "melbourne": datetime.date(2020, 12, 30), \
+    }
+city_list = ["LonDON", "madrid", "MELBOURNE"]
+
+val_folder_name = "val_data_all_cities"
+train_folder_name = "train_data_all_cities"
+if not os.path.exists(os.path.join(DATA_FOLDER, train_folder_name)):
+    os.mkdir(os.path.join(DATA_FOLDER, train_folder_name))
+if not os.path.exists(os.path.join(DATA_FOLDER, val_folder_name)):
+    os.mkdir(os.path.join(DATA_FOLDER, val_folder_name))
+
+TRAINING_DATA_FOLDER = (os.path.join(DATA_FOLDER, train_folder_name))
+VALIDATION_DATA_FOLDER = (os.path.join(DATA_FOLDER, val_folder_name))
+
+cutoff_day_number_train = 20
+start_day_number_val = 190
+
+# ensure no overlap between train and validation data
+assert start_day_number_val >= cutoff_day_number_train

@@ -31,6 +31,7 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
         indexes = self.indexes[index * self.batch_size : (index + 1) * self.batch_size]
         x_batch = []
         y_batch = []
+
         for i in indexes:
             file_x = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_x.npy".format(i))
             file_y = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_y.npy".format(i))
@@ -40,7 +41,10 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
             y_batch.append(y)
         x_batch = np.array(x_batch)
         y_batch = np.array(y_batch)
+
+        assert len(indexes) > 0
         if config.dg_debug:
+            sprint (len(indexes))
             sprint(x_batch.shape, y_batch.shape)
             sprint(file_y)
             sprint(file_x)
