@@ -70,7 +70,12 @@ class PlotValidation:
             for c, col in enumerate(cols_filtered):
                 alpha = 1  #  - counter / (len(df_dict)) + 0.125
                 # if counter > -1 :# counter == 1: # color="rgbyo"[c]
-                plt.plot(df[x].to_list(), np.convolve(df[col].to_list(), [1/2] * 2, "same"), label=col + str(key), alpha=alpha)
+                plt.plot(
+                    df[x].to_list(),
+                    np.convolve(df[col].to_list(), [1 / 2] * 2, "same"),
+                    label=col + str(key),
+                    alpha=alpha,
+                )
                 # else:
                 #     plt.plot(df[x].to_list(), df[col].to_list(), color="rgbyo"[c], alpha=alpha)
 
@@ -87,7 +92,7 @@ class PlotValidation:
         # plt.yscale("log")
         plt.tight_layout()
 
-        plt.savefig(os.path.join(config.RESULTS_FOLDER, filename+col) + ".png")
+        plt.savefig(os.path.join(config.RESULTS_FOLDER, filename + col) + ".png")
 
 
 if __name__ == "__main__":

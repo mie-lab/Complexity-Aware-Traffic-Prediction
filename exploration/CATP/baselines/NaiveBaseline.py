@@ -1,5 +1,7 @@
 from smartprint import smartprint as sprint
 import numpy as np
+
+
 class NaiveBaseline:
     def __init__(self, x, y):
         self.x = x

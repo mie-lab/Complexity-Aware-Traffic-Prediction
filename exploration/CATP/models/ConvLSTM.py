@@ -23,12 +23,15 @@ import glob
 # Create CSVLogger callback with specified filename
 from tensorflow.keras.callbacks import Callback
 from baselines.NaiveBaseline import NaiveBaseline
+from preprocessing.ProcessRaw import ProcessRaw
+
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
         for custom_thresh in [800, 1400]:  # tqdm(np.arange(200, config.cx_max_dist, 100), "Different thresholds"):
             for method in ["fractional", "default"]:
                 cx = complexity(
+                    prefix=self.model.prefix,
                     training_data_folder=self.model.training_folder,
                     model_predict=self.model.predict,
                     PM=False,
@@ -38,6 +41,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_train_data_DL_" + method + str(custom_thresh)] = np.mean(cx.complexity_each_sample)
 
                 cx = complexity(
+                    prefix=self.model.prefix,
                     training_data_folder=self.model.training_folder,
                     model_predict=self.model.predict,
                     PM=True,
@@ -47,7 +51,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_train_data_PM_" + method + str(custom_thresh)] = np.mean(cx.complexity_each_sample)
                 # logs["CSR_y_thresh"] = custom_thresh
         # sprint (self.model.train_gen)
-        logs["naive-model"] = (NaiveBaseline(1,1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
+        logs["naive-model"] = (NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
 
         # save the model to disk
         if config.cl_model_save:
@@ -63,12 +67,15 @@ class ComputeMetrics(Callback):
 
 
 class ConvLSTM:
-    def __init__(self, training_data_folder, validation_data_folder, log_dir, shape, validation_csv_file):
+    def __init__(self, cityname, io_length, pred_horiz, scale, log_dir, shape, validation_csv_file):
         """
         Input and output shapes are the same (tuple of length 5)
         """
-        self.train_data_folder = os.path.join(config.DATA_FOLDER, training_data_folder)
-        self.validation_data_folder = os.path.join(config.DATA_FOLDER, validation_data_folder)
+        self.cityname, self.io_length, self.pred_horiz, self.scale = cityname, io_length, pred_horiz, scale
+        self.prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
+
+        self.train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER)
+        self.validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER)
         self.shape = shape
         self.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, validation_csv_file)
         sprint(validation_csv_file, self.validation_csv_file)
@@ -127,15 +134,30 @@ class ConvLSTM:
         tensorflow.keras.backend.clear_session()
         self.model.compile(optimizer=optimizer, loss=loss_fn, metrics=non_zero_mape)
 
-        num_train = len(glob.glob(os.path.join(config.HOME_FOLDER, self.train_data_folder) + "/*_x.npy"))
-        num_validation = len(glob.glob(os.path.join(config.HOME_FOLDER, self.validation_data_folder) + "/*_x.npy"))
+        num_train = len(
+            glob.glob(os.path.join(config.HOME_FOLDER, self.train_data_folder) + "/" + self.prefix + "*_x.npy")
+        )
+        num_validation = len(
+            glob.glob(os.path.join(config.HOME_FOLDER, self.validation_data_folder) + "/" + self.prefix + "*_x.npy")
+        )
 
         r = config.cl_percentage_of_train_data  # np.random.rand()
 
         train_gen = CustomDataGenerator(
-            data_dir=self.train_data_folder, num_samples=int(num_train * r), batch_size=batch_size, shuffle=True
+            self.cityname,
+            self.io_length,
+            self.pred_horiz,
+            self.scale,
+            data_dir=self.train_data_folder,
+            num_samples=int(num_train * r),
+            batch_size=batch_size,
+            shuffle=True,
         )
         validation_gen = CustomDataGenerator(
+            self.cityname,
+            self.io_length,
+            self.pred_horiz,
+            self.scale,
             data_dir=self.validation_data_folder,
             num_samples=int(num_validation * r),
             batch_size=batch_size,
@@ -148,6 +170,7 @@ class ConvLSTM:
 
         self.model.training_folder = self.train_data_folder
         self.model.train_gen = train_gen
+        self.model.prefix = self.prefix
 
         callbacks = []
         if config.cl_early_stopping_patience != -1:
@@ -169,25 +192,32 @@ class ConvLSTM:
             workers=config.cl_dataloader_workers,
         )
 
-    def print_model_and_class_values(self):
-        sprint(
-            self.train_data_folder,
-            self.validation_data_folder,
-            self.shape,
-            self.validation_csv_file,
-            self.log_dir,
-            self.model,
-            self.model.summary(),
-        )
+    def print_model_and_class_values(self, print_model_summary=True):
+        sprint(self.train_data_folder)
+        sprint(self.validation_data_folder)
+        sprint(self.shape)
+        sprint(self.validation_csv_file)
+        sprint(self.log_dir)
+        sprint(self.model)
+        sprint(self.prefix)
+        if print_model_summary:
+            sprint(self.model.summary())
 
 
 if __name__ == "__main__":
+    cityname = "london"
+    io_length = 4
+    pred_horiz = 8
+    scale = 8
+
     model = ConvLSTM(
-        training_data_folder="training_data_1_4_1",
-        validation_data_folder="validation_data_1_4_1",
-        shape=(2, 8, 32, 32, 1),
+        cityname,
+        io_length,
+        pred_horiz,
+        scale,
+        shape=(2, io_length, scale, scale, 1),
         validation_csv_file="validation.csv",
         log_dir="log_dir",
     )
-    model.print_model_and_class_values()
+    model.print_model_and_class_values(print_model_summary=False)
     model.train()

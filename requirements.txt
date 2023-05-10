@@ -1,0 +1,7 @@
+torch==1.11.0
+pyarrow
+h5py
+smartprint==1.0.5
+tqdm==4.65.0
+haversine==2.8.0
+python-slugify==8.0.1

@@ -13,13 +13,14 @@ import matplotlib.pyplot as plt
 
 
 class complexity:
-    def __init__(self, training_data_folder, y_thresh=-1, model_predict="dummy", PM=True, method="default"):
+    def __init__(self, prefix, training_data_folder, y_thresh=-1, model_predict="dummy", PM=True, method="default"):
         """
         tnl: temporal_neighbour_limit (defined using DL based traffic prediction)
         model_predict = model.predict Or a dummy value if Perfect model is True
         method: ["default", "fractional"]
         """
         self.method = method  # config.cx_method
+        self.prefix = prefix
         self.training_data_folder = training_data_folder
         self.y_thresh = y_thresh
         self.tnl = config.cx_tnl
@@ -37,7 +38,7 @@ class complexity:
         count_CS = []
         cache_dict = {}  # to reduce the number of file reads
         hit, miss = 0, 0
-        filenames = glob.glob(self.training_data_folder + "/*.npy")
+        filenames = glob.glob(self.training_data_folder + "/" + self.prefix + "*.npy")
         filenames = [f for f in filenames if "_x" in f]
 
         range_of_fnames = list(range(self.tnl + 1, len(filenames) - self.tnl))
@@ -52,8 +53,8 @@ class complexity:
                 x, y = cache_dict[int(n)]
                 hit += 1
             else:
-                x = np.load(self.training_data_folder + "/" + n + "_x" + ".npy")
-                y = np.load(self.training_data_folder + "/" + n + "_y" + ".npy")
+                x = np.load(self.training_data_folder + "/" + self.prefix + n + "_x" + ".npy")
+                y = np.load(self.training_data_folder + "/" + self.prefix + n + "_y" + ".npy")
                 cache_dict[int(n)] = x, y
                 miss += 1
 
@@ -68,8 +69,8 @@ class complexity:
                     x_hat, y_hat = cache_dict[neigh]
                     hit += 1
                 else:
-                    x_hat = np.load(self.training_data_folder + "/" + str(neigh) + "_x" + ".npy")
-                    y_hat = np.load(self.training_data_folder + "/" + str(neigh) + "_y" + ".npy")
+                    x_hat = np.load(self.training_data_folder + "/" + self.prefix + str(neigh) + "_x" + ".npy")
+                    y_hat = np.load(self.training_data_folder + "/" + self.prefix + str(neigh) + "_y" + ".npy")
                     cache_dict[neigh] = x_hat, y_hat
                     miss += 1
 

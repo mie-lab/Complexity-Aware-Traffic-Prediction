@@ -13,11 +13,14 @@ import config
 import glob
 import numpy as np
 from smartprint import smartprint as sprint
+from preprocessing.ProcessRaw import ProcessRaw
 
 
 class CustomDataGenerator(tensorflow.keras.utils.Sequence):
-    def __init__(self, data_dir, num_samples, batch_size=32, shuffle=True):
+    def __init__(self, cityname, io_length, pred_horiz, scale, data_dir, num_samples, batch_size=32, shuffle=True):
         self.data_dir = data_dir
+        self.city_name, self.io_length, self.pred_horiz, self.scale = cityname, io_length, pred_horiz, scale
+        self.prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
         self.num_samples = num_samples
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -33,8 +36,8 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
         y_batch = []
 
         for i in indexes:
-            file_x = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_x.npy".format(i))
-            file_y = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_y.npy".format(i))
+            file_x = os.path.join(config.DATA_FOLDER, self.data_dir, self.prefix + "{}_x.npy".format(i))
+            file_y = os.path.join(config.DATA_FOLDER, self.data_dir, self.prefix + "{}_y.npy".format(i))
             x = np.load(file_x)
             y = np.load(file_y)
             x_batch.append(x)
@@ -44,7 +47,7 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
 
         assert len(indexes) > 0
         if config.dg_debug:
-            sprint (len(indexes))
+            sprint(len(indexes))
             sprint(x_batch.shape, y_batch.shape)
             sprint(file_y)
             sprint(file_x)
@@ -91,18 +94,38 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
 
 
 if __name__ == "__main__":
-    train_data_folder = "training_data_1_4_1"
-    validation_data_folder = "validation_data_1_4_1"
+    # train_data_folder = "training_data_1_4_1"
+    train_data_folder = config.TRAINING_DATA_FOLDER
+    # validation_data_folder = "validation_data_1_4_1"
+    validation_data_folder = config.VALIDATION_DATA_FOLDER
 
-    num_train = len(glob.glob(os.path.join(config.DATA_FOLDER, train_data_folder) + "/*_x.npy"))
-    num_validation = len(glob.glob(os.path.join(config.DATA_FOLDER, validation_data_folder) + "/*_x.npy"))
+    r = 0.06  # ratio: what fraction of data points to use
+
+    cityname = "london"
+    io_length = 4
+    pred_horiz = 8
+    scale = 8
+
+    prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
+    num_train = len(glob.glob(os.path.join(config.DATA_FOLDER, train_data_folder) + "/" + prefix + "*_x.npy"))
+    num_validation = len(glob.glob(os.path.join(config.DATA_FOLDER, validation_data_folder) + "/" + prefix + "*_x.npy"))
     sprint(num_train, num_validation)
 
-    r = 0.01  # np.random.rand()
     train_gen = CustomDataGenerator(
-        data_dir=train_data_folder, num_samples=int(num_train * r), batch_size=config.cl_batch_size, shuffle=True
+        cityname,
+        io_length,
+        pred_horiz,
+        scale,
+        data_dir=train_data_folder,
+        num_samples=int(num_train * r),
+        batch_size=config.cl_batch_size,
+        shuffle=True,
     )
     validation_gen = CustomDataGenerator(
+        cityname,
+        io_length,
+        pred_horiz,
+        scale,
         data_dir=validation_data_folder,
         num_samples=int(num_validation * r),
         batch_size=config.cl_batch_size,
@@ -111,8 +134,8 @@ if __name__ == "__main__":
 
     for x, y in train_gen:
         print("Train datagen shape:", x.shape, y.shape)
-        break
+        # break
 
     for x, y in validation_gen:
         print("Validation datagen shape:", x.shape, y.shape)
-        break
+        # break

@@ -8,12 +8,14 @@ from smartprint import smartprint as sprint
 
 
 class SpatialNGrids:
-    def __init__(self, range_of_n_in_nXn_grids, base_folder_name_i_h_o, model_class_str):
+    def __init__(self, cityname, range_of_n_in_nXn_grids, base_folder_name_i_h_o, model_class_str):
         """
         :param range_of_n_in_nXn_grids: list of horizons
         :param base_folder_name_i_h_o: must follow this format training_data_8_4_8
         """
         assert model_class_str in ["ConvLSTM"]  # others not implemented yet
+        self.cityname = cityname
+
         self.n1 = base_folder_name_i_h_o.split("xx")[0].split("hh")[1]
         self.n2 = base_folder_name_i_h_o.split("xx")[1].split("ww")[0]
 
@@ -24,7 +26,7 @@ class SpatialNGrids:
         self.list_of_folders = []
         self.range_of_n = range_of_n_in_nXn_grids
         for n in self.range_of_n:
-            self.postfix = "hh" + str(n) + "xx" + str(n) + "ww"
+            self.postfix = self.cityname + "_hh" + str(n) + "xx" + str(n) + "ww"
             self.list_of_folders.append(
                 (
                     "training_data_" + self.postfix + "_" + str(i) + "_" + str(h) + "_" + str(o),
@@ -55,6 +57,7 @@ class SpatialNGrids:
 
 
 if __name__ == "__main__":
-    th = SpatialNGrids(
-        [16, 32, 64, 128, 256], "training_data_1_4_1_hh32xx32ww", "ConvLSTM"
-    ).run_experiments()  # 1, 16, 32, 64, 128, 252
+    for city in config.city_list:
+        th = SpatialNGrids(
+            city, config.scales, "training_data_1_4_1_hh32xx32ww", "ConvLSTM"
+        ).run_experiments()  # 1, 16, 32, 64, 128, 252
