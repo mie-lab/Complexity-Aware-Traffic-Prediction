@@ -10,7 +10,7 @@ from validation_metrics.custom_losses import non_zero_mape
 from tensorflow.keras import layers, optimizers
 from tensorflow.keras.callbacks import EarlyStopping, CSVLogger
 from preprocessing.datagen import CustomDataGenerator
-from complexity import complexity
+from complexity.complexity import complexity
 from smartprint import smartprint as sprint
 from tqdm import tqdm
 

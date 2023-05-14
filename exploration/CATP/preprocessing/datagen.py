@@ -42,15 +42,25 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
             y = np.load(file_y)
             x_batch.append(x)
             y_batch.append(y)
-        x_batch = np.array(x_batch)
-        y_batch = np.array(y_batch)
 
-        assert len(indexes) > 0
         if config.dg_debug:
             sprint(len(indexes))
-            sprint(x_batch.shape, y_batch.shape)
+            sprint(self.prefix)
+            sprint(x_batch[0].shape, y_batch[0].shape)
+            if config.dg_debug_each_data_sample:
+                for index, x in enumerate(x_batch):
+                    sprint(x.shape, y.shape, index)
             sprint(file_y)
             sprint(file_x)
+
+        x_batch = np.array(x_batch, dtype=np.float)
+        y_batch = np.array(y_batch, dtype=np.float)
+
+        if config.dg_debug:
+            sprint(x_batch[0].shape, y_batch[0].shape)
+
+        assert len(indexes) > 0
+
         x_batch = np.moveaxis(x_batch, [0, 1, 2, 3], [0, 2, 3, 1])
         y_batch = np.moveaxis(y_batch, [0, 1, 2, 3], [0, 2, 3, 1])
 

@@ -3,6 +3,7 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))  # location of config file
 
+import pathlib
 import datetime
 import glob
 import config
@@ -191,15 +192,21 @@ class ProcessRaw:
         ih = oh
 
         fnames = glob.glob("data_samples/*x96.npy")
-        fnames = [x for x in fnames if self.cityname in x]
+        fnames = [x for x in fnames if self.cityname in x and \
+                  ("-" + str(self.grid_size) + "x" + str(self.grid_size) + "x96") in x]
 
         # sorting by yyyy-mm-dd ensures that validation data always comes later than test
         list.sort(fnames)
 
         training_dates = set(self.date_list[: config.cutoff_day_number_train])
         validation_dates = set(self.date_list[config.start_day_number_val :])
-        training_folder = config.TRAINING_DATA_FOLDER
-        validation_folder = config.VALIDATION_DATA_FOLDER
+
+        pathlib.Path(os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())).mkdir(parents=True,
+                                                                                             exist_ok=True)
+        pathlib.Path(os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())).mkdir(parents=True,
+                                                                                             exist_ok=True)
+        training_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
+        validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
 
         #     print (fnames)
         tcount = 0
@@ -209,15 +216,22 @@ class ProcessRaw:
             m = np.load(f)
             #         print (m.shape)
 
+
             # since f.split("data_samples")[1] would give filenames like: melbourne_2020-06-07-8x8x96.npy
             # f.split("data_samples")[1].split(self.cityname)[1][1:11]= '2020-06-07'
             if f.split("data_samples")[1].split(self.cityname)[1][1:11] in training_dates:
                 for j in range(ih, 96 - (oh + ph + 1)):
                     tcount += 1
-                    x = m[:, :, j - ih : j]
-                    y = m[:, :, j + ph : j + ph + oh]
-
                     r = tcount
+
+                    if os.path.exists(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_x.npy"))\
+                        and os.path.exists(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_y.npy")):
+                        # processed data already exists
+                        pass
+
+                    x = m[:, :, j - ih: j]
+                    y = m[:, :, j + ph: j + ph + oh]
+
                     np.save(os.path.join(training_folder, self.key_dimensions() + str(r) + "_x.npy"), x)
                     np.save(os.path.join(training_folder, self.key_dimensions() + str(r) + "_y.npy"), y)
 
@@ -228,6 +242,7 @@ class ProcessRaw:
                     y = m[:, :, j + ph : j + ph + oh]
 
                     r = vcount
+
                     np.save(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_x.npy"), x)
                     np.save(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_y.npy"), y)
 
@@ -246,13 +261,27 @@ class ProcessRaw:
 
     @staticmethod
     def file_prefix(cityname, io_length, pred_horiz, scale):  # a __repr__() for the clas
-        return slugify(str([cityname, io_length, pred_horiz, scale])) + "-"
+        return slugify(str([cityname.lower(), io_length, pred_horiz, scale])) + "-"
 
 
 if __name__ == "__main__":
     # os.system("rm -rf data_samples && mkdir data_samples")
     for city in config.city_list:
+
+        # scales
         for scale in config.scales:
+            for i_o_length in config.i_o_lengths_def:
+                for pred_horiz in config.pred_horiz_def:
+                    ProcessRaw(cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale)
+
+        # io_lengths
+        for scale in config.scales_def:
             for i_o_length in config.i_o_lengths:
+                for pred_horiz in config.pred_horiz_def:
+                    ProcessRaw(cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale)
+
+        # pred_horiz
+        for scale in config.scales_def:
+            for i_o_length in config.i_o_lengths_def:
                 for pred_horiz in config.pred_horiz:
                     ProcessRaw(cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale)
