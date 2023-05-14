@@ -227,7 +227,7 @@ class ProcessRaw:
                     if os.path.exists(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_x.npy"))\
                         and os.path.exists(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_y.npy")):
                         # processed data already exists
-                        pass
+                        return
 
                     x = m[:, :, j - ih: j]
                     y = m[:, :, j + ph: j + ph + oh]

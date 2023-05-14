@@ -1,12 +1,14 @@
-import os
 import datetime
+import glob
+import os
+from tqdm import tqdm
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 DEBUG = False
 
-
+delete_processed_files = True
 
 cur_dir = os.getcwd()
 if cur_dir.split("/")[1] == "home":
@@ -47,8 +49,8 @@ cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y
 
 
 ######################## Datagen class params #########################
-dg_debug = True
-dg_debug_each_data_sample = True
+dg_debug = False
+dg_debug_each_data_sample = False
 
 
 ######################## ConvLSTM class params #########################
@@ -73,22 +75,22 @@ cl_n_depth = 3
 
 ######################### Dimensions for experiments ####################
 if running_on == "server":
-    scales = list(range(1, 200, 10))
-    i_o_lengths = list(range(1, 9))
+    city_list = ["LonDON" , "madrid", "MELBOURNE"]  # all are converted to lower case later on
+    scales_def = [45]
+    i_o_lengths_def = [4]
+    pred_horiz_def = [4]
+    scales = scales_def # list(range(5, 250, 20))
+    i_o_lengths = i_o_lengths_def # list(range(1, 9))
     pred_horiz = list(range(1, 9))
-    city_list = ["LonDON"] # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
-    scales_def = [32]
-    i_o_lengths_def = [1]
-    pred_horiz_def = [1]
 
 elif running_on=="maclocal":
-    scales = [8, 16]  # , 16] # [1, 8, 16, 32, 64, 128, 256]
-    i_o_lengths = [4] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
-    pred_horiz = [4] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     city_list = ["LonDON"]  # all are converted to lower case later on
     scales_def = [16]
     i_o_lengths_def = [4]
     pred_horiz_def = [4]
+    scales = [8, 16]  # , 16] # [1, 8, 16, 32, 64, 128, 256]
+    i_o_lengths = [4] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
+    pred_horiz = [4] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
 
 
 DATA_START_DATE = {
@@ -132,3 +134,5 @@ elif running_on=="maclocal":
 
 # ensure no overlap between train and validation data
 assert start_day_number_val >= cutoff_day_number_train
+
+

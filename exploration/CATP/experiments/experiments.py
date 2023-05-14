@@ -6,6 +6,8 @@ import config
 from models.ConvLSTM import ConvLSTM
 from smartprint import smartprint as sprint
 from preprocessing.ProcessRaw import ProcessRaw
+import glob
+from tqdm import tqdm
 
 
 class SpatialDim:
@@ -64,12 +66,31 @@ if __name__ == "__main__":
     # th = SpatialDim(cityname, io_length, pred_horiz, scale, model_class_str="ConvLSTM"
     #                 ).run_experiments()  # 1, 16, 32, 64, 128, 252
 
-    ############ Running all experiments together
+    ############ Running spatial experiments
     for cityname in config.city_list:
-        for io_length in config.i_o_lengths:
-            for pred_horiz in config.pred_horiz:
+        for io_length in config.i_o_lengths_def:
+            for pred_horiz in config.pred_horiz_def:
                 for scale in config.scales:
                     sprint(cityname, io_length, pred_horiz, scale)
+
+                    for a in [
+                        glob.glob(config.TRAINING_DATA_FOLDER + "/*"),
+                        glob.glob(config.VALIDATION_DATA_FOLDER + "/*"),
+                    ]:
+                        for i in tqdm(range(0, len(a), 1), desc="deleting old temp file"):
+                            string_list = (
+                                str(a[i : i + 1])
+                                .replace(",", "")
+                                .replace("[", "")
+                                .replace("]", "")
+                                .strip()
+                                .replace('"', "")
+                                .replace("'", "")
+                            )
+                            os.system("rm -rf " + string_list)
+
+                    ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
+
                     th = SpatialDim(
                         cityname, io_length, pred_horiz, scale, model_class_str="ConvLSTM"
                     ).run_experiments()  # 1, 16, 32, 64, 128, 252

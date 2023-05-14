@@ -18,9 +18,11 @@ from preprocessing.ProcessRaw import ProcessRaw
 
 class CustomDataGenerator(tensorflow.keras.utils.Sequence):
     def __init__(self, cityname, io_length, pred_horiz, scale, data_dir, num_samples, batch_size=32, shuffle=True):
-        self.data_dir = data_dir
+
         self.city_name, self.io_length, self.pred_horiz, self.scale = cityname, io_length, pred_horiz, scale
         self.prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
+        self.data_dir = data_dir
+
         self.num_samples = num_samples
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -53,8 +55,8 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
             sprint(file_y)
             sprint(file_x)
 
-        x_batch = np.array(x_batch, dtype=np.float)
-        y_batch = np.array(y_batch, dtype=np.float)
+        x_batch = np.array(x_batch, dtype=float)
+        y_batch = np.array(y_batch, dtype=float)
 
         if config.dg_debug:
             sprint(x_batch[0].shape, y_batch[0].shape)
@@ -81,8 +83,8 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
         x_batch = []
         y_batch = []
         for i in indexes:
-            file_x = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_x.npy".format(i))
-            file_y = os.path.join(config.DATA_FOLDER, self.data_dir, "{}_y.npy".format(i))
+            file_x = os.path.join(config.DATA_FOLDER, self.data_dir, self.prefix, "{}_x.npy".format(i))
+            file_y = os.path.join(config.DATA_FOLDER, self.data_dir, self.prefix, "{}_y.npy".format(i))
             x = np.load(file_x)
             y = np.load(file_y)
             x_batch.append(x)
@@ -113,12 +115,12 @@ if __name__ == "__main__":
 
     cityname = "london"
     io_length = 4
-    pred_horiz = 8
+    pred_horiz = 4
     scale = 8
 
     prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
-    num_train = len(glob.glob(os.path.join(config.DATA_FOLDER, train_data_folder) + "/" + prefix + "*_x.npy"))
-    num_validation = len(glob.glob(os.path.join(config.DATA_FOLDER, validation_data_folder) + "/" + prefix + "*_x.npy"))
+    num_train = len(glob.glob(os.path.join(config.DATA_FOLDER, train_data_folder, prefix) + "/" + prefix + "*_x.npy"))
+    num_validation = len(glob.glob(os.path.join(config.DATA_FOLDER, validation_data_folder, prefix) + "/" + prefix + "*_x.npy"))
     sprint(num_train, num_validation)
 
     train_gen = CustomDataGenerator(

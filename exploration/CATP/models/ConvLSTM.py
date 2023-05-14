@@ -74,8 +74,8 @@ class ConvLSTM:
         self.cityname, self.io_length, self.pred_horiz, self.scale = cityname, io_length, pred_horiz, scale
         self.prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
 
-        self.train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER)
-        self.validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER)
+        self.train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, self.prefix)
+        self.validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER, self.prefix)
         self.shape = shape
         self.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, validation_csv_file)
         sprint(validation_csv_file, self.validation_csv_file)
