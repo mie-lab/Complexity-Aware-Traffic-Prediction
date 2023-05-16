@@ -5,3 +5,4 @@ smartprint==1.0.5
 tqdm==4.65.0
 haversine==2.8.0
 python-slugify==8.0.1
+peakdetect==1.2
