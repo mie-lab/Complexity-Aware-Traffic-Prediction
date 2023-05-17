@@ -1,156 +1,198 @@
 import os
 import sys
 
-sys.path.append(os.path.dirname(__file__))
-import config
-import glob
-import numpy as np
-from tqdm import tqdm
+# import tensorflow
 from smartprint import smartprint as sprint
-from scipy.spatial import minkowski_distance_p
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../"))  # location of config file
+import config
+
+from preprocessing.ProcessRaw import ProcessRaw
+import numpy as np
+import glob
 import random
-import matplotlib.pyplot as plt
+from tqdm import tqdm
 
-
-class complexity:
-    def __init__(self, prefix, training_data_folder, y_thresh=-1, model_predict="dummy", PM=True, method="default"):
+class Complexity:
+    def __init__(self, cityname, i_o_length, prediction_horizon, grid_size, thresh):
         """
-        tnl: temporal_neighbour_limit (defined using DL based traffic prediction)
-        model_predict = model.predict Or a dummy value if Perfect model is True
-        method: ["default", "fractional"]
+        self, cityname, i_o_length, prediction_horizon, grid_size
         """
-        self.method = method  # config.cx_method
-        self.prefix = prefix
-        self.training_data_folder = training_data_folder
-        self.y_thresh = y_thresh
-        self.tnl = config.cx_tnl
-        self.N = config.cx_N
-        # if not config.cx_re_compute_y_thresh:
-        #     self.y_thresh = config.cx_y_thresh
-        # else:
-        #     self.y_thresh = self.determine_y_thresh_maxvar()
-        self.complexity_each_sample = self.compute_criticality_smooth(
-            model_predict=model_predict, PM=PM, y_thresh=self.y_thresh
-        )
+        self.cityname = cityname.lower()
+        self.i_o_length = i_o_length
+        self.grid_size = grid_size
+        self.prediction_horizon = prediction_horizon
+        self.file_prefix = ProcessRaw.file_prefix(cityname=self.cityname, io_length=self.i_o_length, \
+                                                  pred_horiz=self.prediction_horizon, scale=self.grid_size)
+        self.thresh = thresh
 
-    # compute CSR from Arpit et al. or data-sample specific criticality
-    def compute_criticality_smooth(self, model_predict, y_thresh, PM=True):
-        count_CS = []
-        cache_dict = {}  # to reduce the number of file reads
-        hit, miss = 0, 0
-        filenames = glob.glob(self.training_data_folder + "/" + self.prefix + "*.npy")
-        filenames = [f for f in filenames if "_x" in f]
+        self.offset = prediction_horizon + i_o_length * 2 # one time for ip; one for op; one for pred_horiz
+        # self.offset replaces 96 to account for edge effects of specific experiments
 
-        range_of_fnames = list(range(self.tnl + 1, len(filenames) - self.tnl))
-        random.shuffle(range_of_fnames)
+        self.cx_whole_dataset_PM(True)
 
-        total_count = 0
-        for i in range_of_fnames[: self.N]:  # , desc="computing CSR for training dataset"):
-            total_count += 1
 
-            n = str(i)
-            if int(n) in cache_dict:
-                x, y = cache_dict[int(n)]
-                hit += 1
-            else:
-                x = np.load(self.training_data_folder + "/" + self.prefix + n + "_x" + ".npy")
-                y = np.load(self.training_data_folder + "/" + self.prefix + n + "_y" + ".npy")
-                cache_dict[int(n)] = x, y
-                miss += 1
+    def compute_dist_N_points(file_list, query_point):
+        random.shuffle(file_list)
+        distances = []
+        for i in (range(1, len(file_list))):
+            neighbour_x_array = np.load(file_list[i])
 
-            neighbours_x = []
-            neighbours_y = []
+            if "_x.npy" not in file_list[i]:
+                raise Exception(
+                    "Wrong file supplied; we should not have _y files\n since we are looking for n-hood of x")
 
-            for j in range(-self.tnl, self.tnl):
-                neigh = int(n) + j
-                if j == 0:
-                    continue
-                if neigh in cache_dict:
-                    x_hat, y_hat = cache_dict[neigh]
-                    hit += 1
-                else:
-                    x_hat = np.load(self.training_data_folder + "/" + self.prefix + str(neigh) + "_x" + ".npy")
-                    y_hat = np.load(self.training_data_folder + "/" + self.prefix + str(neigh) + "_y" + ".npy")
-                    cache_dict[neigh] = x_hat, y_hat
-                    miss += 1
+            distances.append(np.max(np.abs(query_point - neighbour_x_array)))
+        return distances
 
-                x_hat = x_hat.reshape((-1, x.shape[0], x.shape[1], x.shape[2]))
-                x_hat = np.moveaxis(x_hat, [0, 1, 2, 3], [0, 2, 3, 1])[..., np.newaxis]
+    def cx_whole_dataset_PM(self, temporal_filter=False):
+        """
+        temporal_filter: If true, filtering is carried out using nearest neighbours
+        """
+        self.training_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
 
-                y_hat = y_hat.reshape((-1, y.shape[0], y.shape[1], y.shape[2]))
-                y_hat = np.moveaxis(y_hat, [0, 1, 2, 3], [0, 2, 3, 1])[..., np.newaxis]
+        # we compute this information only using training data; no need for validation data
+        # self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
 
-                neighbours_x.append(x_hat)
-                neighbours_y.append(y_hat)
+        obj = ProcessRaw(cityname=self.cityname, i_o_length=self.i_o_length, \
+                         prediction_horizon=self.prediction_horizon, grid_size=self.grid_size)
+        prefix = self.file_prefix
 
-            if PM:
-                prediction = np.vstack(tuple(neighbours_y))
-            else:
-                prediction = model_predict(np.vstack(tuple(neighbours_x)))
+        file_list = glob.glob(self.training_folder + "/" + self.file_prefix + "*_x.npy")
+        random.shuffle(file_list)
 
-            x = x.reshape((-1, x.shape[0], x.shape[1], x.shape[2]))
-            x = np.moveaxis(x, [0, 1, 2, 3], [0, 2, 3, 1])[..., np.newaxis]
-            y = y.reshape((-1, y.shape[0], y.shape[1], y.shape[2]))
-            y = np.moveaxis(y, [0, 1, 2, 3], [0, 2, 3, 1])[..., np.newaxis]
+        # file_list = file_list[:config.cx_sample_whole_data]
+        csr_count = 0
 
-            a, b, c, d = prediction.shape[1], prediction.shape[2], prediction.shape[3], prediction.shape[4]
-            prediction = prediction.reshape((-1, a * b * c * d))
-            y = y.reshape((-1, a * b * c * d))
+        neighbour_indexes_count_list = []
 
-            dist = minkowski_distance_p(prediction, y, np.inf)
+        # sprint((config.cx_sample_single_point), len(file_list), \
+        #        self.training_folder + "/" + self.file_prefix)
 
-            #         sprint (prediction.shape, y.shape, x.shape, x_hat.shape, y_hat.shape)
+        for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+            count_missing = 0
 
-            if self.method == "default":
-                # Arpit et. al's formulation (with modifications to work for regression case)
-                if np.any(dist > y_thresh):
-                    count_CS.append(x)
-            elif self.method == "fractional":
-                count_CS.append((dist > y_thresh).sum() / dist.shape[0])
 
-            del cache_dict[int(n) - self.tnl]  # no need to retain the files which have already been read
+            filename = file_list[i]
+            x = np.load(filename)
 
-            if config.DEBUG:
-                if np.random.rand() < 0.0005:
-                    sprint(hit, miss, len(cache_dict))
-                    sprint(prediction.shape, y.shape, dist.shape, len(count_CS))
+            # get corresponding y
+            fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
+            y =  np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex_orig) + "_y.npy")
 
-        if self.method in ["fractional"]:
-            return count_CS  # returns a list (one value for each data sample, total length N)
-        elif self.method in ["default"]:
-            return len(count_CS)  # returns a single value for data set of size N
+            neighbour_indexes = []
 
-    def determine_y_thresh_maxvar(self, model_predict="dummy", PM=True):
-        std = {}
-        mean = {}
+            random.shuffle(file_list)
 
-        for i in tqdm(np.arange(0, config.cx_max_dist, abs(0 - config.cx_max_dist) / 50), desc="Determining y_thresh"):
-            l = self.compute_criticality_smooth(model_predict, y_thresh=i, PM=PM)
-            std[i] = np.std(l)
-            mean[i] = np.mean(l)
 
-        if config.DEBUG:
-            plt.plot(list(std.keys()), list(std.values()), label="var@" + str(self.N) + "points", color="blue", alpha=1)
-            plt.plot(
-                list(mean.keys()), list(mean.values()), label="mean@" + str(self.N) + " points", color="red", alpha=1
-            )
-            plt.legend(fontsize=6)
-            plt.xlabel(r"y_thresh")
-            plt.ylabel(r"Complexity metric " + self.method)
-            plt.show()
+            if not temporal_filter:
+                # uniform sampling case
+                while (len(neighbour_indexes) < 50):
+                    random.shuffle(file_list)
+                    for j in range(config.cx_sample_single_point):
+                        sample_point_x = np.load(file_list[j])
 
-        y_thresh = max(std, key=std.get)
-        return y_thresh
+                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
+                            fileindex = int(file_list[j].split("_x.npy")[-2].split("-")[-1])
+                            neighbour_indexes.append(fileindex)
+                    # sprint (len(neighbour_indexes))
 
-    def print_complexity_params(self):
-        print("Training data folder: ", self.training_data_folder)
-        print("Y threshold: ", self.y_thresh)
-        print("TNL: ", self.tnl)
-        print("N: ", self.N)
-        print("Method: ", self.method)
-        print("Complexity each sample: ", self.complexity_each_sample)
+                neighbour_indexes = neighbour_indexes[:50]
 
+
+            elif temporal_filter:
+                # Advanced filtering case
+                # 3 days before, 3 days later, and today
+                # within {width} on each side
+                for day in range(-3, 4):
+                    for width in range(-1, 2): # 1 hour before and after
+                        current_offset = day*self.offset + width
+
+                        if current_offset == 0:
+                            # ignore the same point
+                            continue
+                        index_with_offset = fileindex_orig + current_offset
+
+                        if 0 <= index_with_offset < len(file_list):
+                            # since sometimes the neighbours will not exist
+                            # this can happen only at the ends of training and validation
+                            # set
+                            sample_point_x = np.load(file_list[index_with_offset])
+                        else:
+                            count_missing += 1
+                            assert count_missing < config.cx_sample_whole_data//10
+                            break
+
+                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
+                            neighbour_indexes.append(index_with_offset)
+
+                # sprint (len(neighbour_indexes))
+
+            neighbour_indexes_count_list.append(len(neighbour_indexes))
+
+            for fileindex in neighbour_indexes:
+                #x_neighbor = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_y.npy")
+                y_neighbour = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_y.npy")
+                if np.max(np.abs(y_neighbour - y)) > self.thresh:
+                    csr_count += 1
+                    break
+
+        obj.clean_intermediate_files()
+
+        self.CSR_PM_frac = csr_count / config.cx_sample_whole_data
+        self.CSR_PM_count = csr_count
+        self.CSR_PM_neighbour_stats = {"mean": round(np.mean(neighbour_indexes_count_list),2),
+                                       "median": round(np.median(neighbour_indexes_count_list),2),
+                                       "min": round(np.min(neighbour_indexes_count_list),2),
+                                       "max": round(np.max(neighbour_indexes_count_list),2)}
+
+
+    def print_params(self):
+        print("###################################################")
+        sprint (self.file_prefix)
+        sprint (self.CSR_PM_frac)
+        sprint (self.CSR_PM_count)
+        sprint (self.CSR_PM_neighbour_stats)
+        print ("###################################################")
+
+    def csv_format(self):
+        print("###################################################")
+        print ("for_parser:", self.cityname, self.i_o_length, self.prediction_horizon, self.grid_size,\
+               self.thresh, config.cx_sample_whole_data, config.cx_sample_single_point, \
+               self.CSR_PM_frac, self.CSR_PM_count, sep=",")
+        print ("###################################################")
 
 if __name__ == "__main__":
-    cx_metric = complexity(training_data_folder=os.path.join(config.HOME_FOLDER, "training_data_8_4_8"))
-    cx_metric.print_complexity_params()
+
+    for thresh in [500, 750, 1000, 1250, 1500]:
+        for city in config.city_list:
+
+            # io_lengths
+            for scale in config.scales_def:
+                for i_o_length in config.i_o_lengths:
+                    for pred_horiz in config.pred_horiz_def:
+                        cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+                                        thresh=thresh)
+                        cx.print_params()
+                        cx.csv_format()
+
+            # pred_horiz
+            for scale in config.scales_def:
+                for i_o_length in config.i_o_lengths_def:
+                    for pred_horiz in config.pred_horiz:
+                        cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+                                        thresh=thresh)
+                        cx.print_params()
+                        cx.csv_format()
+
+            # # scales
+            for scale in config.scales:
+                for i_o_length in config.i_o_lengths_def:
+                    for pred_horiz in config.pred_horiz_def:
+                        cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+                                        thresh=thresh)
+                        cx.print_params()
+                        cx.csv_format()
+
+        # To parse the results into a csv:
+        # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac, CSR_PM_count'

@@ -38,14 +38,17 @@ INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
 RESULTS_FOLDER = os.path.join(DATA_FOLDER, "results/latest_2")
 
 ######################## complexity class params #########################
-cx_max_dist = 2500
-cx_method = "fractional"
-cx_tnl = 8
-if running_on=="server":
-    cx_N = 300
-else:
-    cx_N = 5
-cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
+# cx_max_dist = 2500
+# cx_method = "fractional"
+# cx_tnl = 8
+# if running_on=="server":
+#     cx_N = 300
+# else:
+#     cx_N = 5
+# cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
+cx_debug = True
+cx_sample_whole_data = 800
+cx_sample_single_point = 200
 
 
 ######################## Datagen class params #########################
@@ -77,20 +80,20 @@ cl_n_depth = 3
 if running_on == "server":
     city_list = ["LonDON" , "madrid", "MELBOURNE"]  # all are converted to lower case later on
     scales_def = [45]
-    i_o_lengths_def = [4]
-    pred_horiz_def = [4]
-    scales = scales_def # list(range(5, 250, 20))
-    i_o_lengths = i_o_lengths_def # list(range(1, 9))
+    i_o_lengths_def = [1]
+    pred_horiz_def = [1]
+    scales = list(range(5, 250, 20))
+    i_o_lengths = list(range(1, 9))
     pred_horiz = list(range(1, 9))
 
 elif running_on=="maclocal":
     city_list = ["LonDON"]  # all are converted to lower case later on
-    scales_def = [16]
-    i_o_lengths_def = [4]
-    pred_horiz_def = [4]
+    scales_def = [45]
+    i_o_lengths_def = [1]
+    pred_horiz_def = [1]
     scales = [8, 16]  # , 16] # [1, 8, 16, 32, 64, 128, 256]
-    i_o_lengths = [4] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
-    pred_horiz = [4] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
+    i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
+    pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
 
 
 DATA_START_DATE = {
