@@ -205,8 +205,8 @@ class ProcessRaw:
                                                                                              exist_ok=True)
         pathlib.Path(os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())).mkdir(parents=True,
                                                                                              exist_ok=True)
-        training_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
-        validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
+        self.training_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
+        self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
 
         #     print (fnames)
         tcount = 0
@@ -224,16 +224,16 @@ class ProcessRaw:
                     tcount += 1
                     r = tcount
 
-                    if os.path.exists(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_x.npy"))\
-                        and os.path.exists(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_y.npy")):
+                    if os.path.exists(os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_x.npy"))\
+                        and os.path.exists(os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_y.npy")):
                         # processed data already exists
                         return
 
                     x = m[:, :, j - ih: j]
                     y = m[:, :, j + ph: j + ph + oh]
 
-                    np.save(os.path.join(training_folder, self.key_dimensions() + str(r) + "_x.npy"), x)
-                    np.save(os.path.join(training_folder, self.key_dimensions() + str(r) + "_y.npy"), y)
+                    np.save(os.path.join(self.training_folder, self.key_dimensions() + str(r) + "_x.npy"), x)
+                    np.save(os.path.join(self.training_folder, self.key_dimensions() + str(r) + "_y.npy"), y)
 
             elif f.split("data_samples")[1].split(self.cityname)[1][1:11] in validation_dates:
                 for j in range(ih, 96 - (oh + ph + 1)):
@@ -243,25 +243,33 @@ class ProcessRaw:
 
                     r = vcount
 
-                    np.save(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_x.npy"), x)
-                    np.save(os.path.join(validation_folder, self.key_dimensions() + str(r) + "_y.npy"), y)
+                    np.save(os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_x.npy"), x)
+                    np.save(os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_y.npy"), y)
 
         sprint(self.key_dimensions(), tcount, vcount)
         sprint(
-            len(glob.glob(training_folder + "/" + self.key_dimensions() + "*_x.npy")),
-            len(glob.glob(training_folder + "/" + self.key_dimensions() + "*_y.npy")),
+            len(glob.glob(self.training_folder + "/" + self.key_dimensions() + "*_x.npy")),
+            len(glob.glob(self.training_folder + "/" + self.key_dimensions() + "*_y.npy")),
         )
         sprint(
-            len(glob.glob(validation_folder + "/" + self.key_dimensions() + "*_x.npy")),
-            len(glob.glob(validation_folder + "/" + self.key_dimensions() + "*_y.npy")),
+            len(glob.glob(self.validation_folder + "/" + self.key_dimensions() + "*_x.npy")),
+            len(glob.glob(self.validation_folder + "/" + self.key_dimensions() + "*_y.npy")),
         )
 
     def key_dimensions(self):  # a __repr__() for the clas
         return slugify(str([self.cityname, self.i_o_length, self.prediction_horizon, self.grid_size])) + "-"
 
+    def clean_intermediate_files(self):
+        for filenames in [glob.glob(os.path.join(self.validation_folder, self.key_dimensions()) + "*.npy"), \
+                          glob.glob(os.path.join(self.training_folder, self.key_dimensions()) + "*.npy")]:
+            for file in tqdm(filenames, desc="Cleaning intermediate files"):
+                os.remove(file)
+
     @staticmethod
     def file_prefix(cityname, io_length, pred_horiz, scale):  # a __repr__() for the clas
         return slugify(str([cityname.lower(), io_length, pred_horiz, scale])) + "-"
+
+
 
 
 if __name__ == "__main__":
