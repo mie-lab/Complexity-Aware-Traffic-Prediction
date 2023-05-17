@@ -49,7 +49,7 @@ RESULTS_FOLDER = os.path.join(DATA_FOLDER, "results/latest_2")
 cx_debug = True
 cx_sample_whole_data = 800
 cx_sample_single_point = 200
-
+cx_delete_files_after_running = True
 
 ######################## Datagen class params #########################
 dg_debug = False
@@ -60,6 +60,7 @@ dg_debug_each_data_sample = False
 cl_model_save = False
 cl_early_stopping_patience = -1
 cl_tensorboard = False
+cl_thresh = 750
 
 if running_on=="server":
     cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
@@ -87,13 +88,21 @@ if running_on == "server":
     pred_horiz = list(range(1, 9))
 
 elif running_on=="maclocal":
-    city_list = ["LonDON"]  # all are converted to lower case later on
+    # city_list = ["LonDON"]  # all are converted to lower case later on
+    # scales_def = [45]
+    # i_o_lengths_def = [1]
+    # pred_horiz_def = [1]
+    # scales = [8, 16]  # , 16] # [1, 8, 16, 32, 64, 128, 256]
+    # i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
+    # pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
+
+    city_list = ["LonDON" , "madrid", "MELBOURNE"]  # all are converted to lower case later on
     scales_def = [45]
     i_o_lengths_def = [1]
     pred_horiz_def = [1]
-    scales = [8, 16]  # , 16] # [1, 8, 16, 32, 64, 128, 256]
-    i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
-    pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
+    scales = list(range(5, 250, 20))
+    i_o_lengths = list(range(1, 9))
+    pred_horiz = list(range(1, 9))
 
 
 DATA_START_DATE = {

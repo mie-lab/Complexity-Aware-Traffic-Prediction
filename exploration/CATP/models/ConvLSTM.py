@@ -10,7 +10,7 @@ from validation_metrics.custom_losses import non_zero_mape
 from tensorflow.keras import layers, optimizers
 from tensorflow.keras.callbacks import EarlyStopping, CSVLogger
 from preprocessing.datagen import CustomDataGenerator
-from complexity.complexity import complexity
+from complexity.complexity import Complexity
 from smartprint import smartprint as sprint
 from tqdm import tqdm
 
@@ -28,29 +28,10 @@ from preprocessing.ProcessRaw import ProcessRaw
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        for custom_thresh in [800, 1400]:  # tqdm(np.arange(200, config.cx_max_dist, 100), "Different thresholds"):
-            for method in ["fractional", "default"]:
-                cx = complexity(
-                    prefix=self.model.prefix,
-                    training_data_folder=self.model.training_folder,
-                    model_predict=self.model.predict,
-                    PM=False,
-                    y_thresh=custom_thresh,
-                    method=method,
-                )
-                logs["CSR_train_data_DL_" + method + str(custom_thresh)] = np.mean(cx.complexity_each_sample)
+        cx = Complexity(self.model.cityname, i_o_length=self.model.io_length, prediction_horizon=self.model.pred_horiz, \
+                        grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, model_func=self.model.predict)
+        logs["CSR_train_data_DL_"] = cx.CSR_PM_frac
 
-                cx = complexity(
-                    prefix=self.model.prefix,
-                    training_data_folder=self.model.training_folder,
-                    model_predict=self.model.predict,
-                    PM=True,
-                    y_thresh=custom_thresh,
-                    method=method,
-                )
-                logs["CSR_train_data_PM_" + method + str(custom_thresh)] = np.mean(cx.complexity_each_sample)
-                # logs["CSR_y_thresh"] = custom_thresh
-        # sprint (self.model.train_gen)
         logs["naive-model"] = (NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
 
         # save the model to disk
@@ -171,6 +152,9 @@ class ConvLSTM:
         self.model.training_folder = self.train_data_folder
         self.model.train_gen = train_gen
         self.model.prefix = self.prefix
+        self.model.cityname, self.model.io_length, self.model.pred_horiz, self.model.scale = \
+            self.cityname, self.io_length, self.pred_horiz, self.scale
+
 
         callbacks = []
         if config.cl_early_stopping_patience != -1:
@@ -206,9 +190,11 @@ class ConvLSTM:
 
 if __name__ == "__main__":
     cityname = "london"
-    io_length = 4
-    pred_horiz = 8
+    io_length = 1
+    pred_horiz = 1
     scale = 8
+
+    ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
 
     model = ConvLSTM(
         cityname,
