@@ -211,7 +211,7 @@ class ProcessRaw:
         #     print (fnames)
         tcount = 0
         vcount = 0
-        for i in tqdm(range(len(fnames)), desc=training_folder):
+        for i in tqdm(range(len(fnames)), desc=self.training_folder):
             f = fnames[i]
             m = np.load(f)
             #         print (m.shape)
