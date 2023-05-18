@@ -66,7 +66,7 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
         x_batch = np.moveaxis(x_batch, [0, 1, 2, 3], [0, 2, 3, 1])
         y_batch = np.moveaxis(y_batch, [0, 1, 2, 3], [0, 2, 3, 1])
 
-        return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis])
+        return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis]) # the lat new axis is for channels
 
     def custom_get_item_with_file_name(self, index, specific_files=None):
         """

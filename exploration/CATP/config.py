@@ -47,9 +47,13 @@ RESULTS_FOLDER = os.path.join(DATA_FOLDER, "results/latest_2")
 #     cx_N = 5
 # cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
 cx_debug = True
-cx_sample_whole_data = 800
-cx_sample_single_point = 200
-cx_delete_files_after_running = True
+if running_on == "server":
+    cx_sample_whole_data = 800
+    cx_sample_single_point = 200
+elif running_on=="maclocal":
+    cx_sample_whole_data = 3
+    cx_sample_single_point = 200
+cx_delete_files_after_running = False
 
 ######################## Datagen class params #########################
 dg_debug = False

@@ -30,7 +30,7 @@ class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
         cx = Complexity(self.model.cityname, i_o_length=self.model.io_length, prediction_horizon=self.model.pred_horiz, \
                         grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, model_func=self.model.predict)
-        logs["CSR_train_data_DL_"] = cx.CSR_PM_frac
+        logs["CSR_train_data_DL"] = cx.CSR_MP_no_thresh_frac_median
 
         logs["naive-model"] = (NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
 
@@ -190,11 +190,11 @@ class ConvLSTM:
 
 if __name__ == "__main__":
     cityname = "london"
-    io_length = 1
-    pred_horiz = 1
-    scale = 8
+    io_length = 3
+    pred_horiz = 4
+    scale = 5
 
-    ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
+    obj = ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
 
     model = ConvLSTM(
         cityname,
@@ -205,5 +205,12 @@ if __name__ == "__main__":
         validation_csv_file="validation.csv",
         log_dir="log_dir",
     )
+    print (model.model.summary())
     model.print_model_and_class_values(print_model_summary=False)
     model.train()
+
+    # Now, we can delete the temp files after training for one scenario
+    obj.clean_intermediate_files()
+
+
+

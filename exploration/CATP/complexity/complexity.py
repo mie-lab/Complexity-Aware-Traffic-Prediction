@@ -29,15 +29,23 @@ class Complexity:
         self.offset = prediction_horizon + i_o_length * 2 # one time for ip; one for op; one for pred_horiz
         # self.offset replaces 96 to account for edge effects of specific experiments
 
+        self.CSR_PM_frac = "NULL"
+        self.CSR_PM_count = "NULL"
+        self.CSR_PM_neighbour_stats = "NULL"
+        self.CSR_PM_no_thresh_mean  = "NULL"
+        self.CSR_PM_no_thresh_median = "NULL"
+        self.CSR_PM_no_thresh_frac_mean = "NULL"
+        self.CSR_PM_no_thresh_frac_median = "NULL"
+
+
         if perfect_model:
             assert model_func == None
             self.cx_whole_dataset_PM(temporal_filter=True)
+            self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
         else:
             assert model_func != None
             self.model_predict = model_func
             self.cx_whole_dataset_m_predict(temporal_filter=True)
-
-
 
     def compute_dist_N_points(file_list, query_point):
         random.shuffle(file_list)
@@ -48,7 +56,6 @@ class Complexity:
             if "_x.npy" not in file_list[i]:
                 raise Exception(
                     "Wrong file supplied; we should not have _y files\n since we are looking for n-hood of x")
-
             distances.append(np.max(np.abs(query_point - neighbour_x_array)))
         return distances
 
@@ -112,11 +119,12 @@ class Complexity:
                 # 3 days before, 3 days later, and today
                 # within {width} on each side
                 for day in range(-3, 4):
-                    for width in range(-1, 2): # 1 hour before and after
+                    for width in range(-4, 5): # 1 hour before and after
                         current_offset = day*self.offset + width
 
-                        if current_offset == 0:
+                        if current_offset == 0 or fileindex_orig + current_offset == 0:
                             # ignore the same point
+                            # fileindex_orig + current_offset == 0: since our file indexing starts from 1
                             continue
                         index_with_offset = fileindex_orig + current_offset
 
@@ -161,7 +169,7 @@ class Complexity:
                                        "max": round(np.max(neighbour_indexes_count_list),2)}
 
 
-    def cx_whole_dataset_m_predict(self, temporal_filter=False):
+    def cx_whole_dataset_PM_no_thresh(self, temporal_filter=False):
         """
         temporal_filter: If true, filtering is carried out using nearest neighbours
         """
@@ -178,7 +186,8 @@ class Complexity:
         random.shuffle(file_list)
 
         # file_list = file_list[:config.cx_sample_whole_data]
-        csr_count = 0
+        criticality = []
+        sum_y = []
 
         neighbour_indexes_count_list = []
 
@@ -194,10 +203,7 @@ class Complexity:
 
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
-
-            # Only one line change from the cx_whole_dataset_PM function (Instead of simply reading, we need to predict)
-            # y =  np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex_orig) + "_y.npy")
-            y = self.model_predict(x)
+            y =  np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex_orig) + "_y.npy")
 
             neighbour_indexes = []
 
@@ -227,12 +233,13 @@ class Complexity:
                     for width in range(-4, 5): # 1 hour before and after
                         current_offset = day*self.offset + width
 
-                        if current_offset == 0:
+                        if current_offset == 0 or fileindex_orig + current_offset == 0:
                             # ignore the same point
+                            # fileindex_orig + current_offset == 0: since our file indexing starts from 1
                             continue
                         index_with_offset = fileindex_orig + current_offset
 
-                        if 0 <= index_with_offset < len(file_list):
+                        if 1 <= index_with_offset < len(file_list):
                             # since sometimes the neighbours will not exist
                             # this can happen only at the ends of training and validation
                             # set
@@ -242,8 +249,8 @@ class Complexity:
                             assert count_missing < config.cx_sample_whole_data//10
                             break
 
-                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
-                            neighbour_indexes.append(index_with_offset)
+                        # if np.max(np.abs(sample_point_x - x)) < self.thresh:
+                        neighbour_indexes.append(index_with_offset)
 
                 # sprint (len(neighbour_indexes))
 
@@ -252,30 +259,141 @@ class Complexity:
             for fileindex in neighbour_indexes:
 
                 try:
-                    # y_neighbour = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_y.npy")
-
-                    # Only one line change from the cx_whole_dataset_PM function (Instead of simply reading, we need to predict)
-                    x_neighbor = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_y.npy")
-                    y_neighbour = self.model_predict(x_neighbor)
+                    x_neighbor = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_x.npy")
+                    y_neighbour = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_y.npy")
                 except:
                     # FileNotFoundError: usually due to 0 index
                     print ("ERROR: FileNotFound ", (self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_y.npy")
                     continue
 
-                if np.max(np.abs(y_neighbour - y)) > self.thresh:
-                    csr_count += 1
-                    break
+                # if np.max(np.abs(y_neighbour - y)) > self.thresh:
+                criticality.append(np.max(np.abs(y_neighbour - y))/(np.max(np.abs(x_neighbor - x))))
+                sum_y.append(np.max(np.abs(y_neighbour - y)))
+                    # break
 
         if config.cx_delete_files_after_running:
             obj.clean_intermediate_files()
 
-        self.CSR_PM_frac = csr_count / config.cx_sample_whole_data
-        self.CSR_PM_count = csr_count
-        self.CSR_PM_neighbour_stats = {"mean": round(np.mean(neighbour_indexes_count_list),2),
-                                       "median": round(np.median(neighbour_indexes_count_list),2),
-                                       "min": round(np.min(neighbour_indexes_count_list),2),
-                                       "max": round(np.max(neighbour_indexes_count_list),2)}
+        self.CSR_PM_no_thresh_mean = np.mean(sum_y)
+        self.CSR_PM_no_thresh_median = np.median(sum_y)
+        self.CSR_PM_no_thresh_frac_mean = np.mean(criticality)
+        self.CSR_PM_no_thresh_frac_median = np.median(criticality)
 
+
+    def cx_whole_dataset_m_predict(self, temporal_filter=False):
+        """
+         temporal_filter: If true, filtering is carried out using nearest neighbours
+         """
+        self.training_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
+
+        # we compute this information only using training data; no need for validation data
+        # self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
+
+        obj = ProcessRaw(cityname=self.cityname, i_o_length=self.i_o_length, \
+                         prediction_horizon=self.prediction_horizon, grid_size=self.grid_size)
+        prefix = self.file_prefix
+
+        file_list = glob.glob(self.training_folder + "/" + self.file_prefix + "*_x.npy")
+        random.shuffle(file_list)
+
+        # file_list = file_list[:config.cx_sample_whole_data]
+        criticality = []
+        sum_y = []
+
+        neighbour_indexes_count_list = []
+
+        # sprint((config.cx_sample_single_point), len(file_list), \
+        #        self.training_folder + "/" + self.file_prefix)
+
+        for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+            count_missing = 0
+
+            filename = file_list[i]
+            x = np.load(filename)
+
+            # get corresponding y
+            fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
+
+            # Only one line change from the cx_whole_dataset_PM function (Instead of simply reading, we need to predict)
+            # The first newaxis is for batch, the last one is for channel
+            y = self.model_predict(np.moveaxis(x, [0, 1, 2],[1, 2, 0])[ np.newaxis, ..., np.newaxis])
+
+            neighbour_indexes = []
+
+            random.shuffle(file_list)
+
+            if not temporal_filter:
+                # uniform sampling case
+                while (len(neighbour_indexes) < 50):
+                    random.shuffle(file_list)
+                    for j in range(config.cx_sample_single_point):
+                        sample_point_x = np.load(file_list[j])
+
+                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
+                            fileindex = int(file_list[j].split("_x.npy")[-2].split("-")[-1])
+                            neighbour_indexes.append(fileindex)
+                    # sprint (len(neighbour_indexes))
+
+                neighbour_indexes = neighbour_indexes[:50]
+
+
+            elif temporal_filter:
+                # Advanced filtering case
+                # 3 days before, 3 days later, and today
+                # within {width} on each side
+                for day in range(-3, 4):
+                    for width in range(-4, 5):  # 1 hour before and after
+                        current_offset = day * self.offset + width
+
+                        if current_offset == 0 or fileindex_orig + current_offset == 0:
+                            # ignore the same point
+                            # fileindex_orig + current_offset == 0: since our file indexing starts from 1
+                            continue
+                        index_with_offset = fileindex_orig + current_offset
+
+                        if 1 <= index_with_offset < len(file_list):
+                            # since sometimes the neighbours will not exist
+                            # this can happen only at the ends of training and validation
+                            # set
+                            sample_point_x = np.load(file_list[index_with_offset])
+                        else:
+                            count_missing += 1
+                            assert count_missing < config.cx_sample_whole_data // 10
+                            break
+
+                        # if np.max(np.abs(sample_point_x - x)) < self.thresh:
+                        neighbour_indexes.append(index_with_offset)
+
+                # sprint (len(neighbour_indexes))
+
+            neighbour_indexes_count_list.append(len(neighbour_indexes))
+
+            for fileindex in neighbour_indexes:
+                # sprint (np.random.rand(), i)
+                try:
+                    x_neighbor = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_x.npy")
+
+                    # Only one line change from the cx_whole_dataset_PM function (Instead of simply reading, we need to predict)
+                    # The first newaxis is for batch, the last one is for channel
+                    y_neighbour = self.model_predict(np.moveaxis(x_neighbor, [0, 1, 2],[1, 2, 0])[ np.newaxis, ..., np.newaxis])
+                except:
+                    # FileNotFoundError: usually due to 0 index
+                    print("ERROR: FileNotFound ",
+                          (self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_y.npy")
+                    continue
+
+                # if np.max(np.abs(y_neighbour - y)) > self.thresh:
+                criticality.append(np.max(np.abs(y_neighbour - y)) / (np.max(np.abs(x_neighbor - x))))
+                sum_y.append(np.max(np.abs(y_neighbour - y)))
+                # break
+
+        if config.cx_delete_files_after_running:
+            obj.clean_intermediate_files()
+
+        self.CSR_MP_no_thresh_mean = np.mean(sum_y)
+        self.CSR_MP_no_thresh_median = np.median(sum_y)
+        self.CSR_MP_no_thresh_frac_mean = np.mean(criticality)
+        self.CSR_MP_no_thresh_frac_median = np.median(criticality)
 
     def print_params(self):
         print("###################################################")
@@ -289,12 +407,13 @@ class Complexity:
         print("###################################################")
         print ("for_parser:", self.cityname, self.i_o_length, self.prediction_horizon, self.grid_size,\
                self.thresh, config.cx_sample_whole_data, config.cx_sample_single_point, \
-               self.CSR_PM_frac, self.CSR_PM_count, sep=",")
+               self.CSR_PM_frac, self.CSR_PM_count, self.CSR_PM_no_thresh_median, \
+               self.CSR_PM_no_thresh_mean, sep=",")
         print ("###################################################")
 
 if __name__ == "__main__":
 
-    for thresh in [300, 500]:
+    for thresh in [500]:
         for city in config.city_list:
 
             # io_lengths
@@ -307,13 +426,14 @@ if __name__ == "__main__":
                         cx.csv_format()
 
             # pred_horiz
-            for scale in config.scales_def:
-                for i_o_length in config.i_o_lengths_def:
-                    for pred_horiz in config.pred_horiz:
-                        cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-                                        thresh=thresh, perfect_model=True, model_func=None)
-                        cx.print_params()
-                        cx.csv_format()
+            # for repeat in range(1):
+            #     for scale in config.scales_def:
+            #         for i_o_length in config.i_o_lengths_def:
+            #             for pred_horiz in config.pred_horiz:
+            #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+            #                                 thresh=thresh, perfect_model=True, model_func=None)
+            #                 cx.print_params()
+            #                 cx.csv_format()
 
             # # scales
             for scale in config.scales:
@@ -325,4 +445,4 @@ if __name__ == "__main__":
                         cx.csv_format()
 
         # To parse the results into a csv:
-        # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count'
+        # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count,CSR_PM_no_thresh_median,CSR_PM_no_thresh_mean'
