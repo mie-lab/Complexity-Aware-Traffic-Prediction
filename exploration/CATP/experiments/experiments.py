@@ -53,7 +53,7 @@ class Experiment:
 
                 model.train()
             else:
-                raise (Exception("Wrong model class; Probably not implemented!"))
+                raise (Exception("Wrong model class; not implemented!"))
 
 
 if __name__ == "__main__":

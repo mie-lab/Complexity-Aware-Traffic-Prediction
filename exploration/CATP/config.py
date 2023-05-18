@@ -51,7 +51,7 @@ if running_on == "server":
     cx_sample_whole_data = 800
     cx_sample_single_point = 200
 elif running_on=="maclocal":
-    cx_sample_whole_data = 3
+    cx_sample_whole_data = 47
     cx_sample_single_point = 200
 cx_delete_files_after_running = False
 
@@ -73,7 +73,7 @@ if running_on=="server":
     cl_epochs = 20
 elif running_on=="maclocal":
     cl_percentage_of_train_data = 0.05  # can be reduced for fast tryouts
-    cl_batch_size = 2
+    cl_batch_size = 6
     cl_dataloader_workers = 4
     cl_epochs = 2
 

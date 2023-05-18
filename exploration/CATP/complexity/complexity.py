@@ -14,7 +14,7 @@ import random
 from tqdm import tqdm
 
 class Complexity:
-    def __init__(self, cityname, i_o_length, prediction_horizon, grid_size, thresh, perfect_model, model_func):
+    def __init__(self, cityname, i_o_length, prediction_horizon, grid_size, thresh, perfect_model, model_func, model_train_gen):
         """
         self, cityname, i_o_length, prediction_horizon, grid_size
         """
@@ -45,6 +45,7 @@ class Complexity:
         else:
             assert model_func != None
             self.model_predict = model_func
+            self.model_train_gen = model_train_gen
             self.cx_whole_dataset_m_predict(temporal_filter=True)
 
     def compute_dist_N_points(file_list, query_point):
@@ -249,6 +250,7 @@ class Complexity:
                             assert count_missing < config.cx_sample_whole_data//10
                             break
 
+                        # Since this is the no thresh case
                         # if np.max(np.abs(sample_point_x - x)) < self.thresh:
                         neighbour_indexes.append(index_with_offset)
 
@@ -358,7 +360,7 @@ class Complexity:
                             sample_point_x = np.load(file_list[index_with_offset])
                         else:
                             count_missing += 1
-                            assert count_missing < config.cx_sample_whole_data // 10
+                            assert count_missing < 10
                             break
 
                         # if np.max(np.abs(sample_point_x - x)) < self.thresh:
@@ -368,23 +370,44 @@ class Complexity:
 
             neighbour_indexes_count_list.append(len(neighbour_indexes))
 
-            for fileindex in neighbour_indexes:
+            # for fileindex in neighbour_indexes:
                 # sprint (np.random.rand(), i)
-                try:
-                    x_neighbor = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_x.npy")
+                # try:
+                #     x_neighbor = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_x.npy")
+                #
+                #     # Only one line change from the cx_whole_dataset_PM function (Instead of simply reading, we need to predict)
+                #     # The first newaxis is for batch, the last one is for channel
+                #     y_neighbour = self.model_predict(np.moveaxis(x_neighbor, [0, 1, 2],[1, 2, 0])[ np.newaxis, ..., np.newaxis])
+                # except:
+                #     # FileNotFoundError: usually due to 0 index
+                #     print("ERROR: FileNotFound ",
+                #           (self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_y.npy")
+                #     continue
 
-                    # Only one line change from the cx_whole_dataset_PM function (Instead of simply reading, we need to predict)
-                    # The first newaxis is for batch, the last one is for channel
-                    y_neighbour = self.model_predict(np.moveaxis(x_neighbor, [0, 1, 2],[1, 2, 0])[ np.newaxis, ..., np.newaxis])
-                except:
-                    # FileNotFoundError: usually due to 0 index
-                    print("ERROR: FileNotFound ",
-                          (self.training_folder + "/" + self.file_prefix) + str(fileindex) + "_y.npy")
+            for j in range(0, len(neighbour_indexes), config.cl_batch_size): # config.cl_batch_size
+                fileindices = neighbour_indexes[j : j + config.cl_batch_size]
+                if 0 in fileindices:
+                    print ("Skipped file indexed with 0")
                     continue
 
+                # sprint (len(self.model_train_gen.__getitem__(fileindices)))
+
+                x_neighbour, y_neighbour = self.model_train_gen.__getitem__(fileindices)
+
+                # Since this is the no thresh case
                 # if np.max(np.abs(y_neighbour - y)) > self.thresh:
-                criticality.append(np.max(np.abs(y_neighbour - y)) / (np.max(np.abs(x_neighbor - x))))
-                sum_y.append(np.max(np.abs(y_neighbour - y)))
+
+                assert ( config.cl_batch_size == x_neighbour.shape[0] ) or \
+                       (j+config.cl_batch_size >= len(neighbour_indexes)) # for the last batch
+
+                assert x_neighbour.shape[0] == y_neighbour.shape[0]
+
+                numerator = np.max( (abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1 )
+                denominator = np.max( (abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1 )
+                frac = numerator / denominator
+
+                criticality.extend( frac.flatten().tolist() )
+                sum_y.extend( numerator.flatten().tolist() )
                 # break
 
         if config.cx_delete_files_after_running:
@@ -410,6 +433,8 @@ class Complexity:
                self.CSR_PM_frac, self.CSR_PM_count, self.CSR_PM_no_thresh_median, \
                self.CSR_PM_no_thresh_mean, sep=",")
         print ("###################################################")
+
+
 
 if __name__ == "__main__":
 

@@ -28,8 +28,9 @@ from preprocessing.ProcessRaw import ProcessRaw
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        cx = Complexity(self.model.cityname, i_o_length=self.model.io_length, prediction_horizon=self.model.pred_horiz, \
-                        grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, model_func=self.model.predict)
+        cx = Complexity(self.model.cityname, i_o_length=self.model.io_length, prediction_horizon=self.model.pred_horiz,\
+                        grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, \
+                        model_func=self.model.predict, model_train_gen=self.model.train_gen)
         logs["CSR_train_data_DL"] = cx.CSR_MP_no_thresh_frac_median
 
         logs["naive-model"] = (NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
@@ -124,7 +125,7 @@ class ConvLSTM:
 
         r = config.cl_percentage_of_train_data  # np.random.rand()
 
-        train_gen = CustomDataGenerator(
+        self.train_gen = CustomDataGenerator(
             self.cityname,
             self.io_length,
             self.pred_horiz,
@@ -134,7 +135,7 @@ class ConvLSTM:
             batch_size=batch_size,
             shuffle=True,
         )
-        validation_gen = CustomDataGenerator(
+        self.validation_gen = CustomDataGenerator(
             self.cityname,
             self.io_length,
             self.pred_horiz,
@@ -150,7 +151,7 @@ class ConvLSTM:
         tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(log_dir=self.log_dir)
 
         self.model.training_folder = self.train_data_folder
-        self.model.train_gen = train_gen
+        self.model.train_gen = self.train_gen
         self.model.prefix = self.prefix
         self.model.cityname, self.model.io_length, self.model.pred_horiz, self.model.scale = \
             self.cityname, self.io_length, self.pred_horiz, self.scale
@@ -159,7 +160,7 @@ class ConvLSTM:
         callbacks = []
         if config.cl_early_stopping_patience != -1:
             earlystop = EarlyStopping(
-                monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=1, mode="auto"
+                monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=0, mode="auto"
             )
             callbacks.append(earlystop)
 
@@ -169,8 +170,8 @@ class ConvLSTM:
             callbacks.extend([ComputeMetrics(), csv_logger])
 
         self.model.fit(
-            train_gen,
-            validation_data=validation_gen,
+            self.train_gen,
+            validation_data=self.validation_gen,
             epochs=epochs,
             callbacks=callbacks,
             workers=config.cl_dataloader_workers,
@@ -208,6 +209,8 @@ if __name__ == "__main__":
     print (model.model.summary())
     model.print_model_and_class_values(print_model_summary=False)
     model.train()
+    # model.predict_train_data_and_save_all()
+
 
     # Now, we can delete the temp files after training for one scenario
     obj.clean_intermediate_files()
