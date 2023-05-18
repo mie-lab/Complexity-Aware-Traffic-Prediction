@@ -10,7 +10,7 @@ import glob
 from tqdm import tqdm
 
 
-class SpatialDim:
+class Experiment:
     def __init__(self, cityname, io_length, pred_horiz, scale, model_class_str):
 
         assert model_class_str in ["ConvLSTM"]  # others not implemented yet
@@ -66,11 +66,11 @@ if __name__ == "__main__":
     # th = SpatialDim(cityname, io_length, pred_horiz, scale, model_class_str="ConvLSTM"
     #                 ).run_experiments()  # 1, 16, 32, 64, 128, 252
 
-    ############ Running spatial experiments
+    ############ Running pred_horiz experiments
     for cityname in config.city_list:
         for io_length in config.i_o_lengths_def:
-            for pred_horiz in config.pred_horiz_def:
-                for scale in config.scales:
+            for pred_horiz in config.pred_horiz:
+                for scale in config.scales_def:
                     sprint(cityname, io_length, pred_horiz, scale)
 
                     for a in [
@@ -89,8 +89,10 @@ if __name__ == "__main__":
                             )
                             os.system("rm -rf " + string_list)
 
-                    ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
+                    obj = ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
 
-                    th = SpatialDim(
+                    th = Experiment(
                         cityname, io_length, pred_horiz, scale, model_class_str="ConvLSTM"
                     ).run_experiments()  # 1, 16, 32, 64, 128, 252
+
+                    obj.clean_intermediate_files()
