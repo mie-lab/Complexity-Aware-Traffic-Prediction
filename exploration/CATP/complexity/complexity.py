@@ -40,12 +40,13 @@ class Complexity:
 
         if perfect_model:
             assert model_func == None
-            self.cx_whole_dataset_PM(temporal_filter=True)
+            # self.cx_whole_dataset_PM(temporal_filter=True)
             self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
         else:
             assert model_func != None
             self.model_predict = model_func
             self.model_train_gen = model_train_gen
+            self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
             self.cx_whole_dataset_m_predict(temporal_filter=True)
 
     def compute_dist_N_points(file_list, query_point):
@@ -410,8 +411,9 @@ class Complexity:
                 sum_y.extend( numerator.flatten().tolist() )
                 # break
 
-        if config.cx_delete_files_after_running:
-            obj.clean_intermediate_files()
+        # if config.cx_delete_files_after_running:
+        #     obj.clean_intermediate_files()
+        # This deleting should be handled while training the model; hence omitting from this function
 
         self.CSR_MP_no_thresh_mean = np.mean(sum_y)
         self.CSR_MP_no_thresh_median = np.median(sum_y)
@@ -431,7 +433,7 @@ class Complexity:
         print ("for_parser:", self.cityname, self.i_o_length, self.prediction_horizon, self.grid_size,\
                self.thresh, config.cx_sample_whole_data, config.cx_sample_single_point, \
                self.CSR_PM_frac, self.CSR_PM_count, self.CSR_PM_no_thresh_median, \
-               self.CSR_PM_no_thresh_mean, sep=",")
+               self.CSR_PM_no_thresh_mean, self.CSR_PM_no_thresh_frac_median, self.CSR_PM_no_thresh_frac_mean, sep=",")
         print ("###################################################")
 
 
@@ -446,28 +448,28 @@ if __name__ == "__main__":
                 for i_o_length in config.i_o_lengths:
                     for pred_horiz in config.pred_horiz_def:
                         cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-                                        thresh=thresh, perfect_model=True, model_func=None)
+                                        thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
                         cx.print_params()
                         cx.csv_format()
 
             # pred_horiz
-            # for repeat in range(1):
-            #     for scale in config.scales_def:
-            #         for i_o_length in config.i_o_lengths_def:
-            #             for pred_horiz in config.pred_horiz:
-            #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-            #                                 thresh=thresh, perfect_model=True, model_func=None)
-            #                 cx.print_params()
-            #                 cx.csv_format()
+            for repeat in range(1):
+                for scale in config.scales_def:
+                    for i_o_length in config.i_o_lengths_def:
+                        for pred_horiz in config.pred_horiz:
+                            cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+                                            thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
+                            cx.print_params()
+                            cx.csv_format()
 
             # # scales
             for scale in config.scales:
                 for i_o_length in config.i_o_lengths_def:
                     for pred_horiz in config.pred_horiz_def:
                         cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-                                        thresh=thresh, perfect_model=True, model_func=None)
+                                        thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
                         cx.print_params()
                         cx.csv_format()
 
         # To parse the results into a csv:
-        # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count,CSR_PM_no_thresh_median,CSR_PM_no_thresh_mean'
+        # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count,CSR_PM_no_thresh_median,CSR_PM_no_thresh_mean,CSR_PM_no_thresh_frac_median,CSR_PM_no_thresh_frac_mean'

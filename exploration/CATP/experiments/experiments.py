@@ -67,10 +67,12 @@ if __name__ == "__main__":
     #                 ).run_experiments()  # 1, 16, 32, 64, 128, 252
 
     ############ Running pred_horiz experiments
-    for cityname in config.city_list:
-        for io_length in config.i_o_lengths_def:
-            for pred_horiz in config.pred_horiz:
-                for scale in config.scales_def:
+
+    for io_length in config.i_o_lengths_def:
+        for pred_horiz in config.pred_horiz_def:
+            for scale in config.scales:
+                for cityname in config.city_list:
+
                     sprint(cityname, io_length, pred_horiz, scale)
 
                     for a in [
@@ -91,8 +93,12 @@ if __name__ == "__main__":
 
                     obj = ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
 
-                    th = Experiment(
-                        cityname, io_length, pred_horiz, scale, model_class_str="ConvLSTM"
-                    ).run_experiments()  # 1, 16, 32, 64, 128, 252
+                    try:
+                        th = Experiment(
+                            cityname, io_length, pred_horiz, scale, model_class_str="ConvLSTM"
+                        ).run_experiments()  # 1, 16, 32, 64, 128, 252
+                    except:
+                        print ("ERROR in ", cityname, io_length, pred_horiz, scale, "Exiting; No results for this case")
+                        continue
 
                     obj.clean_intermediate_files()

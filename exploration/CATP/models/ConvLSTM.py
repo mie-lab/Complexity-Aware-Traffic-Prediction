@@ -5,7 +5,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))  # location of config file
 import config
 
-from validation_metrics.custom_losses import non_zero_mape
+from validation_metrics.custom_losses import non_zero_mape, non_zero_mse
 
 from tensorflow.keras import layers, optimizers
 from tensorflow.keras.callbacks import EarlyStopping, CSVLogger
@@ -28,24 +28,39 @@ from preprocessing.ProcessRaw import ProcessRaw
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        cx = Complexity(self.model.cityname, i_o_length=self.model.io_length, prediction_horizon=self.model.pred_horiz,\
-                        grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, \
-                        model_func=self.model.predict, model_train_gen=self.model.train_gen)
-        logs["CSR_train_data_DL"] = cx.CSR_MP_no_thresh_frac_median
 
-        logs["naive-model"] = (NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
+        if config.cl_during_training_CSR_enabled_epoch_end:
+            cx = Complexity(self.model.cityname, i_o_length=self.model.io_length,
+                            prediction_horizon=self.model.pred_horiz, \
+                            grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, \
+                            model_func=self.model.predict, model_train_gen=self.model.train_gen)
+            logs["CSR_train_data_DL_epoch_end"] = cx.CSR_MP_no_thresh_mean
+        else:
+            logs["CSR_train_data_DL_epoch_end"] = 1
+
+        logs["naive-model-non-zero"] = (
+            NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse_non_zero
+        logs["naive-model-mse"] = (
+            NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
 
         # save the model to disk
         if config.cl_model_save:
             self.model.save(
                 os.path.join(
                     config.INTERMEDIATE_FOLDER,
-                    os.path.basename(os.path.normpath(self.model.training_folder)) + "_epoch_" + str(epoch) + ".h5",
+                    os.path.basename(os.path.normpath(self.model.prefix)) + "_epoch_" + str(epoch) + ".h5",
                 )
             )
 
-        # def on_train_end(self, logs):
-        #     ≈logs
+    # def on_train_end(self, logs):
+    #     if config.cl_during_training_CSR_enabled_train_end:
+    #         cx = Complexity(self.model.cityname, i_o_length=self.model.io_length,
+    #                         prediction_horizon=self.model.pred_horiz, \
+    #                         grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, \
+    #                         model_func=self.model.predict, model_train_gen=self.model.train_gen)
+    #         logs["CSR_train_data_DL_train_end"] = cx.CSR_MP_no_thresh_mean
+    #     else:
+    #         logs["CSR_train_data_DL_train_end"] = 1
 
 
 class ConvLSTM:
@@ -98,10 +113,10 @@ class ConvLSTM:
 
         # Next, we will build the complete model and compile it.
         model = tensorflow.keras.models.Model(inp, x)
-        model.compile(
-            loss=tensorflow.keras.losses.binary_crossentropy,
-            optimizer=tensorflow.keras.optimizers.Adam(),
-        )
+        # model.compile(
+        #     loss=tensorflow.keras.losses.binary_crossentropy,
+        #     optimizer=tensorflow.keras.optimizers.Adam(),
+        # )
 
         return model
 
@@ -109,12 +124,16 @@ class ConvLSTM:
         # Train the model
         batch_size = config.cl_batch_size
         epochs = config.cl_epochs
-        loss_fn = config.cl_loss_func
+        if config.cl_loss_func == "mse":
+            loss_fn = config.cl_loss_func
+        elif config.cl_loss_func == "non-zero-mse":
+            loss_fn = non_zero_mse
+
         optimizer = optimizers.Adam(1e-3)
 
         # manual reset the model since sometimes it does not reset a new model (not sure why)
         tensorflow.keras.backend.clear_session()
-        self.model.compile(optimizer=optimizer, loss=loss_fn, metrics=non_zero_mape)
+        self.model.compile(optimizer=optimizer, loss=loss_fn, metrics=non_zero_mse)
 
         num_train = len(
             glob.glob(os.path.join(config.HOME_FOLDER, self.train_data_folder) + "/" + self.prefix + "*_x.npy")
@@ -150,7 +169,7 @@ class ConvLSTM:
         sprint(csv_logger, self.validation_data_folder)
         tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(log_dir=self.log_dir)
 
-        self.model.training_folder = self.train_data_folder
+
         self.model.train_gen = self.train_gen
         self.model.prefix = self.prefix
         self.model.cityname, self.model.io_length, self.model.pred_horiz, self.model.scale = \
@@ -160,7 +179,8 @@ class ConvLSTM:
         callbacks = []
         if config.cl_early_stopping_patience != -1:
             earlystop = EarlyStopping(
-                monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=0, mode="auto"
+                monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=0, mode="auto",
+                restore_best_weights = True
             )
             callbacks.append(earlystop)
 
@@ -176,6 +196,14 @@ class ConvLSTM:
             callbacks=callbacks,
             workers=config.cl_dataloader_workers,
         )
+
+        if config.cl_during_training_CSR_enabled_train_end:
+            cx = Complexity(self.model.cityname, i_o_length=self.model.io_length,
+                            prediction_horizon=self.model.pred_horiz, \
+                            grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, \
+                            model_func=self.model.predict, model_train_gen=self.model.train_gen)
+            print ("TRAIN_END: ", self.prefix,self.cityname, self.io_length, self.pred_horiz, self.scale, \
+                   cx.CSR_MP_no_thresh_mean, cx.CSR_PM_no_thresh_frac_mean, cx.CSR_PM_no_thresh_mean)
 
     def print_model_and_class_values(self, print_model_summary=True):
         sprint(self.train_data_folder)

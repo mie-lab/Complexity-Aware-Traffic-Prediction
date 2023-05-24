@@ -51,9 +51,9 @@ if running_on == "server":
     cx_sample_whole_data = 800
     cx_sample_single_point = 200
 elif running_on=="maclocal":
-    cx_sample_whole_data = 47
-    cx_sample_single_point = 200
-cx_delete_files_after_running = False
+    cx_sample_whole_data = 40
+    cx_sample_single_point = 40
+cx_delete_files_after_running = True
 
 ######################## Datagen class params #########################
 dg_debug = False
@@ -61,44 +61,59 @@ dg_debug_each_data_sample = False
 
 
 ######################## ConvLSTM class params #########################
-cl_model_save = False
-cl_early_stopping_patience = 3
+cl_model_save = True
+cl_early_stopping_patience = 1 # -1 implies no early stopping
 cl_tensorboard = False
 cl_thresh = 750
 
 if running_on=="server":
-    cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
-    cl_batch_size = 128
-    cl_dataloader_workers = 16
-    cl_epochs = 20
+    cl_percentage_of_train_data = 0.5  # can be reduced for fast tryouts
+    cl_batch_size = 8
+    cl_dataloader_workers = 32
+    cl_epochs = 30
 elif running_on=="maclocal":
     cl_percentage_of_train_data = 0.05  # can be reduced for fast tryouts
-    cl_batch_size = 6
+    cl_batch_size = 3
     cl_dataloader_workers = 4
     cl_epochs = 2
 
-cl_loss_func = "mse"
+cl_loss_func = "mse" # "mse"
 cl_n_depth = 3
+cl_during_training_CSR_enabled_epoch_end = False
+cl_during_training_CSR_enabled_train_end = True
 
 
 ######################### Dimensions for experiments ####################
 if running_on == "server":
-    city_list = ["LonDON" , "madrid", "MELBOURNE"]  # all are converted to lower case later on
+    city_list = ["LonDON"] # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
+    scales = list(range(25, 250, 30)) # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
+    i_o_lengths = [4] # list(range(1, 9))
+    pred_horiz = [1] # list(range(1, 9))
+
+    city_list_def = ["London"]
     scales_def = [45]
-    i_o_lengths_def = [1]
+    i_o_lengths_def = [4]
     pred_horiz_def = [1]
+
+
+elif running_on=="maclocal":
+    # city_list = ["LonDON"]  # all are converted to lower case later on
+    # scales_def = [45]
+    # i_o_lengths_def = [1]
+    # pred_horiz_def = [1]
+    # scales = [8, 16]  # , 16] # [1, 8, 16, 32, 64, 128, 256]
+    # i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
+    # pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
+    city_list = ["LonDON" , "madrid", "MELBOURNE"]  # all are converted to lower case later on
     scales = list(range(5, 250, 20))
     i_o_lengths = list(range(1, 9))
     pred_horiz = list(range(1, 9))
 
-elif running_on=="maclocal":
-    city_list = ["LonDON"]  # all are converted to lower case later on
+    city_list_def = ["London"]
     scales_def = [45]
-    i_o_lengths_def = [1]
+    i_o_lengths_def = [4]
     pred_horiz_def = [1]
-    scales = [8, 16]  # , 16] # [1, 8, 16, 32, 64, 128, 256]
-    i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
-    pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
+
 
 DATA_START_DATE = {
     "london": datetime.date(2019, 7, 1),
@@ -132,12 +147,12 @@ TRAINING_DATA_FOLDER_SPARSE = os.path.join(DATA_FOLDER, train_folder_name_sparse
 VALIDATION_DATA_FOLDER_SPARSE = os.path.join(DATA_FOLDER, val_folder_name_sparse)
 
 if running_on=="server":
-    cutoff_day_number_train = 180
-    start_day_number_val = 180
+    cutoff_day_number_train = int(30*3.5)
+    start_day_number_val = int(30*3.5)
 
 elif running_on=="maclocal":
-    cutoff_day_number_train = 20
-    start_day_number_val = 190
+    cutoff_day_number_train = 180
+    start_day_number_val = 180
 
 # ensure no overlap between train and validation data
 assert start_day_number_val >= cutoff_day_number_train
