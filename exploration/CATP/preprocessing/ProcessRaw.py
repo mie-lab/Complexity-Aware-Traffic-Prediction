@@ -126,7 +126,7 @@ class ProcessRaw:
         x = []
         y = []
         val = []
-        for i in range(df.shape[0]):  # , desc="creating_df"):
+        for i in tqdm(range(df.shape[0]), desc="creating_df"):
             #         if i > 10000:
             #             continue
             x.append(df.iloc[i].x)
@@ -156,7 +156,8 @@ class ProcessRaw:
 
         # populate the matrix M with the values from the dataframe
         for i in range(df.shape[0]):  # , desc="Creating Matrix"):
-            M[x_bins[i], y_bins[i], :] = df["volume"][i]
+            M[x_bins[i], y_bins[i], :] += df["volume"][i]
+
 
         M = np.nan_to_num(M, 0)
         np.save(npy_filename, M)
@@ -268,6 +269,21 @@ class ProcessRaw:
     @staticmethod
     def file_prefix(cityname, io_length, pred_horiz, scale):  # a __repr__() for the clas
         return slugify(str([cityname.lower(), io_length, pred_horiz, scale])) + "-"
+
+    @staticmethod
+    def split_file_prefix(str_prefix):  # a __repr__() for the clas
+        assert str_prefix.count("-") == 4
+        city, io, pred_horiz, scale = str_prefix.split("-")[:4]
+
+        dict_ = {}
+        dict_["city"] = city
+        dict_["io_length"] = io
+        dict_["pred_horiz"] = pred_horiz
+        dict_["scale"] = scale
+
+        return dict_
+
+
 
 
 

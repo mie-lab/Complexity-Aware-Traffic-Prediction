@@ -1,0 +1,145 @@
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-25- 9030 9460
+ : 9030 9030
+ : 9460 9460
+###################################################
+self.file_prefix : london-4-1-25-
+self.CSR_PM_frac : NULL
+self.CSR_PM_count : NULL
+self.CSR_PM_neighbour_stats : NULL
+###################################################
+###################################################
+for_parser:,london,4,1,25,100,800,40,NULL,NULL,22.0,711.1749257890592,nan,nan,22.0,711.1749257890592,nan,nan
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-25- 9030 9460
+ : 9030 9030
+ : 9460 9460
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-35- 9030 9460
+ : 9030 9030
+ : 9460 9460
+###################################################
+self.file_prefix : london-4-1-35-
+self.CSR_PM_frac : NULL
+self.CSR_PM_count : NULL
+self.CSR_PM_neighbour_stats : NULL
+###################################################
+###################################################
+for_parser:,london,4,1,35,100,800,40,NULL,NULL,22.0,714.4310585663097,nan,nan,22.0,714.4310585663097,nan,nan
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-35- 9030 9460
+ : 9030 9030
+ : 9460 9460
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-45- 9030 9460
+ : 9030 9030
+ : 9460 9460
+###################################################
+self.file_prefix : london-4-1-45-
+self.CSR_PM_frac : NULL
+self.CSR_PM_count : NULL
+self.CSR_PM_neighbour_stats : NULL
+###################################################
+###################################################
+for_parser:,london,4,1,45,100,800,40,NULL,NULL,24.0,745.8282988389702,nan,nan,24.0,745.8282988389702,nan,nan
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-45- 9030 9460
+ : 9030 9030
+ : 9460 9460
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-55- 9030 9460
+ : 9030 9030
+ : 9460 9460
+###################################################
+self.file_prefix : london-4-1-55-
+self.CSR_PM_frac : NULL
+self.CSR_PM_count : NULL
+self.CSR_PM_neighbour_stats : NULL
+###################################################
+###################################################
+for_parser:,london,4,1,55,100,800,40,NULL,NULL,29.0,1484.2804722850678,nan,nan,29.0,1484.2804722850678,nan,nan
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-55- 9030 9460
+ : 9030 9030
+ : 9460 9460
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-65- 9030 9460
+ : 9030 9030
+ : 9460 9460
+###################################################
+self.file_prefix : london-4-1-65-
+self.CSR_PM_frac : NULL
+self.CSR_PM_count : NULL
+self.CSR_PM_neighbour_stats : NULL
+###################################################
+###################################################
+for_parser:,london,4,1,65,100,800,40,NULL,NULL,24.0,1519.1954347606033,nan,nan,24.0,1519.1954347606033,nan,nan
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-75- 9030 9460
+ : 9030 9030
+ : 9460 9460
+###################################################
+self.file_prefix : london-4-1-75-
+self.CSR_PM_frac : NULL
+self.CSR_PM_count : NULL
+self.CSR_PM_neighbour_stats : NULL
+###################################################
+###################################################
+for_parser:,london,4,1,75,100,800,40,NULL,NULL,25.0,1504.846774682317,nan,nan,25.0,1504.846774682317,nan,nan
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-85- 9030 9460
+ : 9030 9030
+ : 9460 9460
+###################################################
+self.file_prefix : london-4-1-85-
+self.CSR_PM_frac : NULL
+self.CSR_PM_count : NULL
+self.CSR_PM_neighbour_stats : NULL
+###################################################
+###################################################
+for_parser:,london,4,1,85,100,800,40,NULL,NULL,30.0,1534.2262485082626,nan,nan,30.0,1534.2262485082626,nan,nan
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-95- 9030 9460
+ : 9030 9030
+ : 9460 9460
+###################################################
+self.file_prefix : london-4-1-95-
+self.CSR_PM_frac : NULL
+self.CSR_PM_count : NULL
+self.CSR_PM_neighbour_stats : NULL
+###################################################
+###################################################
+for_parser:,london,4,1,95,100,800,40,NULL,NULL,25.0,1512.6230691467854,nan,nan,25.0,1512.6230691467854,nan,nan
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+self.file_prefix : london-4-1-105-
+self.CSR_PM_frac : NULL
+self.CSR_PM_count : NULL
+self.CSR_PM_neighbour_stats : NULL
+###################################################
+###################################################
+for_parser:,london,4,1,105,100,800,40,NULL,NULL,25.0,1531.3417512510382,nan,nan,25.0,1531.3417512510382,nan,nan
+###################################################

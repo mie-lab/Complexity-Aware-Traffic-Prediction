@@ -87,23 +87,23 @@ class ConvLSTM:
         # We will construct 3 `ConvLSTM2D` layers with batch normalization,
         # followed by a `Conv3D` layer for the spatiotemporal outputs.
         x = layers.ConvLSTM2D(
-            filters=64,
-            kernel_size=(5, 5),
+            filters=4,
+            kernel_size=(3, 3),
             padding="same",
             return_sequences=True,
             activation="relu",
         )(inp)
-        # x = layers.BatchNormalization()(x)
+        x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
-            filters=64,
+            filters=8,
             kernel_size=(3, 3),
             padding="same",
             return_sequences=True,
             activation="relu",
         )(x)
-        # x = layers.BatchNormalization()(x)
+        x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
-            filters=64,
+            filters=4,
             kernel_size=(1, 1),
             padding="same",
             return_sequences=True,
@@ -202,7 +202,7 @@ class ConvLSTM:
                             prediction_horizon=self.model.pred_horiz, \
                             grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, \
                             model_func=self.model.predict, model_train_gen=self.model.train_gen)
-            print ("TRAIN_END: ", self.prefix,self.cityname, self.io_length, self.pred_horiz, self.scale, \
+            print ("TRAIN_END: ", self.prefix, self.cityname, self.io_length, self.pred_horiz, self.scale, \
                    cx.CSR_MP_no_thresh_mean, cx.CSR_PM_no_thresh_frac_mean, cx.CSR_PM_no_thresh_mean)
 
     def print_model_and_class_values(self, print_model_summary=True):

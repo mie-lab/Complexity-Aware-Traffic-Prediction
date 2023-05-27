@@ -36,6 +36,12 @@ class Complexity:
         self.CSR_PM_no_thresh_median = "NULL"
         self.CSR_PM_no_thresh_frac_mean = "NULL"
         self.CSR_PM_no_thresh_frac_median = "NULL"
+        self.CSR_PM_no_thresh_mean_exp = "NULL"
+        self.CSR_PM_no_thresh_median_exp = "NULL"
+        self.CSR_PM_no_thresh_frac_mean_exp = "NULL"
+        self.CSR_PM_no_thresh_frac_median_exp = "NULL"
+        self.CSR_PM_no_thresh_median_exp_minus_1 = "NULL"
+        self.CSR_PM_no_thresh_mean_exp_minus_1 = "NULL"
 
 
         if perfect_model:
@@ -49,17 +55,17 @@ class Complexity:
             self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
             self.cx_whole_dataset_m_predict(temporal_filter=True)
 
-    def compute_dist_N_points(file_list, query_point):
-        random.shuffle(file_list)
-        distances = []
-        for i in (range(1, len(file_list))):
-            neighbour_x_array = np.load(file_list[i])
-
-            if "_x.npy" not in file_list[i]:
-                raise Exception(
-                    "Wrong file supplied; we should not have _y files\n since we are looking for n-hood of x")
-            distances.append(np.max(np.abs(query_point - neighbour_x_array)))
-        return distances
+    # def compute_dist_N_points(file_list, query_point):
+    #     random.shuffle(file_list)
+    #     distances = []
+    #     for i in (range(1, len(file_list))):
+    #         neighbour_x_array = np.load(file_list[i])
+    #
+    #         if "_x.npy" not in file_list[i]:
+    #             raise Exception(
+    #                 "Wrong file supplied; we should not have _y files\n since we are looking for n-hood of x")
+    #         distances.append(np.max(np.abs(query_point - neighbour_x_array)))
+    #     return distances
 
     def cx_whole_dataset_PM(self, temporal_filter=False):
         """
@@ -160,8 +166,8 @@ class Complexity:
                     csr_count += 1
                     break
 
-        if config.cx_delete_files_after_running:
-            obj.clean_intermediate_files()
+        # if config.cx_delete_files_after_running:
+        #     obj.clean_intermediate_files()
 
         self.CSR_PM_frac = csr_count / config.cx_sample_whole_data
         self.CSR_PM_count = csr_count
@@ -190,6 +196,8 @@ class Complexity:
         # file_list = file_list[:config.cx_sample_whole_data]
         criticality = []
         sum_y = []
+        sum_y_exp = []
+        criticality_exp = []
 
         neighbour_indexes_count_list = []
 
@@ -272,15 +280,26 @@ class Complexity:
                 # if np.max(np.abs(y_neighbour - y)) > self.thresh:
                 criticality.append(np.max(np.abs(y_neighbour - y))/(np.max(np.abs(x_neighbor - x))))
                 sum_y.append(np.max(np.abs(y_neighbour - y)))
+
+                criticality_exp.append(np.exp(-np.max(np.abs(y_neighbour - y))) / np.exp(-np.max(np.abs(x_neighbor - x))))
+                sum_y_exp.append(np.exp(-np.max(np.abs(y_neighbour - y))))
                     # break
 
-        if config.cx_delete_files_after_running:
-            obj.clean_intermediate_files()
+        # if config.cx_delete_files_after_running:
+        #     obj.clean_intermediate_files()
 
         self.CSR_PM_no_thresh_mean = np.mean(sum_y)
         self.CSR_PM_no_thresh_median = np.median(sum_y)
         self.CSR_PM_no_thresh_frac_mean = np.mean(criticality)
         self.CSR_PM_no_thresh_frac_median = np.median(criticality)
+        self.CSR_PM_no_thresh_mean_exp = np.mean(sum_y_exp)
+        self.CSR_PM_no_thresh_median_exp =  np.median(sum_y_exp)
+        self.CSR_PM_no_thresh_frac_mean_exp = np.mean(criticality_exp)
+        self.CSR_PM_no_thresh_frac_median_exp = np.median(criticality_exp)
+        self.CSR_PM_no_thresh_frac_median_exp = np.median(criticality_exp)
+        self.CSR_PM_no_thresh_mean_exp_minus_1 = np.mean(1 - np.array(sum_y_exp))
+        self.CSR_PM_no_thresh_median_exp_minus_1 = np.median(1 - np.array(sum_y_exp))
+
 
 
     def cx_whole_dataset_m_predict(self, temporal_filter=False):
@@ -433,43 +452,100 @@ class Complexity:
         print ("for_parser:", self.cityname, self.i_o_length, self.prediction_horizon, self.grid_size,\
                self.thresh, config.cx_sample_whole_data, config.cx_sample_single_point, \
                self.CSR_PM_frac, self.CSR_PM_count, self.CSR_PM_no_thresh_median, \
-               self.CSR_PM_no_thresh_mean, self.CSR_PM_no_thresh_frac_median, self.CSR_PM_no_thresh_frac_mean, sep=",")
+               self.CSR_PM_no_thresh_mean, self.CSR_PM_no_thresh_frac_median, self.CSR_PM_no_thresh_frac_mean, \
+               self.CSR_PM_no_thresh_median_exp, \
+               self.CSR_PM_no_thresh_mean_exp, self.CSR_PM_no_thresh_frac_median_exp, self.CSR_PM_no_thresh_frac_mean_exp,\
+               self.CSR_PM_no_thresh_mean_exp_minus_1, self.CSR_PM_no_thresh_median_exp_minus_1,
+               sep=",")
         print ("###################################################")
 
 
 
 if __name__ == "__main__":
 
-    for thresh in [500]:
-        for city in config.city_list:
+    for city in ["London"]: # config.city_list:
 
-            # io_lengths
-            for scale in config.scales_def:
-                for i_o_length in config.i_o_lengths:
-                    for pred_horiz in config.pred_horiz_def:
+        # io_lengths
+        for scale in config.scales: # [25, 35, 45, 55, 65, 75, 85, 105]:
+            for i_o_length in [4]:
+                for pred_horiz in [1]:
+                    for thresh in [100]:#, 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
+
                         cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
                                         thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
                         cx.print_params()
                         cx.csv_format()
+                    # obj = ProcessRaw(cityname=city, i_o_length=i_o_length, \
+                    #                  prediction_horizon=pred_horiz, grid_size=scale)
+                    # obj.clean_intermediate_files()
 
-            # pred_horiz
-            for repeat in range(1):
-                for scale in config.scales_def:
-                    for i_o_length in config.i_o_lengths_def:
-                        for pred_horiz in config.pred_horiz:
-                            cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-                                            thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
-                            cx.print_params()
-                            cx.csv_format()
+        # for scale in [55]:  # [25, 35, 45, 55, 65, 75, 85, 105]:
+        #     for i_o_length in [4]:
+        #         for pred_horiz in [1, 2, 3, 4, 5, 6, 7, 8]:
+        #             for thresh in [100, 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
+        #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+        #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
+        #                 cx.print_params()
+        #                 cx.csv_format()
+        #             obj = ProcessRaw(cityname=city, i_o_length=i_o_length, \
+        #                              prediction_horizon=pred_horiz, grid_size=scale)
+        #             obj.clean_intermediate_files()
+        #             
+        #             
+        # for scale in [55]:  # [25, 35, 45, 55, 65, 75, 85, 105]:
+        #     for i_o_length in [1,2,3,4,5,6,7,8]:
+        #         for pred_horiz in [1]:
+        #             for thresh in [100, 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
+        #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+        #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
+        #                 cx.print_params()
+        #                 cx.csv_format()
+        #             obj = ProcessRaw(cityname=city, i_o_length=i_o_length, \
+        #                              prediction_horizon=pred_horiz, grid_size=scale)
+        #             obj.clean_intermediate_files()
 
-            # # scales
-            for scale in config.scales:
-                for i_o_length in config.i_o_lengths_def:
-                    for pred_horiz in config.pred_horiz_def:
-                        cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-                                        thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
-                        cx.print_params()
-                        cx.csv_format()
+        # for scale in config.scales:
+        #     for i_o_length in config.i_o_lengths_def:
+        #         for pred_horiz in config.pred_horiz_def:
+        #             for thresh in [100, 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
+        #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+        #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
+        #                 cx.print_params()
+        #                 cx.csv_format()
+        #             obj = ProcessRaw(cityname=city, i_o_length=i_o_length, \
+        #                              prediction_horizon=pred_horiz, grid_size=scale)
+        #             obj.clean_intermediate_files()
+        # 
+        # for scale in config.scales_def:
+        #     for i_o_length in config.i_o_lengths_def:
+        #         for pred_horiz in config.pred_horiz:
+        #             for thresh in [100, 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
+        #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+        #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
+        #                 cx.print_params()
+        #                 cx.csv_format()
+        #             obj = ProcessRaw(cityname=city, i_o_length=i_o_length, \
+        #                              prediction_horizon=pred_horiz, grid_size=scale)
+        #             obj.clean_intermediate_files()
+
+            # # pred_horiz
+            # for repeat in range(1):
+            #     for scale in config.scales_def:
+            #         for i_o_length in config.i_o_lengths_def:
+            #             for pred_horiz in config.pred_horiz:
+            #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+            #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
+            #                 cx.print_params()
+            #                 cx.csv_format()
+            #
+            # # # scales
+            # for scale in config.scales:
+            #     for i_o_length in config.i_o_lengths_def:
+            #         for pred_horiz in config.pred_horiz_def:
+            #             cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
+            #                             thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
+            #             cx.print_params()
+            #             cx.csv_format()
 
         # To parse the results into a csv:
         # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count,CSR_PM_no_thresh_median,CSR_PM_no_thresh_mean,CSR_PM_no_thresh_frac_median,CSR_PM_no_thresh_frac_mean'
