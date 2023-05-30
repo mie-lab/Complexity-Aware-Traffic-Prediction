@@ -8,6 +8,7 @@ def non_zero_mape(y_true, y_pred):
     frac_abs = tf.abs((t - p) / t)
     return tf.reduce_mean(frac_abs, axis=-1)
 
+
 def non_zero_mse(y_true, y_pred):
     t = y_true[y_true > 0]
     p = y_pred[y_true > 0]

@@ -155,11 +155,20 @@ class ProcessRaw:
         M = np.zeros((n, n, 96))
 
         # populate the matrix M with the values from the dataframe
+        count_dict = {}
         for i in range(df.shape[0]):  # , desc="Creating Matrix"):
             M[x_bins[i], y_bins[i], :] += df["volume"][i]
-
+            if (x_bins[i], y_bins[i]) in count_dict:
+                count_dict[x_bins[i], y_bins[i]] += 1
+            else:
+                count_dict[x_bins[i], y_bins[i]] = 1
 
         M = np.nan_to_num(M, 0)
+
+        # convert sum to mean
+        for i in range(df.shape[0]):
+            M[x_bins[i], y_bins[i], :] = M[x_bins[i], y_bins[i], :] / count_dict[x_bins[i], y_bins[i]]
+
         np.save(npy_filename, M)
         #     print(M.shape)
 
@@ -193,8 +202,11 @@ class ProcessRaw:
         ih = oh
 
         fnames = glob.glob("data_samples/*x96.npy")
-        fnames = [x for x in fnames if self.cityname in x and \
-                  ("-" + str(self.grid_size) + "x" + str(self.grid_size) + "x96") in x]
+        fnames = [
+            x
+            for x in fnames
+            if self.cityname in x and ("-" + str(self.grid_size) + "x" + str(self.grid_size) + "x96") in x
+        ]
 
         # sorting by yyyy-mm-dd ensures that validation data always comes later than test
         list.sort(fnames)
@@ -202,10 +214,12 @@ class ProcessRaw:
         training_dates = set(self.date_list[: config.cutoff_day_number_train])
         validation_dates = set(self.date_list[config.start_day_number_val :])
 
-        pathlib.Path(os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())).mkdir(parents=True,
-                                                                                             exist_ok=True)
-        pathlib.Path(os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())).mkdir(parents=True,
-                                                                                             exist_ok=True)
+        pathlib.Path(os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())).mkdir(
+            parents=True, exist_ok=True
+        )
+        pathlib.Path(os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())).mkdir(
+            parents=True, exist_ok=True
+        )
         self.training_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
         self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
 
@@ -217,7 +231,6 @@ class ProcessRaw:
             m = np.load(f)
             #         print (m.shape)
 
-
             # since f.split("data_samples")[1] would give filenames like: melbourne_2020-06-07-8x8x96.npy
             # f.split("data_samples")[1].split(self.cityname)[1][1:11]= '2020-06-07'
             if f.split("data_samples")[1].split(self.cityname)[1][1:11] in training_dates:
@@ -225,13 +238,16 @@ class ProcessRaw:
                     tcount += 1
                     r = tcount
 
-                    if os.path.exists(os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_x.npy"))\
-                        and os.path.exists(os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_y.npy")):
+                    if os.path.exists(
+                        os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_x.npy")
+                    ) and os.path.exists(
+                        os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_y.npy")
+                    ):
                         # processed data already exists
                         return
 
-                    x = m[:, :, j - ih: j]
-                    y = m[:, :, j + ph: j + ph + oh]
+                    x = m[:, :, j - ih : j]
+                    y = m[:, :, j + ph : j + ph + oh]
 
                     np.save(os.path.join(self.training_folder, self.key_dimensions() + str(r) + "_x.npy"), x)
                     np.save(os.path.join(self.training_folder, self.key_dimensions() + str(r) + "_y.npy"), y)
@@ -260,13 +276,40 @@ class ProcessRaw:
     def key_dimensions(self):  # a __repr__() for the clas
         return slugify(str([self.cityname, self.i_o_length, self.prediction_horizon, self.grid_size])) + "-"
 
-    def clean_intermediate_files(self):
-        for filenames in [glob.glob(os.path.join(self.validation_folder, self.key_dimensions()) + "*.npy"), \
-                          glob.glob(os.path.join(self.training_folder, self.key_dimensions()) + "*.npy")]:
+    def _clean_intermediate_files(self):
+        for filenames in [
+            glob.glob(os.path.join(self.validation_folder, self.key_dimensions()) + "*.npy"),
+            glob.glob(os.path.join(self.training_folder, self.key_dimensions()) + "*.npy"),
+        ]:
             for file in tqdm(filenames, desc="Cleaning intermediate files"):
                 os.remove(file)
 
     @staticmethod
+    def clean_intermediate_files(cityname, io_length, pred_horiz, scale):
+        for filenames in [
+            glob.glob(
+                os.path.join(
+                    os.path.join(
+                        config.VALIDATION_DATA_FOLDER, ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
+                    ),
+                    ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale),
+                )
+                + "*.npy"
+            ),
+            glob.glob(
+                os.path.join(
+                    os.path.join(
+                        config.TRAINING_DATA_FOLDER, ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
+                    ),
+                    ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale),
+                )
+                + "*.npy"
+            ),
+        ]:
+            for file in tqdm(filenames, desc="Cleaning intermediate files"):
+                os.remove(file)
+
+    @staticmethod  # same as key_dimensions
     def file_prefix(cityname, io_length, pred_horiz, scale):  # a __repr__() for the clas
         return slugify(str([cityname.lower(), io_length, pred_horiz, scale])) + "-"
 
@@ -284,14 +327,9 @@ class ProcessRaw:
         return dict_
 
 
-
-
-
-
 if __name__ == "__main__":
     # os.system("rm -rf data_samples && mkdir data_samples")
     for city in config.city_list:
-
         # scales
         for scale in config.scales:
             for i_o_length in config.i_o_lengths_def:
@@ -299,13 +337,13 @@ if __name__ == "__main__":
                     ProcessRaw(cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale)
 
         # io_lengths
-        for scale in config.scales_def:
-            for i_o_length in config.i_o_lengths:
-                for pred_horiz in config.pred_horiz_def:
-                    ProcessRaw(cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale)
-
-        # pred_horiz
-        for scale in config.scales_def:
-            for i_o_length in config.i_o_lengths_def:
-                for pred_horiz in config.pred_horiz:
-                    ProcessRaw(cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale)
+        # for scale in config.scales_def:
+        #     for i_o_length in config.i_o_lengths:
+        #         for pred_horiz in config.pred_horiz_def:
+        #             ProcessRaw(cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale)
+        #
+        # # pred_horiz
+        # for scale in config.scales_def:
+        #     for i_o_length in config.i_o_lengths_def:
+        #         for pred_horiz in config.pred_horiz:
+        #             ProcessRaw(cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale)

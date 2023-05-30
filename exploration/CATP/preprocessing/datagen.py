@@ -18,7 +18,6 @@ from preprocessing.ProcessRaw import ProcessRaw
 
 class CustomDataGenerator(tensorflow.keras.utils.Sequence):
     def __init__(self, cityname, io_length, pred_horiz, scale, data_dir, num_samples, batch_size=32, shuffle=True):
-
         self.city_name, self.io_length, self.pred_horiz, self.scale = cityname, io_length, pred_horiz, scale
         self.prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
         self.data_dir = data_dir
@@ -72,8 +71,7 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
         y_batch = np.moveaxis(y_batch, [0, 1, 2, 3], [0, 2, 3, 1])
 
         # sprint ((x_batch[..., np.newaxis]).shape, (y_batch[..., np.newaxis]).shape)
-        return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis]) # the last new axis is for channels
-
+        return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis])  # the last new axis is for channels
 
     # def custom_get_item_with_file_name(self, index, specific_files=None):
     #
@@ -109,7 +107,6 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
     #
     #     return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis]), indexes
 
-
     def on_epoch_end(self):
         if self.shuffle:
             np.random.shuffle(self.indexes)
@@ -130,7 +127,9 @@ if __name__ == "__main__":
 
     prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
     num_train = len(glob.glob(os.path.join(config.DATA_FOLDER, train_data_folder, prefix) + "/" + prefix + "*_x.npy"))
-    num_validation = len(glob.glob(os.path.join(config.DATA_FOLDER, validation_data_folder, prefix) + "/" + prefix + "*_x.npy"))
+    num_validation = len(
+        glob.glob(os.path.join(config.DATA_FOLDER, validation_data_folder, prefix) + "/" + prefix + "*_x.npy")
+    )
     sprint(num_train, num_validation)
 
     train_gen = CustomDataGenerator(

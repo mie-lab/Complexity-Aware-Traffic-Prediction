@@ -28,23 +28,28 @@ from preprocessing.ProcessRaw import ProcessRaw
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-
         if config.cl_during_training_CSR_enabled_epoch_end:
-            cx = Complexity(self.model.cityname, i_o_length=self.model.io_length,
-                            prediction_horizon=self.model.pred_horiz, \
-                            grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, \
-                            model_func=self.model.predict, model_train_gen=self.model.train_gen)
+            cx = Complexity(
+                self.model.cityname,
+                i_o_length=self.model.io_length,
+                prediction_horizon=self.model.pred_horiz,
+                grid_size=self.model.scale,
+                thresh=config.cl_thresh,
+                perfect_model=False,
+                model_func=self.model.predict,
+                model_train_gen=self.model.train_gen,
+            )
             logs["CSR_train_data_DL_epoch_end"] = cx.CSR_MP_no_thresh_mean
         else:
             logs["CSR_train_data_DL_epoch_end"] = 1
 
         logs["naive-model-non-zero"] = (
-            NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse_non_zero
-        logs["naive-model-mse"] = (
-            NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
+            NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)
+        ).naive_baseline_mse_non_zero
+        logs["naive-model-mse"] = (NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
 
         # save the model to disk
-        if config.cl_model_save:
+        if config.cl_model_save_epoch_end:
             self.model.save(
                 os.path.join(
                     config.INTERMEDIATE_FOLDER,
@@ -61,6 +66,15 @@ class ComputeMetrics(Callback):
     #         logs["CSR_train_data_DL_train_end"] = cx.CSR_MP_no_thresh_mean
     #     else:
     #         logs["CSR_train_data_DL_train_end"] = 1
+    
+    def on_train_end(self, logs):
+        if config.cl_model_save_train_end:
+            self.model.save(
+                os.path.join(
+                    config.INTERMEDIATE_FOLDER,
+                    os.path.basename(os.path.normpath(self.model.prefix)) + "_epoch_best_model_" + ".h5",
+                )
+            )
 
 
 class ConvLSTM:
@@ -87,15 +101,15 @@ class ConvLSTM:
         # We will construct 3 `ConvLSTM2D` layers with batch normalization,
         # followed by a `Conv3D` layer for the spatiotemporal outputs.
         x = layers.ConvLSTM2D(
-            filters=4,
-            kernel_size=(3, 3),
+            filters=128,
+            kernel_size=(1, 1),
             padding="same",
             return_sequences=True,
             activation="relu",
         )(inp)
         x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
-            filters=8,
+            filters=64,
             kernel_size=(3, 3),
             padding="same",
             return_sequences=True,
@@ -103,7 +117,15 @@ class ConvLSTM:
         )(x)
         x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
-            filters=4,
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        # x = layers.BatchNormalization()(x)
+        x = layers.ConvLSTM2D(
+            filters=64,
             kernel_size=(1, 1),
             padding="same",
             return_sequences=True,
@@ -169,18 +191,23 @@ class ConvLSTM:
         sprint(csv_logger, self.validation_data_folder)
         tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(log_dir=self.log_dir)
 
-
         self.model.train_gen = self.train_gen
         self.model.prefix = self.prefix
-        self.model.cityname, self.model.io_length, self.model.pred_horiz, self.model.scale = \
-            self.cityname, self.io_length, self.pred_horiz, self.scale
-
+        self.model.cityname, self.model.io_length, self.model.pred_horiz, self.model.scale = (
+            self.cityname,
+            self.io_length,
+            self.pred_horiz,
+            self.scale,
+        )
 
         callbacks = []
         if config.cl_early_stopping_patience != -1:
             earlystop = EarlyStopping(
-                monitor="val_loss", patience=config.cl_early_stopping_patience, verbose=0, mode="auto",
-                restore_best_weights = True
+                monitor="val_loss",
+                patience=config.cl_early_stopping_patience,
+                verbose=0,
+                mode="auto",
+                restore_best_weights=True,
             )
             callbacks.append(earlystop)
 
@@ -197,13 +224,29 @@ class ConvLSTM:
             workers=config.cl_dataloader_workers,
         )
 
+
         if config.cl_during_training_CSR_enabled_train_end:
-            cx = Complexity(self.model.cityname, i_o_length=self.model.io_length,
-                            prediction_horizon=self.model.pred_horiz, \
-                            grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, \
-                            model_func=self.model.predict, model_train_gen=self.model.train_gen)
-            print ("TRAIN_END: ", self.prefix, self.cityname, self.io_length, self.pred_horiz, self.scale, \
-                   cx.CSR_MP_no_thresh_mean, cx.CSR_PM_no_thresh_frac_mean, cx.CSR_PM_no_thresh_mean)
+            cx = Complexity(
+                self.model.cityname,
+                i_o_length=self.model.io_length,
+                prediction_horizon=self.model.pred_horiz,
+                grid_size=self.model.scale,
+                thresh=config.cl_thresh,
+                perfect_model=False,
+                model_func=self.model.predict,
+                model_train_gen=self.model.train_gen,
+            )
+            print(
+                "TRAIN_END: ",
+                self.prefix,
+                self.cityname,
+                self.io_length,
+                self.pred_horiz,
+                self.scale,
+                cx.CSR_MP_no_thresh_mean,
+                cx.CSR_PM_no_thresh_frac_mean,
+                cx.CSR_PM_no_thresh_mean,
+            )
 
     def print_model_and_class_values(self, print_model_summary=True):
         sprint(self.train_data_folder)
@@ -234,14 +277,10 @@ if __name__ == "__main__":
         validation_csv_file="validation.csv",
         log_dir="log_dir",
     )
-    print (model.model.summary())
+    print(model.model.summary())
     model.print_model_and_class_values(print_model_summary=False)
     model.train()
     # model.predict_train_data_and_save_all()
 
-
     # Now, we can delete the temp files after training for one scenario
-    obj.clean_intermediate_files()
-
-
-
+    obj._clean_intermediate_files()

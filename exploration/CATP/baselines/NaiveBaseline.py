@@ -39,7 +39,7 @@ class NaiveBaseline:
 
             # repeat the channels manually
             for i in range(X.shape[1]):
-                x[:,i,:,:,:] = X[:, -1, :, :, :]
+                x[:, i, :, :, :] = X[:, -1, :, :, :]
 
             # Broadcasting does not seem to work
             # even with just the last value
@@ -51,7 +51,7 @@ class NaiveBaseline:
             if counter >= N:
                 break
             val.append(np.mean(((x - y) ** 2).flatten()))
-            val_non_zero.append(np.mean(((x[x>0] - y[x>0]) ** 2).flatten()))
+            val_non_zero.append(np.mean(((x[x > 0] - y[x > 0]) ** 2).flatten()))
         self.naive_baseline_mse = np.mean(val)
         self.naive_baseline_mse_non_zero = np.mean(val_non_zero)
         return self

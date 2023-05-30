@@ -18,7 +18,7 @@ if cur_dir.split("/")[1] == "home":
 elif cur_dir.split("/")[1] == "Users":
     running_on = "maclocal"
 else:
-    raise Exception ("Unknown computer; please check config file")
+    raise Exception("Unknown computer; please check config file")
 
 
 if running_on == "server":
@@ -34,7 +34,7 @@ else:
 
 
 INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
-RESULTS_FOLDER = os.path.join(DATA_FOLDER, "results/latest_2")
+RESULTS_FOLDER = os.path.join(DATA_FOLDER, "intermediate_folder")
 
 ######################## complexity class params #########################
 # cx_max_dist = 2500
@@ -47,9 +47,9 @@ RESULTS_FOLDER = os.path.join(DATA_FOLDER, "results/latest_2")
 # cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
 cx_debug = True
 if running_on == "server":
-    cx_sample_whole_data = 800
+    cx_sample_whole_data = 1500
     cx_sample_single_point = 200
-elif running_on=="maclocal":
+elif running_on == "maclocal":
     cx_sample_whole_data = 1500
     cx_sample_single_point = 40
 cx_delete_files_after_running = True
@@ -59,23 +59,24 @@ dg_debug = False
 dg_debug_each_data_sample = False
 
 ######################## ConvLSTM class params #########################
-cl_model_save = False
-cl_early_stopping_patience = 1 # -1 implies no early stopping
+cl_model_save_epoch_end = False
+cl_model_save_train_end = True
+cl_early_stopping_patience = 5  # -1 implies no early stopping
 cl_tensorboard = False
 cl_thresh = 750
 
-if running_on=="server":
+if running_on == "server":
     cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
-    cl_batch_size = 8
+    cl_batch_size = 32
     cl_dataloader_workers = 32
     cl_epochs = 30
-elif running_on=="maclocal":
-    cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
+elif running_on == "maclocal":
+    cl_percentage_of_train_data = 0.4  # can be reduced for fast tryouts
     cl_batch_size = 3
     cl_dataloader_workers = 4
-    cl_epochs = 2
+    cl_epochs = 1
 
-cl_loss_func = "mse" # "mse"
+cl_loss_func = "mse"  # "mse"
 cl_n_depth = 3
 cl_during_training_CSR_enabled_epoch_end = False
 cl_during_training_CSR_enabled_train_end = True
@@ -83,18 +84,22 @@ cl_during_training_CSR_enabled_train_end = True
 
 ######################### Dimensions for experiments ####################
 if running_on == "server":
-    city_list = ["LonDON"] # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
-    scales = list(range(25, 105, 10)) # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
-    i_o_lengths = [8] # list(range(1, 9))
-    pred_horiz = [1] # list(range(1, 9))
+    city_list = [
+        "madrid",
+        "melbourne",
+        "london",
+    ]  # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
+    scales = list(range(25, 105, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
+    i_o_lengths = [8]  # list(range(1, 9))
+    pred_horiz = [1]  # list(range(1, 9))
 
     city_list_def = ["London"]
-    scales_def = [45]
+    scales_def = [55]
     i_o_lengths_def = [4]
     pred_horiz_def = [1]
 
 
-elif running_on=="maclocal":
+elif running_on == "maclocal":
     # city_list = ["LonDON"]  # all are converted to lower case later on
     # scales_def = [45]
     # i_o_lengths_def = [1]
@@ -103,7 +108,7 @@ elif running_on=="maclocal":
     # i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     # pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     city_list = ["LonDON", "madrid", "MELBOURNE"]  # all are converted to lower case later on
-    scales = list(range(25, 105, 10))
+    scales = list(range(25, 105, 10))  # list(range(25, 105, 10))
     i_o_lengths = list(range(1, 9))
     pred_horiz = list(range(1, 9))
 
@@ -144,15 +149,13 @@ VALIDATION_DATA_FOLDER = os.path.join(DATA_FOLDER, val_folder_name)
 TRAINING_DATA_FOLDER_SPARSE = os.path.join(DATA_FOLDER, train_folder_name_sparse)
 VALIDATION_DATA_FOLDER_SPARSE = os.path.join(DATA_FOLDER, val_folder_name_sparse)
 
-if running_on=="server":
-    cutoff_day_number_train = int(30*3.5)
-    start_day_number_val = int(30*3.5)
+if running_on == "server":
+    cutoff_day_number_train = int(30 * 3.5)
+    start_day_number_val = int(30 * 3.5)
 
-elif running_on=="maclocal":
-    cutoff_day_number_train = int(30*3.5)
-    start_day_number_val = int(30*3.5)
+elif running_on == "maclocal":
+    cutoff_day_number_train = int(30 * 3.5)
+    start_day_number_val = int(30 * 3.5)
 
 # ensure no overlap between train and validation data
 assert start_day_number_val >= cutoff_day_number_train
-
-
