@@ -54,6 +54,8 @@ class ProcessRaw:
 
         self.create_train_val_data_points_x_y()
 
+        self.offset = 96 - (prediction_horizon + i_o_length * 2)
+
     def create_spatial_npy_from_loop_lat_lon(self):
         BASEDIR = load_basedir(fn="t4c22_config.json", pkg=t4c22)
         city = self.cityname

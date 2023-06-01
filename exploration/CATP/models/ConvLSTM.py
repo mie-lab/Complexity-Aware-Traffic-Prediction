@@ -39,7 +39,7 @@ class ComputeMetrics(Callback):
                 model_func=self.model.predict,
                 model_train_gen=self.model.train_gen,
             )
-            logs["CSR_train_data_DL_epoch_end"] = cx.CSR_MP_no_thresh_mean
+            logs["CSR_train_data_DL_epoch_end"] = cx.CSR_MP_sum_y_exceeding_r_x_max
         else:
             logs["CSR_train_data_DL_epoch_end"] = 1
 
@@ -66,7 +66,7 @@ class ComputeMetrics(Callback):
     #         logs["CSR_train_data_DL_train_end"] = cx.CSR_MP_no_thresh_mean
     #     else:
     #         logs["CSR_train_data_DL_train_end"] = 1
-    
+
     def on_train_end(self, logs):
         if config.cl_model_save_train_end:
             self.model.save(
@@ -223,7 +223,6 @@ class ConvLSTM:
             callbacks=callbacks,
             workers=config.cl_dataloader_workers,
         )
-
 
         if config.cl_during_training_CSR_enabled_train_end:
             cx = Complexity(

@@ -50,7 +50,7 @@ if running_on == "server":
     cx_sample_whole_data = 1500
     cx_sample_single_point = 200
 elif running_on == "maclocal":
-    cx_sample_whole_data = 1500
+    cx_sample_whole_data = 100
     cx_sample_single_point = 40
 cx_delete_files_after_running = True
 
@@ -71,14 +71,14 @@ if running_on == "server":
     cl_dataloader_workers = 32
     cl_epochs = 30
 elif running_on == "maclocal":
-    cl_percentage_of_train_data = 0.4  # can be reduced for fast tryouts
+    cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
     cl_batch_size = 3
     cl_dataloader_workers = 4
     cl_epochs = 1
 
 cl_loss_func = "mse"  # "mse"
 cl_n_depth = 3
-cl_during_training_CSR_enabled_epoch_end = False
+cl_during_training_CSR_enabled_epoch_end = True
 cl_during_training_CSR_enabled_train_end = True
 
 
@@ -89,9 +89,9 @@ if running_on == "server":
         "melbourne",
         "london",
     ]  # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
-    scales = list(range(25, 105, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
-    i_o_lengths = [8]  # list(range(1, 9))
-    pred_horiz = [1]  # list(range(1, 9))
+    scales = list(range(25, 106, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
+    i_o_lengths = list(range(1, 9))
+    pred_horiz = list(range(1, 9))
 
     city_list_def = ["London"]
     scales_def = [55]
@@ -107,8 +107,12 @@ elif running_on == "maclocal":
     # scales = [8, 16]  # , 16] # [1, 8, 16, 32, 64, 128, 256]
     # i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     # pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
-    city_list = ["LonDON", "madrid", "MELBOURNE"]  # all are converted to lower case later on
-    scales = list(range(25, 105, 10))  # list(range(25, 105, 10))
+    city_list = [
+        "madrid",
+        "melbourne",
+        "london",
+    ]  # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
+    scales = list(range(25, 106, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
     i_o_lengths = list(range(1, 9))
     pred_horiz = list(range(1, 9))
 
