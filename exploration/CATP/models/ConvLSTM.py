@@ -39,9 +39,13 @@ class ComputeMetrics(Callback):
                 model_func=self.model.predict,
                 model_train_gen=self.model.train_gen,
             )
-            logs["CSR_train_data_DL_epoch_end"] = cx.CSR_MP_sum_y_exceeding_r_x_max
+            logs["CSR_MP_sum_y_exceeding_r_x_max"] = cx.CSR_MP_sum_y_exceeding_r_x_max
+            logs["CSR_PM_sum_y_exceeding_r_x_max"] = cx.CSR_PM_sum_y_exceeding_r_x_max
+            logs["CSR_NM_sum_y_exceeding_r_x_max"] = cx.CSR_NM_sum_y_exceeding_r_x_max
         else:
-            logs["CSR_train_data_DL_epoch_end"] = 1
+            logs["CSR_MP_sum_y_exceeding_r_x_max"] = 1
+            logs["CSR_PM_sum_y_exceeding_r_x_max"] = 1
+            logs["CSR_NM_sum_y_exceeding_r_x_max"] = 1
 
         logs["naive-model-non-zero"] = (
             NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)

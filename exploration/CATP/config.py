@@ -71,10 +71,10 @@ if running_on == "server":
     cl_dataloader_workers = 32
     cl_epochs = 30
 elif running_on == "maclocal":
-    cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
+    cl_percentage_of_train_data = 0.1  # can be reduced for fast tryouts
     cl_batch_size = 3
     cl_dataloader_workers = 4
-    cl_epochs = 1
+    cl_epochs = 2
 
 cl_loss_func = "mse"  # "mse"
 cl_n_depth = 3
