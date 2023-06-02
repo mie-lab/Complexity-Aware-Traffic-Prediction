@@ -42,10 +42,35 @@ class ComputeMetrics(Callback):
             logs["CSR_MP_sum_y_exceeding_r_x_max"] = cx.CSR_MP_sum_y_exceeding_r_x_max
             logs["CSR_PM_sum_y_exceeding_r_x_max"] = cx.CSR_PM_sum_y_exceeding_r_x_max
             logs["CSR_NM_sum_y_exceeding_r_x_max"] = cx.CSR_NM_sum_y_exceeding_r_x_max
+
+            logs["CSR_MP_y_dist_mean_l_inf"] = cx.CSR_MP_no_thresh_mean
+            logs["CSR_PM_y_dist_mean_l_inf"] = cx.CSR_PM_no_thresh_mean
+            logs["CSR_NM_y_dist_mean_l_inf"] = cx.CSR_NM_no_thresh_mean
+
+            logs["CSR_MP_y_dist_mse"] = cx.CSR_MP_y_dist_mse
+            logs["CSR_PM_y_dist_mse"] = cx.CSR_PM_y_dist_mse
+            logs["CSR_NM_y_dist_mse"] = cx.CSR_NM_y_dist_mse
+
+            logs["CSR_MP_frac_mean"] = cx.CSR_MP_no_thresh_frac_mean
+            logs["CSR_PM_frac_mean"] = cx.CSR_PM_no_thresh_frac_mean
+
+
+
         else:
-            logs["CSR_MP_sum_y_exceeding_r_x_max"] = 1
-            logs["CSR_PM_sum_y_exceeding_r_x_max"] = 1
-            logs["CSR_NM_sum_y_exceeding_r_x_max"] = 1
+            logs["CSR_MP_sum_y_exceeding_r_x_max"] = -1
+            logs["CSR_PM_sum_y_exceeding_r_x_max"] = -1
+            logs["CSR_NM_sum_y_exceeding_r_x_max"] = -1
+
+            logs["CSR_MP_y_dist_mean_l_inf"] = -1
+            logs["CSR_PM_y_dist_mean_l_inf"] = -1
+            logs["CSR_NM_y_dist_mean_l_inf"] = -1
+
+            logs["CSR_MP_y_dist_mse"] = -1
+            logs["CSR_PM_y_dist_mse"] = -1
+            logs["CSR_NM_y_dist_mse"] = -1
+
+            logs["CSR_MP_frac_mean"] = 1
+            logs["CSR_PM_frac_mean"] = 1
 
         logs["naive-model-non-zero"] = (
             NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)
@@ -61,15 +86,57 @@ class ComputeMetrics(Callback):
                 )
             )
 
-    # def on_train_end(self, logs):
-    #     if config.cl_during_training_CSR_enabled_train_end:
-    #         cx = Complexity(self.model.cityname, i_o_length=self.model.io_length,
-    #                         prediction_horizon=self.model.pred_horiz, \
-    #                         grid_size=self.model.scale, thresh=config.cl_thresh, perfect_model=False, \
-    #                         model_func=self.model.predict, model_train_gen=self.model.train_gen)
-    #         logs["CSR_train_data_DL_train_end"] = cx.CSR_MP_no_thresh_mean
-    #     else:
-    #         logs["CSR_train_data_DL_train_end"] = 1
+    def on_batch_end(self, batch, logs):
+        batch = str(batch)
+        if config.cl_during_training_CSR_enabled_batch_end:
+            cx = Complexity(
+                self.model.cityname,
+                i_o_length=self.model.io_length,
+                prediction_horizon=self.model.pred_horiz,
+                grid_size=self.model.scale,
+                thresh=config.cl_thresh,
+                perfect_model=False,
+                model_func=self.model.predict,
+                model_train_gen=self.model.train_gen,
+            )
+            logs["CSR_MP_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = cx.CSR_MP_sum_y_exceeding_r_x_max
+            logs["CSR_PM_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = cx.CSR_PM_sum_y_exceeding_r_x_max
+            logs["CSR_NM_sum_y_exceeding_r_x_max"+ "-batch-" + batch ] = cx.CSR_NM_sum_y_exceeding_r_x_max
+
+            logs["CSR_MP_y_dist_mean_l_inf"+ "-batch-" + batch] = cx.CSR_MP_no_thresh_mean
+            logs["CSR_PM_y_dist_mean_l_inf"+ "-batch-" + batch] = cx.CSR_PM_no_thresh_mean
+            logs["CSR_NM_y_dist_mean_l_inf"+ "-batch-" + batch] = cx.CSR_NM_no_thresh_mean
+
+            logs["CSR_MP_y_dist_mse"+ "-batch-" + batch] = cx.CSR_MP_y_dist_mse
+            logs["CSR_PM_y_dist_mse"+ "-batch-" + batch] = cx.CSR_PM_y_dist_mse
+            logs["CSR_NM_y_dist_mse"+ "-batch-" + batch] = cx.CSR_NM_y_dist_mse
+
+            logs["CSR_MP_frac_mean"+ "-batch-" + batch] = cx.CSR_MP_no_thresh_frac_mean
+            logs["CSR_PM_frac_mean"+ "-batch-" + batch] = cx.CSR_PM_no_thresh_frac_mean
+
+
+
+        else:
+            logs["CSR_MP_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = -1
+            logs["CSR_PM_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = -1
+            logs["CSR_NM_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = -1
+
+            logs["CSR_MP_y_dist_mean_l_inf"+ "-batch-" + batch] = -1
+            logs["CSR_PM_y_dist_mean_l_inf"+ "-batch-" + batch] = -1
+            logs["CSR_NM_y_dist_mean_l_inf"+ "-batch-" + batch] = -1
+
+            logs["CSR_MP_y_dist_mse"+ "-batch-" + batch] = -1
+            logs["CSR_PM_y_dist_mse"+ "-batch-" + batch] = -1
+            logs["CSR_NM_y_dist_mse"+ "-batch-" + batch] = -1
+
+            logs["CSR_MP_frac_mean"+ "-batch-" + batch] = 1
+            logs["CSR_PM_frac_mean"+ "-batch-" + batch] = 1
+
+        logs["naive-model-non-zero"+ "-batch-" + batch] = (
+            NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)
+        ).naive_baseline_mse_non_zero
+        logs["naive-model-mse"+ "-batch-" + batch] = (NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
+
 
     def on_train_end(self, logs):
         if config.cl_model_save_train_end:
@@ -265,9 +332,9 @@ class ConvLSTM:
 
 if __name__ == "__main__":
     cityname = "london"
-    io_length = 3
-    pred_horiz = 4
-    scale = 5
+    io_length = 4
+    pred_horiz = 1
+    scale = 55
 
     obj = ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
 

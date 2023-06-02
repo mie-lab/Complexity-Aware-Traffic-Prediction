@@ -48,10 +48,10 @@ RESULTS_FOLDER = os.path.join(DATA_FOLDER, "intermediate_folder")
 cx_debug = True
 if running_on == "server":
     cx_sample_whole_data = 1500
-    cx_sample_single_point = 200
+    cx_sample_single_point = 200 # no longer being used
 elif running_on == "maclocal":
-    cx_sample_whole_data = 100
-    cx_sample_single_point = 40
+    cx_sample_whole_data = 10
+    cx_sample_single_point = 40 # no longer being used
 cx_delete_files_after_running = True
 
 ######################## Datagen class params #########################
@@ -59,7 +59,7 @@ dg_debug = False
 dg_debug_each_data_sample = False
 
 ######################## ConvLSTM class params #########################
-cl_model_save_epoch_end = False
+cl_model_save_epoch_end = True
 cl_model_save_train_end = True
 cl_early_stopping_patience = 5  # -1 implies no early stopping
 cl_tensorboard = False
@@ -71,15 +71,17 @@ if running_on == "server":
     cl_dataloader_workers = 32
     cl_epochs = 30
 elif running_on == "maclocal":
-    cl_percentage_of_train_data = 0.1  # can be reduced for fast tryouts
+    cl_percentage_of_train_data = 0.0025  # can be reduced for fast tryouts
     cl_batch_size = 3
     cl_dataloader_workers = 4
-    cl_epochs = 2
+    cl_epochs = 20
 
 cl_loss_func = "mse"  # "mse"
 cl_n_depth = 3
 cl_during_training_CSR_enabled_epoch_end = True
+cl_during_training_CSR_enabled_batch_end = True
 cl_during_training_CSR_enabled_train_end = True
+
 
 
 ######################### Dimensions for experiments ####################

@@ -92,6 +92,7 @@ class Complexity:
             self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
             self.cx_whole_dataset_NM_no_thresh(temporal_filter=True)
             self.cx_whole_dataset_m_predict(temporal_filter=True)
+            self.csv_format()
 
     # def compute_dist_N_points(file_list, query_point):
     #     random.shuffle(file_list)
@@ -335,7 +336,7 @@ class Complexity:
 
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
-            y = np.load((self.training_folder + "/" + self.file_prefix) + str(fileindex_orig) + "_y.npy")
+            y = x # One of two lines change compared to PM
 
             neighbour_indexes = []
 
@@ -381,7 +382,7 @@ class Complexity:
                             (self.training_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
                         )
 
-                        # Only a single line change from PM function.
+                        # One of two lines change compared to PM
                         y_neighbour = x_neighbour
 
                         i_d_i = np.max(np.abs(x_neighbour - x))
@@ -431,22 +432,24 @@ class Complexity:
 
         # sprint (len(sum_x_dataset))
 
-        self.CSR_PM_no_thresh_mean = np.mean(sum_y_dataset)
-        self.CSR_PM_no_thresh_median = np.median(sum_y_dataset)
+        self.CSR_NM_no_thresh_mean = np.mean(sum_y_dataset)
+        self.CSR_NM_no_thresh_median = np.median(sum_y_dataset)
 
-        self.CSR_PM_no_thresh_frac_mean = np.mean(criticality_dataset)
-        self.CSR_PM_no_thresh_frac_median = np.median(criticality_dataset)
+        self.CSR_NM_no_thresh_frac_mean = np.mean(criticality_dataset)
+        self.CSR_NM_no_thresh_frac_median = np.median(criticality_dataset)
 
-        self.CSR_PM_no_thresh_frac_mean_exp = np.exp(np.mean(criticality_dataset))
-        self.CSR_PM_no_thresh_frac_median_exp = np.exp(np.median(criticality_dataset))
+        self.CSR_NM_no_thresh_frac_mean_exp = np.exp(np.mean(criticality_dataset))
+        self.CSR_NM_no_thresh_frac_median_exp = np.exp(np.median(criticality_dataset))
 
-        self.CSR_PM_no_thresh_frac_exp_mean = np.mean(criticality_dataset_exp)
-        self.CSR_PM_no_thresh_frac_exp_mean_signed = np.median(criticality_dataset_exp_signed)
+        self.CSR_NM_no_thresh_frac_exp_mean = np.mean(criticality_dataset_exp)
+        self.CSR_NM_no_thresh_frac_exp_mean_signed = np.median(criticality_dataset_exp_signed)
 
-        self.CSR_PM_count_y_exceeding_r_x = np.sum(count_y_more_than_max_x_dataset)
-        self.CSR_PM_y_dist_mse = np.sum(mse_y_dataset)
+        self.CSR_NM_count_y_exceeding_r_x = np.sum(count_y_more_than_max_x_dataset)
+        self.CSR_NM_y_dist_mse = np.sum(mse_y_dataset)
 
-        self.CSR_PM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_NM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+
+
 
     def cx_whole_dataset_m_predict(self, temporal_filter=False):
         """
@@ -490,11 +493,6 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
-
-            criticality = []
-            criticality_exp = []
-            criticality_exp_signed = []
-            mse_y = []
 
             sum_y = []
             sum_x = []
@@ -548,27 +546,13 @@ class Complexity:
                             # print ("Point ignored; x or y label not found; edge effect")
                             break
 
-                        x_neighbour = np.load(
-                            (self.training_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
-                        )
-
                         neighbour_indexes.append(index_with_offset)
 
-                        y_neighbour = np.load(
-                            (self.training_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
-                        )
-
-                        i_d_i = np.max(np.abs(x_neighbour - x))
-
-                        if i_d_i == 0:
-                            sprint(index_with_offset, fileindex_orig, "x_neighbour-x=0; ignored")
-                            continue  # set to smallest value so far
-
-                        sum_x.append(i_d_i)
 
             sum_x_m_predict = []
             sum_y_m_predict = []
             mse_y_m_predict = []
+            criticality = []
 
             for j in range(0, len(neighbour_indexes), config.cl_batch_size):  # config.cl_batch_size
 
@@ -602,6 +586,9 @@ class Complexity:
 
                 sum_x_m_predict.extend(dist_x.tolist())
                 sum_y_m_predict.extend(dist_y.tolist())
+
+                criticality.extend((np.abs(dist_y-dist_x)/np.abs(dist_y+dist_x)).tolist())
+
                 mse_y_m_predict.extend(
                     np.sum((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1).tolist()
                 )
@@ -610,10 +597,11 @@ class Complexity:
             sum_y_m_predict = np.array(sum_y_m_predict)
 
             max_x = max(sum_x_m_predict)
-            max_y = max(sum_y_m_predict)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
+
+            criticality_dataset.append(np.mean(criticality))
 
             sum_y_more_than_max_x = np.sum(sum_y_m_predict[(sum_y_m_predict > max_x)])
             sum_y_more_than_max_x_dataset.append(sum_y_more_than_max_x)
@@ -630,11 +618,12 @@ class Complexity:
         self.CSR_MP_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_MP_no_thresh_median = np.median(sum_y_dataset)
 
-
         self.CSR_MP_count_y_exceeding_r_x = np.sum(count_y_more_than_max_x_dataset)
         self.CSR_MP_y_dist_mse = np.sum(mse_y_dataset)
 
         self.CSR_MP_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+
+        self.CSR_MP_no_thresh_frac_mean = np.mean(criticality_dataset)
 
     def print_params(self):
         supress_outputs = True
