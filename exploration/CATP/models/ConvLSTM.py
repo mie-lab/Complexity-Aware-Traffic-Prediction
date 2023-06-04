@@ -37,11 +37,15 @@ class ComputeMetrics(Callback):
                 thresh=config.cl_thresh,
                 perfect_model=False,
                 model_func=self.model.predict,
-                model_train_gen=self.model.train_gen,
+                model_train_gen=self.model.validation_gen,
             )
             logs["CSR_MP_sum_y_exceeding_r_x_max"] = cx.CSR_MP_sum_y_exceeding_r_x_max
             logs["CSR_PM_sum_y_exceeding_r_x_max"] = cx.CSR_PM_sum_y_exceeding_r_x_max
             logs["CSR_NM_sum_y_exceeding_r_x_max"] = cx.CSR_NM_sum_y_exceeding_r_x_max
+
+            logs["CSR_MP_count_y_exceeding_r_x"] = cx.CSR_MP_count_y_exceeding_r_x
+            logs["CSR_PM_count_y_exceeding_r_x"] = cx.CSR_PM_count_y_exceeding_r_x
+            logs["CSR_NM_count_y_exceeding_r_x"] = cx.CSR_NM_count_y_exceeding_r_x
 
             logs["CSR_MP_y_dist_mean_l_inf"] = cx.CSR_MP_no_thresh_mean
             logs["CSR_PM_y_dist_mean_l_inf"] = cx.CSR_PM_no_thresh_mean
@@ -53,8 +57,6 @@ class ComputeMetrics(Callback):
 
             logs["CSR_MP_frac_mean"] = cx.CSR_MP_no_thresh_frac_mean
             logs["CSR_PM_frac_mean"] = cx.CSR_PM_no_thresh_frac_mean
-
-
 
         else:
             logs["CSR_MP_sum_y_exceeding_r_x_max"] = -1
@@ -69,8 +71,12 @@ class ComputeMetrics(Callback):
             logs["CSR_PM_y_dist_mse"] = -1
             logs["CSR_NM_y_dist_mse"] = -1
 
-            logs["CSR_MP_frac_mean"] = 1
-            logs["CSR_PM_frac_mean"] = 1
+            logs["CSR_MP_frac_mean"] = -1
+            logs["CSR_PM_frac_mean"] = -1
+
+            logs["CSR_MP_count_y_exceeding_r_x"] = -1
+            logs["CSR_PM_count_y_exceeding_r_x"] = -1
+            logs["CSR_NM_count_y_exceeding_r_x"] = -1
 
         logs["naive-model-non-zero"] = (
             NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)
@@ -86,66 +92,66 @@ class ComputeMetrics(Callback):
                 )
             )
 
-    def on_batch_end(self, batch, logs):
-        batch = str(batch)
-        if config.cl_during_training_CSR_enabled_batch_end:
-            cx = Complexity(
-                self.model.cityname,
-                i_o_length=self.model.io_length,
-                prediction_horizon=self.model.pred_horiz,
-                grid_size=self.model.scale,
-                thresh=config.cl_thresh,
-                perfect_model=False,
-                model_func=self.model.predict,
-                model_train_gen=self.model.train_gen,
-            )
-            logs["CSR_MP_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = cx.CSR_MP_sum_y_exceeding_r_x_max
-            logs["CSR_PM_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = cx.CSR_PM_sum_y_exceeding_r_x_max
-            logs["CSR_NM_sum_y_exceeding_r_x_max"+ "-batch-" + batch ] = cx.CSR_NM_sum_y_exceeding_r_x_max
+    # def on_batch_end(self, batch, logs):
+    #     batch = str(batch)
+    #     if config.cl_during_training_CSR_enabled_batch_end:
+    #         cx = Complexity(
+    #             self.model.cityname,
+    #             i_o_length=self.model.io_length,
+    #             prediction_horizon=self.model.pred_horiz,
+    #             grid_size=self.model.scale,
+    #             thresh=config.cl_thresh,
+    #             perfect_model=False,
+    #             model_func=self.model.predict,
+    #             model_train_gen=self.model.train_gen,
+    #         )
+    #         logs["CSR_MP_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = cx.CSR_MP_sum_y_exceeding_r_x_max
+    #         logs["CSR_PM_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = cx.CSR_PM_sum_y_exceeding_r_x_max
+    #         logs["CSR_NM_sum_y_exceeding_r_x_max"+ "-batch-" + batch ] = cx.CSR_NM_sum_y_exceeding_r_x_max
+    #
+    #         logs["CSR_MP_y_dist_mean_l_inf"+ "-batch-" + batch] = cx.CSR_MP_no_thresh_mean
+    #         logs["CSR_PM_y_dist_mean_l_inf"+ "-batch-" + batch] = cx.CSR_PM_no_thresh_mean
+    #         logs["CSR_NM_y_dist_mean_l_inf"+ "-batch-" + batch] = cx.CSR_NM_no_thresh_mean
+    #
+    #         logs["CSR_MP_y_dist_mse"+ "-batch-" + batch] = cx.CSR_MP_y_dist_mse
+    #         logs["CSR_PM_y_dist_mse"+ "-batch-" + batch] = cx.CSR_PM_y_dist_mse
+    #         logs["CSR_NM_y_dist_mse"+ "-batch-" + batch] = cx.CSR_NM_y_dist_mse
+    #
+    #         logs["CSR_MP_frac_mean"+ "-batch-" + batch] = cx.CSR_MP_no_thresh_frac_mean
+    #         logs["CSR_PM_frac_mean"+ "-batch-" + batch] = cx.CSR_PM_no_thresh_frac_mean
+    #
+    #
+    #
+    #     else:
+    #         logs["CSR_MP_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = -1
+    #         logs["CSR_PM_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = -1
+    #         logs["CSR_NM_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = -1
+    #
+    #         logs["CSR_MP_y_dist_mean_l_inf"+ "-batch-" + batch] = -1
+    #         logs["CSR_PM_y_dist_mean_l_inf"+ "-batch-" + batch] = -1
+    #         logs["CSR_NM_y_dist_mean_l_inf"+ "-batch-" + batch] = -1
+    #
+    #         logs["CSR_MP_y_dist_mse"+ "-batch-" + batch] = -1
+    #         logs["CSR_PM_y_dist_mse"+ "-batch-" + batch] = -1
+    #         logs["CSR_NM_y_dist_mse"+ "-batch-" + batch] = -1
+    #
+    #         logs["CSR_MP_frac_mean"+ "-batch-" + batch] = 1
+    #         logs["CSR_PM_frac_mean"+ "-batch-" + batch] = 1
+    #
+    #     logs["naive-model-non-zero"+ "-batch-" + batch] = (
+    #         NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)
+    #     ).naive_baseline_mse_non_zero
+    #     logs["naive-model-mse"+ "-batch-" + batch] = (NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
 
-            logs["CSR_MP_y_dist_mean_l_inf"+ "-batch-" + batch] = cx.CSR_MP_no_thresh_mean
-            logs["CSR_PM_y_dist_mean_l_inf"+ "-batch-" + batch] = cx.CSR_PM_no_thresh_mean
-            logs["CSR_NM_y_dist_mean_l_inf"+ "-batch-" + batch] = cx.CSR_NM_no_thresh_mean
-
-            logs["CSR_MP_y_dist_mse"+ "-batch-" + batch] = cx.CSR_MP_y_dist_mse
-            logs["CSR_PM_y_dist_mse"+ "-batch-" + batch] = cx.CSR_PM_y_dist_mse
-            logs["CSR_NM_y_dist_mse"+ "-batch-" + batch] = cx.CSR_NM_y_dist_mse
-
-            logs["CSR_MP_frac_mean"+ "-batch-" + batch] = cx.CSR_MP_no_thresh_frac_mean
-            logs["CSR_PM_frac_mean"+ "-batch-" + batch] = cx.CSR_PM_no_thresh_frac_mean
-
-
-
-        else:
-            logs["CSR_MP_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = -1
-            logs["CSR_PM_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = -1
-            logs["CSR_NM_sum_y_exceeding_r_x_max"+ "-batch-" + batch] = -1
-
-            logs["CSR_MP_y_dist_mean_l_inf"+ "-batch-" + batch] = -1
-            logs["CSR_PM_y_dist_mean_l_inf"+ "-batch-" + batch] = -1
-            logs["CSR_NM_y_dist_mean_l_inf"+ "-batch-" + batch] = -1
-
-            logs["CSR_MP_y_dist_mse"+ "-batch-" + batch] = -1
-            logs["CSR_PM_y_dist_mse"+ "-batch-" + batch] = -1
-            logs["CSR_NM_y_dist_mse"+ "-batch-" + batch] = -1
-
-            logs["CSR_MP_frac_mean"+ "-batch-" + batch] = 1
-            logs["CSR_PM_frac_mean"+ "-batch-" + batch] = 1
-
-        logs["naive-model-non-zero"+ "-batch-" + batch] = (
-            NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)
-        ).naive_baseline_mse_non_zero
-        logs["naive-model-mse"+ "-batch-" + batch] = (NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)).naive_baseline_mse
-
-
-    def on_train_end(self, logs):
-        if config.cl_model_save_train_end:
-            self.model.save(
-                os.path.join(
-                    config.INTERMEDIATE_FOLDER,
-                    os.path.basename(os.path.normpath(self.model.prefix)) + "_epoch_best_model_" + ".h5",
-                )
-            )
+    #
+    # def on_train_end(self, logs):
+    #     if config.cl_model_save_train_end:
+    #         self.model.save(
+    #             os.path.join(
+    #                 config.INTERMEDIATE_FOLDER,
+    #                 os.path.basename(os.path.normpath(self.model.prefix)) + "_epoch_best_model_" + ".h5",
+    #             )
+    #         )
 
 
 class ConvLSTM:
@@ -213,6 +219,72 @@ class ConvLSTM:
 
         return model
 
+    def create_model_small_epochs(self):
+        _, a, b, c, d = self.shape
+        x = np.random.rand(2, a, b, c, d)
+        inp = layers.Input(shape=(None, *x.shape[2:]))
+
+        # We will construct 3 `ConvLSTM2D` layers with batch normalization,
+        # followed by a `Conv3D` layer for the spatiotemporal outputs.
+        x = layers.ConvLSTM2D(
+            filters=4,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        x = layers.BatchNormalization()(x)
+        x = layers.ConvLSTM2D(
+            filters=8,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.ConvLSTM2D(
+            filters=4,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        # Next, we will build the complete model and compile it.
+        model = tensorflow.keras.models.Model(inp, x)
+        # model.compile(
+        #     loss=tensorflow.keras.losses.binary_crossentropy,
+        #     optimizer=tensorflow.keras.optimizers.Adam(),
+        # )
+
+        return model
+
+    def create_model_dummy_single_layer(self):
+        _, a, b, c, d = self.shape
+        x = np.random.rand(2, a, b, c, d)
+        inp = layers.Input(shape=(None, *x.shape[2:]))
+
+        # We will construct 3 `ConvLSTM2D` layers with batch normalization,
+        # followed by a `Conv3D` layer for the spatiotemporal outputs.
+        x = layers.ConvLSTM2D(
+            filters=4,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        # Next, we will build the complete model and compile it.
+        model = tensorflow.keras.models.Model(inp, x)
+        # model.compile(
+        #     loss=tensorflow.keras.losses.binary_crossentropy,
+        #     optimizer=tensorflow.keras.optimizers.Adam(),
+        # )
+
+        return model
+
     def train(self):
         # Train the model
         batch_size = config.cl_batch_size
@@ -263,6 +335,7 @@ class ConvLSTM:
         tensorboard_callback = tensorflow.keras.callbacks.TensorBoard(log_dir=self.log_dir)
 
         self.model.train_gen = self.train_gen
+        self.model.validation_gen = self.validation_gen
         self.model.prefix = self.prefix
         self.model.cityname, self.model.io_length, self.model.pred_horiz, self.model.scale = (
             self.cityname,
@@ -295,28 +368,28 @@ class ConvLSTM:
             workers=config.cl_dataloader_workers,
         )
 
-        if config.cl_during_training_CSR_enabled_train_end:
-            cx = Complexity(
-                self.model.cityname,
-                i_o_length=self.model.io_length,
-                prediction_horizon=self.model.pred_horiz,
-                grid_size=self.model.scale,
-                thresh=config.cl_thresh,
-                perfect_model=False,
-                model_func=self.model.predict,
-                model_train_gen=self.model.train_gen,
-            )
-            print(
-                "TRAIN_END: ",
-                self.prefix,
-                self.cityname,
-                self.io_length,
-                self.pred_horiz,
-                self.scale,
-                cx.CSR_MP_no_thresh_mean,
-                cx.CSR_PM_no_thresh_frac_mean,
-                cx.CSR_PM_no_thresh_mean,
-            )
+        # if config.cl_during_training_CSR_enabled_train_end:
+        #     cx = Complexity(
+        #         self.model.cityname,
+        #         i_o_length=self.model.io_length,
+        #         prediction_horizon=self.model.pred_horiz,
+        #         grid_size=self.model.scale,
+        #         thresh=config.cl_thresh,
+        #         perfect_model=False,
+        #         model_func=self.model.predict,
+        #         model_train_gen=self.model.validation_gen,
+        #     )
+        #     print(
+        #         "TRAIN_END: ",
+        #         self.prefix,
+        #         self.cityname,
+        #         self.io_length,
+        #         self.pred_horiz,
+        #         self.scale,
+        #         cx.CSR_MP_no_thresh_mean,
+        #         cx.CSR_PM_no_thresh_frac_mean,
+        #         cx.CSR_PM_no_thresh_mean,
+        #     )
 
     def print_model_and_class_values(self, print_model_summary=True):
         sprint(self.train_data_folder)

@@ -48,10 +48,10 @@ RESULTS_FOLDER = os.path.join(DATA_FOLDER, "intermediate_folder")
 cx_debug = True
 if running_on == "server":
     cx_sample_whole_data = 1500
-    cx_sample_single_point = 200 # no longer being used
+    cx_sample_single_point = 200  # no longer being used
 elif running_on == "maclocal":
     cx_sample_whole_data = 10
-    cx_sample_single_point = 40 # no longer being used
+    cx_sample_single_point = 40  # no longer being used
 cx_delete_files_after_running = True
 
 ######################## Datagen class params #########################
@@ -83,7 +83,6 @@ cl_during_training_CSR_enabled_batch_end = True
 cl_during_training_CSR_enabled_train_end = True
 
 
-
 ######################### Dimensions for experiments ####################
 if running_on == "server":
     city_list = [
@@ -110,9 +109,9 @@ elif running_on == "maclocal":
     # i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     # pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     city_list = [
+        "london",
         "madrid",
         "melbourne",
-        "london",
     ]  # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
     scales = list(range(25, 106, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
     i_o_lengths = list(range(1, 9))
@@ -120,7 +119,7 @@ elif running_on == "maclocal":
 
     city_list_def = ["London"]
     scales_def = [55]
-    i_o_lengths_def = [4]
+    i_o_lengths_def = [1]
     pred_horiz_def = [1]
 
 
