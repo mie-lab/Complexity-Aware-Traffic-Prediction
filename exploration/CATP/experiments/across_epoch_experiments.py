@@ -57,7 +57,7 @@ class Experiment_Epoch:
 
 
 if __name__ == "__main__":
-    for io_length in [4]:  # config.i_o_lengths_def:
+    for io_length in [1]:  # config.i_o_lengths_def:
         for pred_horiz in [1]:  # config.pred_horiz_def:
             for scale in [55]:  # config.scales_def:
                 for cityname in config.city_list:
@@ -83,16 +83,16 @@ if __name__ == "__main__":
                         cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale
                     )
 
-                    try:
-                        th = Experiment_Epoch(
-                            cityname, io_length, pred_horiz, scale, model_class_str="ConvLSTM"
-                        ).run_experiments()  # 1, 16, 32, 64, 128, 252
-                    except Exception as e:
-                        # raise Exception(e)
-                        # Need to use raise Exception only when debugging, otherwise, we can just ignore and move on -
-                        # so that the runs for multiple scenarios are completed even if one fails.
-                        print("ERROR in ", cityname, io_length, pred_horiz, scale, "Exiting; No results for this case")
-                        continue
+                    # try:
+                    th = Experiment_Epoch(
+                        cityname, io_length, pred_horiz, scale, model_class_str="ConvLSTM"
+                    ).run_experiments()  # 1, 16, 32, 64, 128, 252
+                    # except Exception as e:
+                    #     # raise Exception(e)
+                    #     # Need to use raise Exception only when debugging, otherwise, we can just ignore and move on -
+                    #     # so that the runs for multiple scenarios are completed even if one fails.
+                    #     print("ERROR in ", cityname, io_length, pred_horiz, scale, "Exiting; No results for this case")
+                    #     continue
 
                     # obj.clean_intermediate_files()
                     # ProcessRaw.clean_intermediate_files(cityname, io_length, pred_horiz, scale)

@@ -20,18 +20,7 @@ import time
 
 class Complexity:
     def __init__(
-        self,
-        cityname,
-        i_o_length,
-        prediction_horizon,
-        grid_size,
-        thresh,
-        perfect_model,
-        model_func,
-        model_train_gen,
-        run_pm,
-        run_nm,
-        run_gb,
+        self, cityname, i_o_length, prediction_horizon, grid_size, thresh, perfect_model, model_func, model_train_gen
     ):
         """
         self, cityname, i_o_length, prediction_horizon, grid_size
@@ -48,41 +37,61 @@ class Complexity:
         self.offset = 96 - (prediction_horizon + i_o_length * 2)  # one time for ip; one for op; one for pred_horiz
         # self.offset replaces 96 to account for edge effects of specific experiments
 
-        self.CSR_MP_no_thresh_mean = "NULL"
-        self.CSR_MP_no_thresh_median = "NULL"
-        self.CSR_MP_count_y_exceeding_r_x = "NULL"
-        self.CSR_MP_sum_y_exceeding_r_x_max = "NULL"
-        self.CSR_MP_sum_y_exceeding_r_x_mean = "NULL"
-        self.CSR_MP_sum_exp_y_exceeding_r_x_mean = "NULL"
-        self.CSR_MP_no_thresh_frac_mean_2 = "NULL"
-        self.CSR_MP_no_thresh_frac_mean_2_exp = "NULL"
-
+        self.CSR_PM_frac = "NULL"
+        self.CSR_PM_count = "NULL"
         self.CSR_PM_no_thresh_mean = "NULL"
         self.CSR_PM_no_thresh_median = "NULL"
+        self.CSR_PM_no_thresh_frac_mean = "NULL"
+        self.CSR_PM_no_thresh_frac_median = "NULL"
+        self.CSR_PM_no_thresh_frac_mean_exp = "NULL"
+        self.CSR_PM_no_thresh_frac_mean_exp = "NULL"
+        self.CSR_PM_no_thresh_frac_exp_mean = "NULL"
+        self.CSR_PM_no_thresh_frac_exp_mean_signed = "NULL"
         self.CSR_PM_count_y_exceeding_r_x = "NULL"
         self.CSR_PM_sum_y_exceeding_r_x_max = "NULL"
-        self.CSR_PM_sum_y_exceeding_r_x_mean = "NULL"
-        self.CSR_PM_sum_exp_y_exceeding_r_x_mean = "NULL"
-        self.CSR_PM_no_thresh_frac_mean_2 = "NULL"
-        self.CSR_PM_no_thresh_frac_mean_2_exp = "NULL"
+        self.CSR_PM_y_dist_mse = "NULL"
 
+        self.CSR_MP_frac = "NULL"
+        self.CSR_MP_count = "NULL"
+        self.CSR_MP_no_thresh_mean = "NULL"
+        self.CSR_MP_no_thresh_median = "NULL"
+        self.CSR_MP_no_thresh_frac_mean = "NULL"
+        self.CSR_MP_no_thresh_frac_median = "NULL"
+        self.CSR_MP_no_thresh_frac_mean_exp = "NULL"
+        self.CSR_MP_no_thresh_frac_mean_exp = "NULL"
+        self.CSR_MP_no_thresh_frac_exp_mean = "NULL"
+        self.CSR_MP_no_thresh_frac_exp_mean_signed = "NULL"
+        self.CSR_MP_count_y_exceeding_r_x = "NULL"
+        self.CSR_MP_sum_y_exceeding_r_x_max = "NULL"
+        self.CSR_MP_y_dist_mse = "NULL"
+
+        self.CSR_NM_frac = "NULL"
+        self.CSR_NM_count = "NULL"
         self.CSR_NM_no_thresh_mean = "NULL"
         self.CSR_NM_no_thresh_median = "NULL"
+        self.CSR_NM_no_thresh_frac_mean = "NULL"
+        self.CSR_NM_no_thresh_frac_median = "NULL"
+        self.CSR_NM_no_thresh_frac_mean_exp = "NULL"
+        self.CSR_NM_no_thresh_frac_mean_exp = "NULL"
+        self.CSR_NM_no_thresh_frac_exp_mean = "NULL"
+        self.CSR_NM_no_thresh_frac_exp_mean_signed = "NULL"
         self.CSR_NM_count_y_exceeding_r_x = "NULL"
         self.CSR_NM_sum_y_exceeding_r_x_max = "NULL"
-        self.CSR_NM_sum_y_exceeding_r_x_mean = "NULL"
-        self.CSR_NM_sum_exp_y_exceeding_r_x_mean = "NULL"
-        self.CSR_NM_no_thresh_frac_mean_2 = "NULL"
-        self.CSR_NM_no_thresh_frac_mean_2_exp = "NULL"
+        self.CSR_NM_y_dist_mse = "NULL"
 
+        self.CSR_GB_frac = "NULL"
+        self.CSR_GB_count = "NULL"
         self.CSR_GB_no_thresh_mean = "NULL"
         self.CSR_GB_no_thresh_median = "NULL"
+        self.CSR_GB_no_thresh_frac_mean = "NULL"
+        self.CSR_GB_no_thresh_frac_median = "NULL"
+        self.CSR_GB_no_thresh_frac_mean_exp = "NULL"
+        self.CSR_GB_no_thresh_frac_mean_exp = "NULL"
+        self.CSR_GB_no_thresh_frac_exp_mean = "NULL"
+        self.CSR_GB_no_thresh_frac_exp_mean_signed = "NULL"
         self.CSR_GB_count_y_exceeding_r_x = "NULL"
         self.CSR_GB_sum_y_exceeding_r_x_max = "NULL"
-        self.CSR_GB_sum_y_exceeding_r_x_mean = "NULL"
-        self.CSR_GB_sum_exp_y_exceeding_r_x_mean = "NULL"
-        self.CSR_GB_no_thresh_frac_mean_2 = "NULL"
-        self.CSR_GB_no_thresh_frac_mean_2_exp = "NULL"
+        self.CSR_GB_y_dist_mse = "NULL"
 
         if perfect_model:
             assert model_func == None
@@ -94,25 +103,34 @@ class Complexity:
             assert model_func != None
             self.model_predict = model_func
             self.model_train_gen = model_train_gen
-            self.cx_whole_dataset_m_predict(temporal_filter=True)
 
-            if run_pm:
-                self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
-            if run_nm:
-                self.cx_whole_dataset_NM_no_thresh(temporal_filter=True)
-            if run_gb:
-                self.cx_whole_dataset_Garbage_predict(temporal_filter=True)
+            self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
+            self.cx_whole_dataset_NM_no_thresh(temporal_filter=True)
+            self.cx_whole_dataset_m_predict(temporal_filter=True)
+            self.cx_whole_dataset_Garbage_predict(temporal_filter=True)
             # self.cx_whole_dataset_m_predict_slow(temporal_filter=True)
             self.csv_format()
+
+    # def compute_dist_N_points(file_list, query_point):
+    #     random.shuffle(file_list)
+    #     distances = []
+    #     for i in (range(1, len(file_list))):
+    #         neighbour_x_array = np.load(file_list[i])
+    #
+    #         if "_x.npy" not in file_list[i]:
+    #             raise Exception(
+    #                 "Wrong file supplied; we should not have _y files\n since we are looking for n-hood of x")
+    #         distances.append(np.max(np.abs(query_point - neighbour_x_array)))
+    #     return distances
 
     def cx_whole_dataset_PM_no_thresh(self, temporal_filter=False):
         """
         temporal_filter: If true, filtering is carried out using nearest neighbours
         """
-        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
+        self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
-        # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
+        # self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
 
         obj = ProcessRaw(
             cityname=self.cityname,
@@ -120,17 +138,28 @@ class Complexity:
             prediction_horizon=self.prediction_horizon,
             grid_size=self.grid_size,
         )
+        prefix = self.file_prefix
 
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
+        # file_list = file_list[:config.cx_sample_whole_data]
+
+        exp_criticality_frac = []
+
+        neighbour_indexes_count_list = []
+
+        # sprint((config.cx_sample_single_point), len(file_list), \
+        #        self.validation_folder + "/" + self.file_prefix)
+
+        criticality_dataset = []
         criticality_dataset_2 = []
         criticality_dataset_2_exp = []
+
+        criticality_dataset_exp = []
+        criticality_dataset_exp_signed = []
         count_y_more_than_max_x_dataset = []
         sum_y_more_than_max_x_dataset = []
-        sum_y_more_than_mean_x_dataset = []
-        sum_y_more_than_mean_x_exp_dataset = []
-
         mse_y_dataset = []
 
         sum_y_dataset = []
@@ -139,6 +168,13 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+
+            criticality = []
+            criticality_2 = []
+            criticality_2_exp = []
+            criticality_exp = []
+            criticality_exp_signed = []
+            mse_y = []
 
             sum_y = []
             sum_x = []
@@ -152,7 +188,6 @@ class Complexity:
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
             y = np.load((self.validation_folder + "/" + self.file_prefix) + str(fileindex_orig) + "_y.npy")
 
-
             neighbour_indexes = []
 
             if not temporal_filter:
@@ -174,7 +209,7 @@ class Complexity:
                 # 3 days before, 3 days later, and today
                 # within {width} on each side
                 for day in range(-3, 4):
-                    for width in range(-1, 2):  # 1 hour before and after
+                    for width in range(-3, 4):  # 1 hour before and after
                         current_offset = day * self.offset + width
 
                         if current_offset == 0 or fileindex_orig + current_offset == 0:
@@ -193,116 +228,107 @@ class Complexity:
                             # print ("Point ignored; x or y label not found; edge effect")
                             continue
 
-                        neighbour_indexes.append(index_with_offset)
+                        x_neighbour = np.load(
+                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
+                        )
 
-            sum_x_m_predict = []
-            sum_y_m_predict = []
-            criticality_2 = []
-            criticality_2_exp = []
+                        y_neighbour = np.load(
+                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+                        )
 
-            for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
+                        i_d_i = np.max(np.abs(x_neighbour - x))
 
-                fileindices = neighbour_indexes[j : j + config.cx_batch_size]
-                if 0 in fileindices:
-                    print("Skipped file indexed with 0")
-                    continue
+                        if i_d_i == 0:
+                            sprint(index_with_offset, fileindex_orig, "x_neighbour-x=0; ignored")
+                            continue  # set to smallest value so far
 
-                # sprint (len(self.model_train_gen.__getitem__(fileindices)))
+                        sum_x.append(i_d_i)
 
-                x_neighbour, y_neighbour = self.model_train_gen.__getitem__(fileindices)
+                        o_d_i = np.max(np.abs(y_neighbour - y))
+                        sum_y.append(o_d_i)
 
-                # Since this is the no thresh case
-                # if np.max(np.abs(y_neighbour - y)) > self.thresh:
+                        mse_y.append(np.sum(np.abs(y_neighbour - y)))  # should be renamed to mae
 
-                assert (config.cx_batch_size == x_neighbour.shape[0]) or (
-                    j + config.cx_batch_size >= len(neighbour_indexes)
-                )  # for the last batch
+                        criticality.append(abs(o_d_i - i_d_i) / (o_d_i + i_d_i))
 
-                assert x_neighbour.shape[0] == y_neighbour.shape[0]
+                        criticality_exp.append(np.exp(abs(o_d_i - i_d_i) / (o_d_i + i_d_i)))
 
-                dist_y = np.max((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1)
-                dist_x = np.max((abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1)
+                        if i_d_i > 0:
+                            criticality_2.append(o_d_i / i_d_i)
 
-                if config.DEBUG:
-                    # should be same order;
-                    # implies we do not need to recompute the x distances, but just to be safe
-                    # we recompute the distances nevertheless, since it is super fast (i/o is the bottleneck)
-                    sprint(sum_x)
-                    sprint(dist_x)
+                        criticality_2_exp.append(np.exp(-np.abs(o_d_i - i_d_i) / i_d_i))
+                        criticality_exp_signed.append(np.exp((o_d_i - i_d_i) / (o_d_i + i_d_i)))
 
-                sum_x_m_predict.extend(dist_x.tolist())
-                sum_y_m_predict.extend(dist_y.tolist())
+                        assert len(sum_x) == len(sum_y)
 
-                frac = dist_y / dist_x
-                frac = frac[~np.isnan(frac)]
+            sum_x = np.array(sum_x)
+            sum_y = np.array(sum_y)
 
-                criticality_2.extend(frac.tolist())
-                criticality_2_exp.extend(np.exp(-frac).tolist())
+            max_x = np.max(sum_x)
 
-            sum_x_m_predict = np.array(sum_x_m_predict)
-            sum_y_m_predict = np.array(sum_y_m_predict)
-
-            assert len(sum_x_m_predict.tolist()) > 0
-            max_x = np.max(sum_x_m_predict)
-            mean_x = np.mean(sum_x_m_predict)
-
-            count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
+            count_y_more_than_max_x = (sum_y > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
+
+            sum_y_more_than_max_x = np.sum(sum_y[(sum_y > max_x)])
+            if sum_y_more_than_max_x > 0:  # since sometime y is an internal point; and the array sum_y[(sum_y > max_x)
+                # is empty
+                sum_y_more_than_max_x_dataset.append(sum_y_more_than_max_x)
+
+            mse_y_dataset.append(np.sum(mse_y))
+
+            criticality_dataset.append(np.mean(criticality))
+            criticality_dataset_exp.append(np.mean(criticality_exp))
+            criticality_dataset_exp_signed.append(np.mean(criticality_exp_signed))
+
+            sum_y_dataset.append(np.mean(sum_y))
+            sum_x_dataset.append(np.mean(sum_x))
 
             criticality_dataset_2.append(np.mean(criticality_2))
             criticality_dataset_2_exp.append(np.mean(criticality_2_exp))
 
-            sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
-            if len(sum_y_more_than_max_x.tolist()) > 0:
-                sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+            assert len(sum_x_dataset) == len(sum_y_dataset)
+            # sprint (len(sum_y))
 
-            sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
-            if len(sum_y_more_than_mean_x.tolist()) > 0:
-                sum_y_more_than_mean_x_dataset.append(np.mean(sum_y_more_than_mean_x))
-
-            sum_y_more_than_mean_x_exp = np.exp(-np.abs(sum_y_m_predict - mean_x))
-            if len(sum_y_more_than_mean_x_exp.tolist()) > 0:
-                sum_y_more_than_mean_x_exp_dataset.append(np.mean(sum_y_more_than_mean_x_exp))
-
-            sum_y_dataset.append(np.mean(sum_y_m_predict))
-            sum_x_dataset.append(np.mean(sum_x_m_predict))
-
-            if config.DEBUG:
-                assert len(sum_x_dataset) == len(sum_y_dataset)
-                sprint(len(sum_y))
+        # sprint (len(sum_x_dataset))
 
         self.CSR_PM_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_PM_no_thresh_median = np.median(sum_y_dataset)
 
-        self.CSR_PM_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
+        self.CSR_PM_no_thresh_frac_mean = np.mean(criticality_dataset)
+        self.CSR_PM_no_thresh_frac_median = np.median(criticality_dataset)
+
+        self.CSR_PM_no_thresh_frac_mean_exp = np.exp(np.mean(criticality_dataset))
+        self.CSR_PM_no_thresh_frac_median_exp = np.exp(np.median(criticality_dataset))
+
+        self.CSR_PM_no_thresh_frac_exp_mean = np.mean(criticality_dataset_exp)
+        self.CSR_PM_no_thresh_frac_exp_mean_signed = np.median(criticality_dataset_exp_signed)
+
+        self.CSR_PM_count_y_exceeding_r_x = np.sum(count_y_more_than_max_x_dataset)
+        self.CSR_PM_y_dist_mse = np.sum(mse_y_dataset)
 
         self.CSR_PM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
-        self.CSR_PM_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
-        self.CSR_PM_sum_exp_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_exp_dataset)
 
         self.CSR_PM_no_thresh_frac_mean_2 = np.mean(criticality_dataset_2)
         self.CSR_PM_no_thresh_frac_mean_2_exp = np.mean(criticality_dataset_2_exp)
 
         plt.clf()
-        plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
-        plt.savefig("plots/PM_sum_y/PM_sum_y" + str(round(time.time(), 2)) + ".png")
-        # MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_
-        plt.clf()
-        plt.hist(sum_y_more_than_max_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/PM_more_max/PM_more_max_" + str(round(time.time(), 2)) + ".png")
+
+        plt.hist(sum_y_more_than_max_x_dataset, bins=np.arange(0, 5000, 100))
+        list.sort(sum_y_more_than_max_x_dataset)
+        sprint(str(sum_y_more_than_max_x_dataset[-5:-1]))
+        plt.title(str(sum_y_more_than_max_x_dataset[-5:-1]))
+        plt.savefig("plots/PM_/PM_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/PM_mean/PM_mean_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(mse_y_dataset, bins=100)
+        plt.savefig("plots/PM_mse_/PM_mse_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
-        plt.savefig("plots/PM_mean_exp_/PM_mean_exp_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(criticality_dataset, bins=100)
+        plt.savefig("plots/PM_frac_/PM_frac_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
+        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 50))
         plt.ylim(0, 400)
         plt.savefig("plots/PM_frac_2_/PM_frac_2_" + str(round(time.time(), 2)) + ".png")
 
@@ -315,10 +341,10 @@ class Complexity:
         """
         temporal_filter: If true, filtering is carried out using nearest neighbours
         """
-        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
+        self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
-        # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
+        # self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
 
         obj = ProcessRaw(
             cityname=self.cityname,
@@ -326,17 +352,27 @@ class Complexity:
             prediction_horizon=self.prediction_horizon,
             grid_size=self.grid_size,
         )
+        prefix = self.file_prefix
 
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
+        # file_list = file_list[:config.cx_sample_whole_data]
+
+        exp_criticality_frac = []
+
+        neighbour_indexes_count_list = []
+
+        # sprint((config.cx_sample_single_point), len(file_list), \
+        #        self.validation_folder + "/" + self.file_prefix)
+
+        criticality_dataset = []
         criticality_dataset_2 = []
         criticality_dataset_2_exp = []
+        criticality_dataset_exp = []
+        criticality_dataset_exp_signed = []
         count_y_more_than_max_x_dataset = []
         sum_y_more_than_max_x_dataset = []
-        sum_y_more_than_mean_x_dataset = []
-        sum_y_more_than_mean_x_exp_dataset = []
-
         mse_y_dataset = []
 
         sum_y_dataset = []
@@ -345,6 +381,13 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+
+            criticality = []
+            criticality_2 = []
+            criticality_2_exp = []
+            criticality_exp = []
+            criticality_exp_signed = []
+            mse_y = []
 
             sum_y = []
             sum_x = []
@@ -356,7 +399,7 @@ class Complexity:
 
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
-            y = x
+            y = x  # One of two lines change compared to PM
 
             neighbour_indexes = []
 
@@ -379,7 +422,7 @@ class Complexity:
                 # 3 days before, 3 days later, and today
                 # within {width} on each side
                 for day in range(-3, 4):
-                    for width in range(-1, 2):  # 1 hour before and after
+                    for width in range(-3, 4):  # 1 hour before and after
                         current_offset = day * self.offset + width
 
                         if current_offset == 0 or fileindex_orig + current_offset == 0:
@@ -390,126 +433,110 @@ class Complexity:
 
                         # Test if x_neighbours and y_neighbours both exist;
                         if not os.path.exists(
-                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
-                        ) or not os.path.exists(
                             (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+                        ) or not os.path.exists(
+                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
                         ):
                             count_missing += 1
                             # print ("Point ignored; x or y label not found; edge effect")
                             continue
 
-                        neighbour_indexes.append(index_with_offset)
+                        x_neighbour = np.load(
+                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
+                        )
 
-            sum_x_m_predict = []
-            sum_y_m_predict = []
-            criticality_2 = []
-            criticality_2_exp = []
+                        # One of two lines change compared to PM
+                        y_neighbour = x_neighbour
 
-            for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
+                        i_d_i = np.max(np.abs(x_neighbour - x))
 
-                fileindices = neighbour_indexes[j : j + config.cx_batch_size]
-                if 0 in fileindices:
-                    print("Skipped file indexed with 0")
-                    continue
+                        if i_d_i == 0:
+                            sprint(index_with_offset, fileindex_orig, "x_neighbour-x=0; ignored")
+                            continue  # set to smallest value so far
 
-                # sprint (len(self.model_train_gen.__getitem__(fileindices)))
+                        sum_x.append(i_d_i)
 
-                x_neighbour, _ = self.model_train_gen.__getitem__(fileindices)
+                        o_d_i = np.max(np.abs(y_neighbour - y))
+                        sum_y.append(o_d_i)
 
-                y_neighbour = x_neighbour
+                        mse_y.append(np.sum(np.abs(y_neighbour - y)))  # should be renamed to mae
 
-                # Since this is the no thresh case
-                # if np.max(np.abs(y_neighbour - y)) > self.thresh:
+                        criticality.append(abs(o_d_i - i_d_i) / (o_d_i + i_d_i))
 
-                assert (config.cx_batch_size == x_neighbour.shape[0]) or (
-                    j + config.cx_batch_size >= len(neighbour_indexes)
-                )  # for the last batch
+                        criticality_exp.append(np.exp(abs(o_d_i - i_d_i) / (o_d_i + i_d_i)))
 
-                assert x_neighbour.shape[0] == y_neighbour.shape[0]
+                        criticality_exp_signed.append(np.exp((o_d_i - i_d_i) / (o_d_i + i_d_i)))
 
-                dist_y = np.max((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1)
-                dist_x = np.max((abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1)
+                        if i_d_i > 0:
+                            criticality_2.append(o_d_i / i_d_i)
 
-                if config.DEBUG:
-                    # should be same order;
-                    # implies we do not need to recompute the x distances, but just to be safe
-                    # we recompute the distances nevertheless, since it is super fast (i/o is the bottleneck)
-                    sprint(sum_x)
-                    sprint(dist_x)
+                        criticality_2_exp.append(np.exp(-np.abs(o_d_i - i_d_i) / (i_d_i)))
 
-                sum_x_m_predict.extend(dist_x.tolist())
-                sum_y_m_predict.extend(dist_y.tolist())
+                        assert len(sum_x) == len(sum_y)
 
-                frac = dist_y / dist_x
-                frac = frac[~np.isnan(frac)]
+            sum_x = np.array(sum_x)
+            sum_y = np.array(sum_y)
 
-                criticality_2.extend(frac.tolist())
-                criticality_2_exp.extend(np.exp(-frac).tolist())
+            max_x = np.max(sum_x)
 
-            sum_x_m_predict = np.array(sum_x_m_predict)
-            sum_y_m_predict = np.array(sum_y_m_predict)
-
-            assert len(sum_x_m_predict.tolist()) > 0
-            max_x = np.max(sum_x_m_predict)
-            mean_x = np.mean(sum_x_m_predict)
-
-            count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
+            count_y_more_than_max_x = (sum_y > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
+
+            sum_y_more_than_max_x = np.sum(sum_y[(sum_y > max_x)])
+            if sum_y_more_than_max_x > 0:  # since sometime y is an internal point; and the array sum_y[(sum_y > max_x)
+                # is empty
+                sum_y_more_than_max_x_dataset.append(sum_y_more_than_max_x)
+
+            mse_y_dataset.append(np.sum(mse_y))
+
+            criticality_dataset.append(np.mean(criticality))
+            criticality_dataset_exp.append(np.mean(criticality_exp))
+            criticality_dataset_exp_signed.append(np.mean(criticality_exp_signed))
 
             criticality_dataset_2.append(np.mean(criticality_2))
             criticality_dataset_2_exp.append(np.mean(criticality_2_exp))
 
-            sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
-            if len(sum_y_more_than_max_x.tolist()) > 0:
-                sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+            sum_y_dataset.append(np.mean(sum_y))
+            sum_x_dataset.append(np.mean(sum_x))
 
-            sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
-            if len(sum_y_more_than_mean_x.tolist()) > 0:
-                sum_y_more_than_mean_x_dataset.append(np.mean(sum_y_more_than_mean_x))
+            assert len(sum_x_dataset) == len(sum_y_dataset)
+            # sprint (len(sum_y))
 
-            sum_y_more_than_mean_x_exp = np.exp(-np.abs(sum_y_m_predict - mean_x))
-            if len(sum_y_more_than_mean_x_exp.tolist()) > 0:
-                sum_y_more_than_mean_x_exp_dataset.append(np.mean(sum_y_more_than_mean_x_exp))
-
-            sum_y_dataset.append(np.mean(sum_y_m_predict))
-            sum_x_dataset.append(np.mean(sum_x_m_predict))
-
-            if config.DEBUG:
-                assert len(sum_x_dataset) == len(sum_y_dataset)
-                sprint(len(sum_y))
+        # sprint (len(sum_x_dataset))
 
         self.CSR_NM_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_NM_no_thresh_median = np.median(sum_y_dataset)
 
-        self.CSR_NM_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
+        self.CSR_NM_no_thresh_frac_mean = np.mean(criticality_dataset)
+        self.CSR_NM_no_thresh_frac_median = np.median(criticality_dataset)
+
+        self.CSR_NM_no_thresh_frac_mean_exp = np.exp(np.mean(criticality_dataset))
+        self.CSR_NM_no_thresh_frac_median_exp = np.exp(np.median(criticality_dataset))
+
+        self.CSR_NM_no_thresh_frac_exp_mean = np.mean(criticality_dataset_exp)
+        self.CSR_NM_no_thresh_frac_exp_mean_signed = np.median(criticality_dataset_exp_signed)
+
+        self.CSR_NM_count_y_exceeding_r_x = np.sum(count_y_more_than_max_x_dataset)
+        self.CSR_NM_y_dist_mse = np.sum(mse_y_dataset)
 
         self.CSR_NM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
-        self.CSR_NM_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
-        self.CSR_NM_sum_exp_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_exp_dataset)
-
         self.CSR_NM_no_thresh_frac_mean_2 = np.mean(criticality_dataset_2)
         self.CSR_NM_no_thresh_frac_mean_2_exp = np.mean(criticality_dataset_2_exp)
 
         plt.clf()
-        plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
-        plt.savefig("plots/NM_sum_y/NM_sum_y" + str(round(time.time(), 2)) + ".png")
-        # MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_
-        plt.clf()
-        plt.hist(sum_y_more_than_max_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/NM_more_max/NM_more_max_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(sum_y_more_than_max_x_dataset, bins=np.arange(0, 5000, 100))
+        plt.savefig("plots/NM_/NM_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/NM_mean/NM_mean_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(mse_y_dataset, bins=100)
+        plt.savefig("plots/NM_mse_/NM_mse_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
-        plt.savefig("plots/NM_mean_exp_/NM_mean_exp_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(criticality_dataset, bins=100)
+        plt.savefig("plots/NM_frac_/NM_frac_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
+        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 50))
         plt.ylim(0, 400)
         plt.savefig("plots/NM_frac_2_/NM_frac_2_" + str(round(time.time(), 2)) + ".png")
 
@@ -522,10 +549,10 @@ class Complexity:
         """
         temporal_filter: If true, filtering is carried out using nearest neighbours
         """
-        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
+        self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
-        # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
+        # self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
 
         obj = ProcessRaw(
             cityname=self.cityname,
@@ -533,17 +560,27 @@ class Complexity:
             prediction_horizon=self.prediction_horizon,
             grid_size=self.grid_size,
         )
+        prefix = self.file_prefix
 
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
+        # file_list = file_list[:config.cx_sample_whole_data]
+
+        exp_criticality_frac = []
+
+        neighbour_indexes_count_list = []
+
+        # sprint((config.cx_sample_single_point), len(file_list), \
+        #        self.validation_folder + "/" + self.file_prefix)
+
+        criticality_dataset = []
         criticality_dataset_2 = []
         criticality_dataset_2_exp = []
+        criticality_dataset_exp = []
+        criticality_dataset_exp_signed = []
         count_y_more_than_max_x_dataset = []
         sum_y_more_than_max_x_dataset = []
-        sum_y_more_than_mean_x_dataset = []
-        sum_y_more_than_mean_x_exp_dataset = []
-
         mse_y_dataset = []
 
         sum_y_dataset = []
@@ -552,6 +589,13 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+
+            criticality = []
+            criticality_2 = []
+            criticality_2_exp = []
+            criticality_exp = []
+            criticality_exp_signed = []
+            mse_y = []
 
             sum_y = []
             sum_x = []
@@ -563,7 +607,7 @@ class Complexity:
 
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
-            y = np.random.random_sample(x.shape) * np.max(x.flatten())
+            y = np.random.random_sample(x.shape) * np.max(x.flatten())  # One of two lines change compared to PM
 
             neighbour_indexes = []
 
@@ -586,7 +630,7 @@ class Complexity:
                 # 3 days before, 3 days later, and today
                 # within {width} on each side
                 for day in range(-3, 4):
-                    for width in range(-1, 2):  # 1 hour before and after
+                    for width in range(-3, 4):  # 1 hour before and after
                         current_offset = day * self.offset + width
 
                         if current_offset == 0 or fileindex_orig + current_offset == 0:
@@ -597,126 +641,110 @@ class Complexity:
 
                         # Test if x_neighbours and y_neighbours both exist;
                         if not os.path.exists(
-                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
-                        ) or not os.path.exists(
                             (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+                        ) or not os.path.exists(
+                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
                         ):
                             count_missing += 1
                             # print ("Point ignored; x or y label not found; edge effect")
                             continue
 
-                        neighbour_indexes.append(index_with_offset)
+                        x_neighbour = np.load(
+                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
+                        )
 
-            sum_x_m_predict = []
-            sum_y_m_predict = []
-            criticality_2 = []
-            criticality_2_exp = []
+                        # One of two lines change compared to PM
+                        y_neighbour = np.random.random_sample(x_neighbour.shape) * np.max(x_neighbour.flatten())
 
-            for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
+                        i_d_i = np.max(np.abs(x_neighbour - x))
 
-                fileindices = neighbour_indexes[j : j + config.cx_batch_size]
-                if 0 in fileindices:
-                    print("Skipped file indexed with 0")
-                    continue
+                        if i_d_i == 0:
+                            sprint(index_with_offset, fileindex_orig, "x_neighbour-x=0; ignored")
+                            continue  # set to smallest value so far
 
-                # sprint (len(self.model_train_gen.__getitem__(fileindices)))
+                        sum_x.append(i_d_i)
 
-                x_neighbour, _ = self.model_train_gen.__getitem__(fileindices)
+                        o_d_i = np.max(np.abs(y_neighbour - y))
+                        sum_y.append(o_d_i)
 
-                y_neighbour = np.random.random_sample(x_neighbour.shape) * np.max(x_neighbour.flatten())
+                        mse_y.append(np.sum(np.abs(y_neighbour - y)))  # should be renamed to mae
 
-                # Since this is the no thresh case
-                # if np.max(np.abs(y_neighbour - y)) > self.thresh:
+                        criticality.append(abs(o_d_i - i_d_i) / (o_d_i + i_d_i))
 
-                assert (config.cx_batch_size == x_neighbour.shape[0]) or (
-                    j + config.cx_batch_size >= len(neighbour_indexes)
-                )  # for the last batch
+                        criticality_exp.append(np.exp(abs(o_d_i - i_d_i) / (o_d_i + i_d_i)))
 
-                assert x_neighbour.shape[0] == y_neighbour.shape[0]
+                        criticality_exp_signed.append(np.exp((o_d_i - i_d_i) / (o_d_i + i_d_i)))
 
-                dist_y = np.max((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1)
-                dist_x = np.max((abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1)
+                        if i_d_i > 0:
+                            criticality_2.append(o_d_i / i_d_i)
 
-                if config.DEBUG:
-                    # should be same order;
-                    # implies we do not need to recompute the x distances, but just to be safe
-                    # we recompute the distances nevertheless, since it is super fast (i/o is the bottleneck)
-                    sprint(sum_x)
-                    sprint(dist_x)
+                        criticality_2_exp.append(np.exp(-np.abs(o_d_i - i_d_i) / (i_d_i)))
 
-                sum_x_m_predict.extend(dist_x.tolist())
-                sum_y_m_predict.extend(dist_y.tolist())
+                        assert len(sum_x) == len(sum_y)
 
-                frac = dist_y / dist_x
-                frac = frac[~np.isnan(frac)]
+            sum_x = np.array(sum_x)
+            sum_y = np.array(sum_y)
 
-                criticality_2.extend(frac.tolist())
-                criticality_2_exp.extend(np.exp(-frac).tolist())
+            max_x = np.max(sum_x)
 
-            sum_x_m_predict = np.array(sum_x_m_predict)
-            sum_y_m_predict = np.array(sum_y_m_predict)
-
-            assert len(sum_x_m_predict.tolist()) > 0
-            max_x = np.max(sum_x_m_predict)
-            mean_x = np.mean(sum_x_m_predict)
-
-            count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
+            count_y_more_than_max_x = (sum_y > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
+
+            sum_y_more_than_max_x = np.sum(sum_y[(sum_y > max_x)])
+            if sum_y_more_than_max_x > 0:  # since sometime y is an internal point; and the array sum_y[(sum_y > max_x)
+                # is empty
+                sum_y_more_than_max_x_dataset.append(sum_y_more_than_max_x)
+
+            mse_y_dataset.append(np.sum(mse_y))
+
+            criticality_dataset.append(np.mean(criticality))
+            criticality_dataset_exp.append(np.mean(criticality_exp))
+            criticality_dataset_exp_signed.append(np.mean(criticality_exp_signed))
 
             criticality_dataset_2.append(np.mean(criticality_2))
             criticality_dataset_2_exp.append(np.mean(criticality_2_exp))
 
-            sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
-            if len(sum_y_more_than_max_x.tolist()) > 0:
-                sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+            sum_y_dataset.append(np.mean(sum_y))
+            sum_x_dataset.append(np.mean(sum_x))
 
-            sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
-            if len(sum_y_more_than_mean_x.tolist()) > 0:
-                sum_y_more_than_mean_x_dataset.append(np.mean(sum_y_more_than_mean_x))
+            assert len(sum_x_dataset) == len(sum_y_dataset)
+            # sprint (len(sum_y))
 
-            sum_y_more_than_mean_x_exp = np.exp(-np.abs(sum_y_m_predict - mean_x))
-            if len(sum_y_more_than_mean_x_exp.tolist()) > 0:
-                sum_y_more_than_mean_x_exp_dataset.append(np.mean(sum_y_more_than_mean_x_exp))
-
-            sum_y_dataset.append(np.mean(sum_y_m_predict))
-            sum_x_dataset.append(np.mean(sum_x_m_predict))
-
-            if config.DEBUG:
-                assert len(sum_x_dataset) == len(sum_y_dataset)
-                sprint(len(sum_y))
+        # sprint (len(sum_x_dataset))
 
         self.CSR_GB_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_GB_no_thresh_median = np.median(sum_y_dataset)
 
-        self.CSR_GB_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
+        self.CSR_GB_no_thresh_frac_mean = np.mean(criticality_dataset)
+        self.CSR_GB_no_thresh_frac_median = np.median(criticality_dataset)
+
+        self.CSR_GB_no_thresh_frac_mean_exp = np.exp(np.mean(criticality_dataset))
+        self.CSR_GB_no_thresh_frac_median_exp = np.exp(np.median(criticality_dataset))
+
+        self.CSR_GB_no_thresh_frac_exp_mean = np.mean(criticality_dataset_exp)
+        self.CSR_GB_no_thresh_frac_exp_mean_signed = np.median(criticality_dataset_exp_signed)
+
+        self.CSR_GB_count_y_exceeding_r_x = np.sum(count_y_more_than_max_x_dataset)
+        self.CSR_GB_y_dist_mse = np.sum(mse_y_dataset)
 
         self.CSR_GB_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
-        self.CSR_GB_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
-        self.CSR_GB_sum_exp_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_exp_dataset)
-
         self.CSR_GB_no_thresh_frac_mean_2 = np.mean(criticality_dataset_2)
         self.CSR_GB_no_thresh_frac_mean_2_exp = np.mean(criticality_dataset_2_exp)
 
         plt.clf()
-        plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
-        plt.savefig("plots/GB_sum_y/GB_sum_y" + str(round(time.time(), 2)) + ".png")
+        plt.hist(sum_y_more_than_max_x_dataset, bins=np.arange(0, 5000, 100))
+        plt.savefig("plots/GB_/GB_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(sum_y_more_than_max_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/GB_more_max/GB_more_max_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(mse_y_dataset, bins=100)
+        plt.savefig("plots/GB_mse_/GB_mse_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/GB_mean/GB_mean_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(criticality_dataset, bins=100)
+        plt.savefig("plots/GB_frac_/GB_frac_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
-        plt.savefig("plots/GB_mean_exp_/GB_mean_exp_" + str(round(time.time(), 2)) + ".png")
-
-        plt.clf()
-        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
+        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 50))
         plt.ylim(0, 400)
         plt.savefig("plots/GB_frac_2_/GB_frac_2_" + str(round(time.time(), 2)) + ".png")
 
@@ -729,10 +757,10 @@ class Complexity:
         """
         temporal_filter: If true, filtering is carried out using nearest neighbours
         """
-        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
+        self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
-        # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
+        # self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.key_dimensions())
 
         obj = ProcessRaw(
             cityname=self.cityname,
@@ -740,17 +768,27 @@ class Complexity:
             prediction_horizon=self.prediction_horizon,
             grid_size=self.grid_size,
         )
+        prefix = self.file_prefix
 
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
+        # file_list = file_list[:config.cx_sample_whole_data]
+
+        exp_criticality_frac = []
+
+        neighbour_indexes_count_list = []
+
+        # sprint((config.cx_sample_single_point), len(file_list), \
+        #        self.validation_folder + "/" + self.file_prefix)
+
+        criticality_dataset = []
         criticality_dataset_2 = []
         criticality_dataset_2_exp = []
+        criticality_dataset_exp = []
+        criticality_dataset_exp_signed = []
         count_y_more_than_max_x_dataset = []
         sum_y_more_than_max_x_dataset = []
-        sum_y_more_than_mean_x_dataset = []
-        sum_y_more_than_mean_x_exp_dataset = []
-
         mse_y_dataset = []
 
         sum_y_dataset = []
@@ -794,7 +832,7 @@ class Complexity:
                 # 3 days before, 3 days later, and today
                 # within {width} on each side
                 for day in range(-3, 4):
-                    for width in range(-1, 2):  # 1 hour before and after
+                    for width in range(-3, 4):  # 1 hour before and after
                         current_offset = day * self.offset + width
 
                         if current_offset == 0 or fileindex_orig + current_offset == 0:
@@ -817,12 +855,14 @@ class Complexity:
 
             sum_x_m_predict = []
             sum_y_m_predict = []
+            mse_y_m_predict = []
+            criticality = []
             criticality_2 = []
             criticality_2_exp = []
 
-            for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
+            for j in range(0, len(neighbour_indexes), config.cl_batch_size):  # config.cl_batch_size
 
-                fileindices = neighbour_indexes[j : j + config.cx_batch_size]
+                fileindices = neighbour_indexes[j : j + config.cl_batch_size]
                 if 0 in fileindices:
                     print("Skipped file indexed with 0")
                     continue
@@ -836,8 +876,8 @@ class Complexity:
                 # Since this is the no thresh case
                 # if np.max(np.abs(y_neighbour - y)) > self.thresh:
 
-                assert (config.cx_batch_size == x_neighbour.shape[0]) or (
-                    j + config.cx_batch_size >= len(neighbour_indexes)
+                assert (config.cl_batch_size == x_neighbour.shape[0]) or (
+                    j + config.cl_batch_size >= len(neighbour_indexes)
                 )  # for the last batch
 
                 assert x_neighbour.shape[0] == y_neighbour.shape[0]
@@ -858,33 +898,34 @@ class Complexity:
                 frac = dist_y / dist_x
                 frac = frac[~np.isnan(frac)]
 
+                criticality.extend((np.abs(dist_y - dist_x) / np.abs(dist_y + dist_x)).tolist())
                 criticality_2.extend(frac.tolist())
+                # criticality_2_exp.extend(np.exp(-np.abs(dist_y - dist_x) / (dist_x)).tolist())
                 criticality_2_exp.extend(np.exp(-frac).tolist())
+
+                mse_y_m_predict.extend(
+                    np.sum((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1).tolist()
+                )
 
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
             assert len(sum_x_m_predict.tolist()) > 0
             max_x = np.max(sum_x_m_predict)
-            mean_x = np.mean(sum_x_m_predict)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
 
+            criticality_dataset.append(np.mean(criticality))
             criticality_dataset_2.append(np.mean(criticality_2))
             criticality_dataset_2_exp.append(np.mean(criticality_2_exp))
 
-            sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
-            if len(sum_y_more_than_max_x.tolist()) > 0:
-                sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+            sum_y_more_than_max_x = np.sum(sum_y_m_predict[(sum_y_m_predict > max_x)])
+            if sum_y_more_than_max_x > 0:  # since sometime y is an internal point; and the array sum_y[(sum_y > max_x)
+                # is empty
+                sum_y_more_than_max_x_dataset.append(sum_y_more_than_max_x)
 
-            sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
-            if len(sum_y_more_than_mean_x.tolist()) > 0:
-                sum_y_more_than_mean_x_dataset.append(np.mean(sum_y_more_than_mean_x))
-
-            sum_y_more_than_mean_x_exp = np.exp(-np.abs(sum_y_m_predict - mean_x))
-            if len(sum_y_more_than_mean_x_exp.tolist()) > 0:
-                sum_y_more_than_mean_x_exp_dataset.append(np.mean(sum_y_more_than_mean_x_exp))
+            mse_y_dataset.append(np.sum(mse_y_m_predict))
 
             sum_y_dataset.append(np.mean(sum_y_m_predict))
             sum_x_dataset.append(np.mean(sum_x_m_predict))
@@ -896,32 +937,27 @@ class Complexity:
         self.CSR_MP_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_MP_no_thresh_median = np.median(sum_y_dataset)
 
-        self.CSR_MP_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
+        self.CSR_MP_count_y_exceeding_r_x = np.sum(count_y_more_than_max_x_dataset)
+        self.CSR_MP_y_dist_mse = np.sum(mse_y_dataset)
 
         self.CSR_MP_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
-        self.CSR_MP_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
-        self.CSR_MP_sum_exp_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_exp_dataset)
+
+        self.CSR_MP_no_thresh_frac_mean = np.mean(criticality_dataset)
 
         self.CSR_MP_no_thresh_frac_mean_2 = np.mean(criticality_dataset_2)
         self.CSR_MP_no_thresh_frac_mean_2_exp = np.mean(criticality_dataset_2_exp)
 
         plt.clf()
-        plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
-        plt.savefig("plots/MP_sum_y/MP_sum_y" + str(round(time.time(), 2)) + ".png")
-        # MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_
-        plt.clf()
-        plt.hist(sum_y_more_than_max_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/MP_more_max/MP_more_max_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(sum_y_more_than_max_x_dataset, bins=np.arange(0, 5000, 5000 / 200))
+        plt.savefig("plots/MP_/MP_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/MP_mean/MP_mean_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(mse_y_dataset, bins=100)
+        plt.savefig("plots/MP_mse_/MP_mse_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
-        plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
-        plt.savefig("plots/MP_mean_exp_/MP_mean_exp_" + str(round(time.time(), 2)) + ".png")
+        plt.hist(criticality_dataset, bins=100)
+        plt.savefig("plots/MP_frac_/MP_frac_" + str(round(time.time(), 2)) + ".png")
 
         plt.clf()
         plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
@@ -952,42 +988,46 @@ class Complexity:
             self.grid_size,
             self.thresh,
             config.cx_sample_whole_data,
-
-            self.CSR_MP_no_thresh_mean,
-            self.CSR_MP_no_thresh_median,
-            self.CSR_MP_count_y_exceeding_r_x,
-            self.CSR_MP_sum_y_exceeding_r_x_max,
-            self.CSR_MP_sum_y_exceeding_r_x_mean,
-            self.CSR_MP_sum_exp_y_exceeding_r_x_mean,
-            self.CSR_MP_no_thresh_frac_mean_2,
-            self.CSR_MP_no_thresh_frac_mean_2_exp,
-
+            config.cx_sample_single_point,
+            self.CSR_PM_frac,
+            self.CSR_PM_count,
             self.CSR_PM_no_thresh_mean,
             self.CSR_PM_no_thresh_median,
+            self.CSR_PM_no_thresh_frac_mean,
+            self.CSR_PM_no_thresh_frac_median,
+            self.CSR_PM_no_thresh_frac_mean_exp,
+            self.CSR_PM_no_thresh_frac_mean_exp,
+            self.CSR_PM_no_thresh_frac_exp_mean,
+            self.CSR_PM_no_thresh_frac_exp_mean_signed,
             self.CSR_PM_count_y_exceeding_r_x,
             self.CSR_PM_sum_y_exceeding_r_x_max,
-            self.CSR_PM_sum_y_exceeding_r_x_mean,
-            self.CSR_PM_sum_exp_y_exceeding_r_x_mean,
-            self.CSR_PM_no_thresh_frac_mean_2,
-            self.CSR_PM_no_thresh_frac_mean_2_exp,
-
+            self.CSR_PM_y_dist_mse,
+            self.CSR_MP_frac,
+            self.CSR_MP_count,
+            self.CSR_MP_no_thresh_mean,
+            self.CSR_MP_no_thresh_median,
+            self.CSR_MP_no_thresh_frac_mean,
+            self.CSR_MP_no_thresh_frac_median,
+            self.CSR_MP_no_thresh_frac_mean_exp,
+            self.CSR_MP_no_thresh_frac_mean_exp,
+            self.CSR_MP_no_thresh_frac_exp_mean,
+            self.CSR_MP_no_thresh_frac_exp_mean_signed,
+            self.CSR_MP_count_y_exceeding_r_x,
+            self.CSR_MP_sum_y_exceeding_r_x_max,
+            self.CSR_MP_y_dist_mse,
+            self.CSR_NM_frac,
+            self.CSR_NM_count,
             self.CSR_NM_no_thresh_mean,
             self.CSR_NM_no_thresh_median,
+            self.CSR_NM_no_thresh_frac_mean,
+            self.CSR_NM_no_thresh_frac_median,
+            self.CSR_NM_no_thresh_frac_mean_exp,
+            self.CSR_NM_no_thresh_frac_mean_exp,
+            self.CSR_NM_no_thresh_frac_exp_mean,
+            self.CSR_NM_no_thresh_frac_exp_mean_signed,
             self.CSR_NM_count_y_exceeding_r_x,
             self.CSR_NM_sum_y_exceeding_r_x_max,
-            self.CSR_NM_sum_y_exceeding_r_x_mean,
-            self.CSR_NM_sum_exp_y_exceeding_r_x_mean,
-            self.CSR_NM_no_thresh_frac_mean_2,
-            self.CSR_NM_no_thresh_frac_mean_2_exp,
-
-            self.CSR_GB_no_thresh_mean,
-            self.CSR_GB_no_thresh_median,
-            self.CSR_GB_count_y_exceeding_r_x,
-            self.CSR_GB_sum_y_exceeding_r_x_max,
-            self.CSR_GB_sum_y_exceeding_r_x_mean,
-            self.CSR_GB_sum_exp_y_exceeding_r_x_mean,
-            self.CSR_GB_no_thresh_frac_mean_2,
-            self.CSR_GB_no_thresh_frac_mean_2_exp,
+            self.CSR_NM_y_dist_mse,
             sep=",",
         )
         print("###################################################")
@@ -1135,4 +1175,4 @@ if __name__ == "__main__":
 
         # To parse the results into a csv:
         # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count,CSR_PM_no_thresh_median,CSR_PM_no_thresh_mean,CSR_PM_no_thresh_frac_median,CSR_PM_no_thresh_frac_mean'
-# mkdir MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_ PM_more_max PM_sum_y PM_mean PM_mean_exp_ PM_frac_2_ PM_frac_2_exp_ GB_more_max GB_sum_y GB_mean GB_mean_exp_ GB_frac_2_ GB_frac_2_exp_ NM_more_max NM_sum_y NM_mean NM_mean_exp_ NM_frac_2_ NM_frac_2_exp_
+# MP_ MP_mse_ MP_frac_ MP_frac_2_ MP_frac_2_exp_ PM_ PM_mse_ PM_frac_ PM_frac_2_ PM_frac_2_exp_ NM_ NM_mse_ NM_frac_ NM_frac_2_ NM_frac_2_exp_ GB_ GB_mse_ GB_frac_ GB_frac_2_ GB_frac_2_exp_

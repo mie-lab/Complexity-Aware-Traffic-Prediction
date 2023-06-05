@@ -49,9 +49,13 @@ cx_debug = True
 if running_on == "server":
     cx_sample_whole_data = 1500
     cx_sample_single_point = 200  # no longer being used
+    cx_batch_size = 14
+
 elif running_on == "maclocal":
-    cx_sample_whole_data = 10
+    cx_sample_whole_data = 2
     cx_sample_single_point = 40  # no longer being used
+    cx_batch_size = 2
+
 cx_delete_files_after_running = True
 
 ######################## Datagen class params #########################
@@ -71,7 +75,7 @@ if running_on == "server":
     cl_dataloader_workers = 32
     cl_epochs = 30
 elif running_on == "maclocal":
-    cl_percentage_of_train_data = 0.0025  # can be reduced for fast tryouts
+    cl_percentage_of_train_data = 0.0015  # can be reduced for fast tryouts
     cl_batch_size = 3
     cl_dataloader_workers = 4
     cl_epochs = 20
