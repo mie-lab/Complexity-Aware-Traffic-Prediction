@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../"))  # location of c
 import config
 
 from preprocessing.ProcessRaw import ProcessRaw
-
+from preprocessing.datagen import CustomDataGenerator
 import numpy as np
 import glob
 import random
@@ -43,6 +43,7 @@ class Complexity:
         self.file_prefix = ProcessRaw.file_prefix(
             cityname=self.cityname, io_length=self.i_o_length, pred_horiz=self.prediction_horizon, scale=self.grid_size
         )
+        self.model_train_gen = model_train_gen
         self.thresh = thresh
 
         self.offset = 96 - (prediction_horizon + i_o_length * 2)  # one time for ip; one for op; one for pred_horiz
@@ -97,7 +98,7 @@ class Complexity:
         else:
             assert model_func != None
             self.model_predict = model_func
-            self.model_train_gen = model_train_gen
+
             self.cx_whole_dataset_m_predict(temporal_filter=True)
 
             if run_pm:
@@ -1034,7 +1035,27 @@ if __name__ == "__main__":
                         obj = ProcessRaw(
                             cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
                         )
-
+                        train_data_folder = os.path.join(
+                            config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+                        )
+                        num_train = len(
+                            glob.glob(
+                                os.path.join(config.HOME_FOLDER, train_data_folder)
+                                + "/"
+                                + obj.key_dimensions()
+                                + "*_x.npy"
+                            )
+                        )
+                        train_gen = CustomDataGenerator(
+                            city,
+                            i_o_length,
+                            pred_horiz,
+                            scale,
+                            data_dir=train_data_folder,
+                            num_samples=num_train,
+                            batch_size=config.cl_batch_size,
+                            shuffle=True,
+                        )
                         cx = Complexity(
                             city,
                             i_o_length=i_o_length,
@@ -1043,7 +1064,10 @@ if __name__ == "__main__":
                             thresh=thresh,
                             perfect_model=True,
                             model_func=None,
-                            model_train_gen=None,
+                            model_train_gen=train_gen,
+                            run_pm=False,
+                            run_nm=False,
+                            run_gb=False,
                         )
                         cx.print_params()
                         cx.csv_format()
@@ -1057,7 +1081,27 @@ if __name__ == "__main__":
                         obj = ProcessRaw(
                             cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
                         )
-
+                        train_data_folder = os.path.join(
+                            config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+                        )
+                        num_train = len(
+                            glob.glob(
+                                os.path.join(config.HOME_FOLDER, train_data_folder)
+                                + "/"
+                                + obj.key_dimensions()
+                                + "*_x.npy"
+                            )
+                        )
+                        train_gen = CustomDataGenerator(
+                            city,
+                            i_o_length,
+                            pred_horiz,
+                            scale,
+                            data_dir=train_data_folder,
+                            num_samples=num_train,
+                            batch_size=config.cl_batch_size,
+                            shuffle=True,
+                        )
                         cx = Complexity(
                             city,
                             i_o_length=i_o_length,
@@ -1066,7 +1110,10 @@ if __name__ == "__main__":
                             thresh=thresh,
                             perfect_model=True,
                             model_func=None,
-                            model_train_gen=None,
+                            model_train_gen=train_gen,
+                            run_pm=False,
+                            run_nm=False,
+                            run_gb=False,
                         )
                         cx.print_params()
                         cx.csv_format()
@@ -1080,7 +1127,27 @@ if __name__ == "__main__":
                         obj = ProcessRaw(
                             cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
                         )
-
+                        train_data_folder = os.path.join(
+                            config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+                        )
+                        num_train = len(
+                            glob.glob(
+                                os.path.join(config.HOME_FOLDER, train_data_folder)
+                                + "/"
+                                + obj.key_dimensions()
+                                + "*_x.npy"
+                            )
+                        )
+                        train_gen = CustomDataGenerator(
+                            city,
+                            i_o_length,
+                            pred_horiz,
+                            scale,
+                            data_dir=train_data_folder,
+                            num_samples=num_train,
+                            batch_size=config.cl_batch_size,
+                            shuffle=True,
+                        )
                         cx = Complexity(
                             city,
                             i_o_length=i_o_length,
@@ -1089,7 +1156,10 @@ if __name__ == "__main__":
                             thresh=thresh,
                             perfect_model=True,
                             model_func=None,
-                            model_train_gen=None,
+                            model_train_gen=train_gen,
+                            run_pm=False,
+                            run_nm=False,
+                            run_gb=False,
                         )
                         cx.print_params()
                         cx.csv_format()
