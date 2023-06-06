@@ -114,8 +114,9 @@ elif running_on == "maclocal":
     # pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     city_list = [
         "london",
-        "madrid",
         "melbourne",
+        "madrid",
+        
     ]  # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
     scales = list(range(25, 106, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
     i_o_lengths = list(range(1, 9))
