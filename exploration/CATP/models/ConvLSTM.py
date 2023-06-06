@@ -52,6 +52,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_MP_sum_exp_y_exceeding_r_x_mean"] = cx.CSR_MP_sum_exp_y_exceeding_r_x_mean
                 logs["CSR_MP_no_thresh_frac_mean_2"] = cx.CSR_MP_no_thresh_frac_mean_2
                 logs["CSR_MP_no_thresh_frac_mean_2_exp"] = cx.CSR_MP_no_thresh_frac_mean_2_exp
+                logs["CSR_MP_no_thresh_frac_sum"] = cx.CSR_MP_no_thresh_frac_sum
 
                 logs["CSR_PM_no_thresh_mean"] = cx.CSR_PM_no_thresh_mean
                 logs["CSR_PM_no_thresh_median"] = cx.CSR_PM_no_thresh_median
@@ -61,6 +62,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_PM_sum_exp_y_exceeding_r_x_mean"] = cx.CSR_PM_sum_exp_y_exceeding_r_x_mean
                 logs["CSR_PM_no_thresh_frac_mean_2"] = cx.CSR_PM_no_thresh_frac_mean_2
                 logs["CSR_PM_no_thresh_frac_mean_2_exp"] = cx.CSR_PM_no_thresh_frac_mean_2_exp
+                logs["CSR_PM_no_thresh_frac_sum"] = cx.CSR_PM_no_thresh_frac_sum
 
                 logs["CSR_NM_no_thresh_mean"] = cx.CSR_NM_no_thresh_mean
                 logs["CSR_NM_no_thresh_median"] = cx.CSR_NM_no_thresh_median
@@ -70,6 +72,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_NM_sum_exp_y_exceeding_r_x_mean"] = cx.CSR_NM_sum_exp_y_exceeding_r_x_mean
                 logs["CSR_NM_no_thresh_frac_mean_2"] = cx.CSR_NM_no_thresh_frac_mean_2
                 logs["CSR_NM_no_thresh_frac_mean_2_exp"] = cx.CSR_NM_no_thresh_frac_mean_2_exp
+                logs["CSR_NM_no_thresh_frac_sum"] = cx.CSR_NM_no_thresh_frac_sum
 
                 logs["CSR_GB_no_thresh_mean"] = cx.CSR_GB_no_thresh_mean
                 logs["CSR_GB_no_thresh_median"] = cx.CSR_GB_no_thresh_median
@@ -79,6 +82,8 @@ class ComputeMetrics(Callback):
                 logs["CSR_GB_sum_exp_y_exceeding_r_x_mean"] = cx.CSR_GB_sum_exp_y_exceeding_r_x_mean
                 logs["CSR_GB_no_thresh_frac_mean_2"] = cx.CSR_GB_no_thresh_frac_mean_2
                 logs["CSR_GB_no_thresh_frac_mean_2_exp"] = cx.CSR_GB_no_thresh_frac_mean_2_exp
+                logs["CSR_GB_no_thresh_frac_sum"] = cx.CSR_GB_no_thresh_frac_sum
+
             else:
                 logs["CSR_MP_no_thresh_mean"] = -1
                 logs["CSR_MP_no_thresh_median"] = -1
@@ -88,6 +93,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_MP_sum_exp_y_exceeding_r_x_mean"] = -1
                 logs["CSR_MP_no_thresh_frac_mean_2"] = -1
                 logs["CSR_MP_no_thresh_frac_mean_2_exp"] = -1
+                logs["CSR_MP_no_thresh_frac_sum"] = -1
 
                 logs["CSR_PM_no_thresh_mean"] = -1
                 logs["CSR_PM_no_thresh_median"] = -1
@@ -97,6 +103,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_PM_sum_exp_y_exceeding_r_x_mean"] = -1
                 logs["CSR_PM_no_thresh_frac_mean_2"] = -1
                 logs["CSR_PM_no_thresh_frac_mean_2_exp"] = -1
+                logs["CSR_PM_no_thresh_frac_sum"] = -1
 
                 logs["CSR_NM_no_thresh_mean"] = -1
                 logs["CSR_NM_no_thresh_median"] = -1
@@ -106,6 +113,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_NM_sum_exp_y_exceeding_r_x_mean"] = -1
                 logs["CSR_NM_no_thresh_frac_mean_2"] = -1
                 logs["CSR_NM_no_thresh_frac_mean_2_exp"] = -1
+                logs["CSR_NM_no_thresh_frac_sum"] = -1
 
                 logs["CSR_GB_no_thresh_mean"] = -1
                 logs["CSR_GB_no_thresh_median"] = -1
@@ -115,8 +123,9 @@ class ComputeMetrics(Callback):
                 logs["CSR_GB_sum_exp_y_exceeding_r_x_mean"] = -1
                 logs["CSR_GB_no_thresh_frac_mean_2"] = -1
                 logs["CSR_GB_no_thresh_frac_mean_2_exp"] = -1
+                logs["CSR_GB_no_thresh_frac_sum"] = -1
 
-        if epoch > 0:
+        else:
             if config.cl_during_training_CSR_enabled_epoch_end:
                 cx = Complexity(
                     self.model.cityname,
@@ -140,6 +149,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_MP_sum_exp_y_exceeding_r_x_mean"] = cx.CSR_MP_sum_exp_y_exceeding_r_x_mean
                 logs["CSR_MP_no_thresh_frac_mean_2"] = cx.CSR_MP_no_thresh_frac_mean_2
                 logs["CSR_MP_no_thresh_frac_mean_2_exp"] = cx.CSR_MP_no_thresh_frac_mean_2_exp
+                logs["CSR_MP_no_thresh_frac_sum"] = cx.CSR_MP_no_thresh_frac_sum
 
                 logs["CSR_PM_no_thresh_mean"] = cx.CSR_PM_no_thresh_mean
                 logs["CSR_PM_no_thresh_median"] = cx.CSR_PM_no_thresh_median
@@ -149,6 +159,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_PM_sum_exp_y_exceeding_r_x_mean"] = cx.CSR_PM_sum_exp_y_exceeding_r_x_mean
                 logs["CSR_PM_no_thresh_frac_mean_2"] = cx.CSR_PM_no_thresh_frac_mean_2
                 logs["CSR_PM_no_thresh_frac_mean_2_exp"] = cx.CSR_PM_no_thresh_frac_mean_2_exp
+                logs["CSR_PM_no_thresh_frac_sum"] = cx.CSR_PM_no_thresh_frac_sum
 
                 logs["CSR_NM_no_thresh_mean"] = cx.CSR_NM_no_thresh_mean
                 logs["CSR_NM_no_thresh_median"] = cx.CSR_NM_no_thresh_median
@@ -158,6 +169,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_NM_sum_exp_y_exceeding_r_x_mean"] = cx.CSR_NM_sum_exp_y_exceeding_r_x_mean
                 logs["CSR_NM_no_thresh_frac_mean_2"] = cx.CSR_NM_no_thresh_frac_mean_2
                 logs["CSR_NM_no_thresh_frac_mean_2_exp"] = cx.CSR_NM_no_thresh_frac_mean_2_exp
+                logs["CSR_NM_no_thresh_frac_sum"] = cx.CSR_NM_no_thresh_frac_sum
 
                 logs["CSR_GB_no_thresh_mean"] = cx.CSR_GB_no_thresh_mean
                 logs["CSR_GB_no_thresh_median"] = cx.CSR_GB_no_thresh_median
@@ -167,6 +179,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_GB_sum_exp_y_exceeding_r_x_mean"] = cx.CSR_GB_sum_exp_y_exceeding_r_x_mean
                 logs["CSR_GB_no_thresh_frac_mean_2"] = cx.CSR_GB_no_thresh_frac_mean_2
                 logs["CSR_GB_no_thresh_frac_mean_2_exp"] = cx.CSR_GB_no_thresh_frac_mean_2_exp
+                logs["CSR_GB_no_thresh_frac_sum"] = cx.CSR_GB_no_thresh_frac_sum
 
             else:
                 logs["CSR_MP_no_thresh_mean"] = -1
@@ -177,6 +190,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_MP_sum_exp_y_exceeding_r_x_mean"] = -1
                 logs["CSR_MP_no_thresh_frac_mean_2"] = -1
                 logs["CSR_MP_no_thresh_frac_mean_2_exp"] = -1
+                logs["CSR_MP_no_thresh_frac_sum"] = -1
 
                 logs["CSR_PM_no_thresh_mean"] = -1
                 logs["CSR_PM_no_thresh_median"] = -1
@@ -186,6 +200,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_PM_sum_exp_y_exceeding_r_x_mean"] = -1
                 logs["CSR_PM_no_thresh_frac_mean_2"] = -1
                 logs["CSR_PM_no_thresh_frac_mean_2_exp"] = -1
+                logs["CSR_PM_no_thresh_frac_sum"] = -1
 
                 logs["CSR_NM_no_thresh_mean"] = -1
                 logs["CSR_NM_no_thresh_median"] = -1
@@ -195,6 +210,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_NM_sum_exp_y_exceeding_r_x_mean"] = -1
                 logs["CSR_NM_no_thresh_frac_mean_2"] = -1
                 logs["CSR_NM_no_thresh_frac_mean_2_exp"] = -1
+                logs["CSR_NM_no_thresh_frac_sum"] = -1
 
                 logs["CSR_GB_no_thresh_mean"] = -1
                 logs["CSR_GB_no_thresh_median"] = -1
@@ -204,6 +220,7 @@ class ComputeMetrics(Callback):
                 logs["CSR_GB_sum_exp_y_exceeding_r_x_mean"] = -1
                 logs["CSR_GB_no_thresh_frac_mean_2"] = -1
                 logs["CSR_GB_no_thresh_frac_mean_2_exp"] = -1
+                logs["CSR_GB_no_thresh_frac_sum"] = -1
 
         logs["naive-model-non-zero"] = (
             NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)

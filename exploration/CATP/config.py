@@ -123,7 +123,7 @@ elif running_on == "maclocal":
 
     city_list_def = ["London"]
     scales_def = [55]
-    i_o_lengths_def = [1]
+    i_o_lengths_def = [4]
     pred_horiz_def = [1]
 
 

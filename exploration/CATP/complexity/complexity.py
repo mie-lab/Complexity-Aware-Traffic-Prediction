@@ -56,6 +56,7 @@ class Complexity:
         self.CSR_MP_sum_exp_y_exceeding_r_x_mean = "NULL"
         self.CSR_MP_no_thresh_frac_mean_2 = "NULL"
         self.CSR_MP_no_thresh_frac_mean_2_exp = "NULL"
+        self.CSR_MP_no_thresh_frac_sum = "NULL"
 
         self.CSR_PM_no_thresh_mean = "NULL"
         self.CSR_PM_no_thresh_median = "NULL"
@@ -65,6 +66,7 @@ class Complexity:
         self.CSR_PM_sum_exp_y_exceeding_r_x_mean = "NULL"
         self.CSR_PM_no_thresh_frac_mean_2 = "NULL"
         self.CSR_PM_no_thresh_frac_mean_2_exp = "NULL"
+        self.CSR_PM_no_thresh_frac_sum = "NULL"
 
         self.CSR_NM_no_thresh_mean = "NULL"
         self.CSR_NM_no_thresh_median = "NULL"
@@ -74,6 +76,7 @@ class Complexity:
         self.CSR_NM_sum_exp_y_exceeding_r_x_mean = "NULL"
         self.CSR_NM_no_thresh_frac_mean_2 = "NULL"
         self.CSR_NM_no_thresh_frac_mean_2_exp = "NULL"
+        self.CSR_NM_no_thresh_frac_sum = "NULL"
 
         self.CSR_GB_no_thresh_mean = "NULL"
         self.CSR_GB_no_thresh_median = "NULL"
@@ -83,6 +86,7 @@ class Complexity:
         self.CSR_GB_sum_exp_y_exceeding_r_x_mean = "NULL"
         self.CSR_GB_no_thresh_frac_mean_2 = "NULL"
         self.CSR_GB_no_thresh_frac_mean_2_exp = "NULL"
+        self.CSR_GB_no_thresh_frac_sum = "NULL"
 
         if perfect_model:
             assert model_func == None
@@ -130,6 +134,7 @@ class Complexity:
         sum_y_more_than_max_x_dataset = []
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
+        frac_sum_dataset = []
 
         mse_y_dataset = []
 
@@ -139,7 +144,6 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
-
             sum_y = []
             sum_x = []
 
@@ -151,7 +155,6 @@ class Complexity:
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
             y = np.load((self.validation_folder + "/" + self.file_prefix) + str(fileindex_orig) + "_y.npy")
-
 
             neighbour_indexes = []
 
@@ -201,7 +204,6 @@ class Complexity:
             criticality_2_exp = []
 
             for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
-
                 fileindices = neighbour_indexes[j : j + config.cx_batch_size]
                 if 0 in fileindices:
                     print("Skipped file indexed with 0")
@@ -245,6 +247,9 @@ class Complexity:
             assert len(sum_x_m_predict.tolist()) > 0
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
+            mean_y = np.mean(sum_y_m_predict)
+
+            frac_sum_dataset.append(mean_y / mean_x)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
@@ -255,10 +260,14 @@ class Complexity:
             sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
             if len(sum_y_more_than_max_x.tolist()) > 0:
                 sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+            else:
+                sum_y_more_than_max_x_dataset.append(0)
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
                 sum_y_more_than_mean_x_dataset.append(np.mean(sum_y_more_than_mean_x))
+            else:
+                sum_y_more_than_mean_x_dataset.append(0)
 
             sum_y_more_than_mean_x_exp = np.exp(-np.abs(sum_y_m_predict - mean_x))
             if len(sum_y_more_than_mean_x_exp.tolist()) > 0:
@@ -273,6 +282,7 @@ class Complexity:
 
         self.CSR_PM_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_PM_no_thresh_median = np.median(sum_y_dataset)
+        self.CSR_PM_no_thresh_frac_sum = np.mean(frac_sum_dataset)
 
         self.CSR_PM_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
 
@@ -336,6 +346,7 @@ class Complexity:
         sum_y_more_than_max_x_dataset = []
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
+        frac_sum_dataset = []
 
         mse_y_dataset = []
 
@@ -345,7 +356,6 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
-
             sum_y = []
             sum_x = []
 
@@ -406,7 +416,6 @@ class Complexity:
             criticality_2_exp = []
 
             for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
-
                 fileindices = neighbour_indexes[j : j + config.cx_batch_size]
                 if 0 in fileindices:
                     print("Skipped file indexed with 0")
@@ -452,6 +461,9 @@ class Complexity:
             assert len(sum_x_m_predict.tolist()) > 0
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
+            mean_y = np.mean(sum_y_m_predict)
+
+            frac_sum_dataset.append(mean_y / mean_x)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
@@ -462,10 +474,14 @@ class Complexity:
             sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
             if len(sum_y_more_than_max_x.tolist()) > 0:
                 sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+            else:
+                sum_y_more_than_max_x_dataset.append(0)
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
                 sum_y_more_than_mean_x_dataset.append(np.mean(sum_y_more_than_mean_x))
+            else:
+                sum_y_more_than_mean_x_dataset.append(0)
 
             sum_y_more_than_mean_x_exp = np.exp(-np.abs(sum_y_m_predict - mean_x))
             if len(sum_y_more_than_mean_x_exp.tolist()) > 0:
@@ -480,6 +496,7 @@ class Complexity:
 
         self.CSR_NM_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_NM_no_thresh_median = np.median(sum_y_dataset)
+        self.CSR_NM_no_thresh_frac_sum = np.mean(frac_sum_dataset)
 
         self.CSR_NM_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
 
@@ -543,6 +560,7 @@ class Complexity:
         sum_y_more_than_max_x_dataset = []
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
+        frac_sum_dataset = []
 
         mse_y_dataset = []
 
@@ -552,7 +570,6 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
-
             sum_y = []
             sum_x = []
 
@@ -613,7 +630,6 @@ class Complexity:
             criticality_2_exp = []
 
             for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
-
                 fileindices = neighbour_indexes[j : j + config.cx_batch_size]
                 if 0 in fileindices:
                     print("Skipped file indexed with 0")
@@ -659,6 +675,9 @@ class Complexity:
             assert len(sum_x_m_predict.tolist()) > 0
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
+            mean_y = np.mean(sum_y_m_predict)
+
+            frac_sum_dataset.append(mean_y / mean_x)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
@@ -669,10 +688,14 @@ class Complexity:
             sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
             if len(sum_y_more_than_max_x.tolist()) > 0:
                 sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+            else:
+                sum_y_more_than_max_x_dataset.append(0)
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
                 sum_y_more_than_mean_x_dataset.append(np.mean(sum_y_more_than_mean_x))
+            else:
+                sum_y_more_than_mean_x_dataset.append(0)
 
             sum_y_more_than_mean_x_exp = np.exp(-np.abs(sum_y_m_predict - mean_x))
             if len(sum_y_more_than_mean_x_exp.tolist()) > 0:
@@ -687,6 +710,7 @@ class Complexity:
 
         self.CSR_GB_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_GB_no_thresh_median = np.median(sum_y_dataset)
+        self.CSR_GB_no_thresh_frac_sum = np.mean(frac_sum_dataset)
 
         self.CSR_GB_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
 
@@ -750,6 +774,7 @@ class Complexity:
         sum_y_more_than_max_x_dataset = []
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
+        frac_sum_dataset = []
 
         mse_y_dataset = []
 
@@ -759,7 +784,6 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
-
             sum_y = []
             sum_x = []
 
@@ -821,7 +845,6 @@ class Complexity:
             criticality_2_exp = []
 
             for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
-
                 fileindices = neighbour_indexes[j : j + config.cx_batch_size]
                 if 0 in fileindices:
                     print("Skipped file indexed with 0")
@@ -867,6 +890,9 @@ class Complexity:
             assert len(sum_x_m_predict.tolist()) > 0
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
+            mean_y = np.mean(sum_y_m_predict)
+
+            frac_sum_dataset.append(mean_y / mean_x)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
@@ -877,10 +903,14 @@ class Complexity:
             sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
             if len(sum_y_more_than_max_x.tolist()) > 0:
                 sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+            else:
+                sum_y_more_than_max_x_dataset.append(0)
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
                 sum_y_more_than_mean_x_dataset.append(np.mean(sum_y_more_than_mean_x))
+            else:
+                sum_y_more_than_mean_x_dataset.append(0)
 
             sum_y_more_than_mean_x_exp = np.exp(-np.abs(sum_y_m_predict - mean_x))
             if len(sum_y_more_than_mean_x_exp.tolist()) > 0:
@@ -895,6 +925,7 @@ class Complexity:
 
         self.CSR_MP_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_MP_no_thresh_median = np.median(sum_y_dataset)
+        self.CSR_MP_no_thresh_frac_sum = np.mean(frac_sum_dataset)
 
         self.CSR_MP_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
 
@@ -952,7 +983,6 @@ class Complexity:
             self.grid_size,
             self.thresh,
             config.cx_sample_whole_data,
-
             self.CSR_MP_no_thresh_mean,
             self.CSR_MP_no_thresh_median,
             self.CSR_MP_count_y_exceeding_r_x,
@@ -961,7 +991,7 @@ class Complexity:
             self.CSR_MP_sum_exp_y_exceeding_r_x_mean,
             self.CSR_MP_no_thresh_frac_mean_2,
             self.CSR_MP_no_thresh_frac_mean_2_exp,
-
+            self.CSR_MP_no_thresh_frac_sum,
             self.CSR_PM_no_thresh_mean,
             self.CSR_PM_no_thresh_median,
             self.CSR_PM_count_y_exceeding_r_x,
@@ -970,7 +1000,7 @@ class Complexity:
             self.CSR_PM_sum_exp_y_exceeding_r_x_mean,
             self.CSR_PM_no_thresh_frac_mean_2,
             self.CSR_PM_no_thresh_frac_mean_2_exp,
-
+            self.CSR_PM_no_thresh_frac_sum,
             self.CSR_NM_no_thresh_mean,
             self.CSR_NM_no_thresh_median,
             self.CSR_NM_count_y_exceeding_r_x,
@@ -979,7 +1009,7 @@ class Complexity:
             self.CSR_NM_sum_exp_y_exceeding_r_x_mean,
             self.CSR_NM_no_thresh_frac_mean_2,
             self.CSR_NM_no_thresh_frac_mean_2_exp,
-
+            self.CSR_NM_no_thresh_frac_sum,
             self.CSR_GB_no_thresh_mean,
             self.CSR_GB_no_thresh_median,
             self.CSR_GB_count_y_exceeding_r_x,
@@ -988,13 +1018,13 @@ class Complexity:
             self.CSR_GB_sum_exp_y_exceeding_r_x_mean,
             self.CSR_GB_no_thresh_frac_mean_2,
             self.CSR_GB_no_thresh_frac_mean_2_exp,
+            self.CSR_GB_no_thresh_frac_sum,
             sep=",",
         )
         print("###################################################")
 
 
 if __name__ == "__main__":
-
     # io_lengths
     for scale in config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
         for city in config.city_list:

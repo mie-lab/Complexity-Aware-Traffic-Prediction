@@ -148,7 +148,6 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
-
             criticality = []
             criticality_exp = []
             criticality_exp_signed = []
@@ -320,7 +319,6 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
-
             criticality = []
             criticality_exp = []
             criticality_exp_signed = []
@@ -491,7 +489,6 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
-
             criticality = []
             criticality_exp = []
             criticality_exp_signed = []
@@ -668,7 +665,6 @@ class Complexity:
         random.shuffle(file_list)
 
         for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
-
             sum_y = []
             sum_x = []
 
@@ -729,7 +725,6 @@ class Complexity:
             criticality = []
 
             for j in range(0, len(neighbour_indexes), config.cl_batch_size):  # config.cl_batch_size
-
                 fileindices = neighbour_indexes[j : j + config.cl_batch_size]
                 if 0 in fileindices:
                     print("Skipped file indexed with 0")
@@ -864,7 +859,6 @@ class Complexity:
 
 
 if __name__ == "__main__":
-
     # io_lengths
     for scale in config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
         for city in config.city_list:
