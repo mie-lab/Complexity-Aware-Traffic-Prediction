@@ -263,6 +263,9 @@ class Complexity:
                 sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
+            print ("parsing_for_temporal_criticality:", self.cityname, self.i_o_length, self.prediction_horizon,
+                   self.grid_size,fileindex_orig, sum_y_more_than_max_x_dataset[-1])
+
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
