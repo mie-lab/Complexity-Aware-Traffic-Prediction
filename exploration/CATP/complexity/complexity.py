@@ -93,7 +93,7 @@ class Complexity:
             assert model_func == None
             # self.cx_whole_dataset_PM(temporal_filter=True)
             self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
-            self.cx_whole_dataset_NM_no_thresh(temporal_filter=True)
+            # self.cx_whole_dataset_NM_no_thresh(temporal_filter=True)
 
         else:
             assert model_func != None
@@ -177,8 +177,8 @@ class Complexity:
                 # Advanced filtering case
                 # 3 days before, 3 days later, and today
                 # within {width} on each side
-                for day in range(-3, 4):
-                    for width in range(-1, 2):  # 1 hour before and after
+                for day in config.cx_range_day_scan:
+                    for width in config.cx_range_t_band_scan:  # 1 hour before and after
                         current_offset = day * self.offset + width
 
                         if current_offset == 0 or fileindex_orig + current_offset == 0:
@@ -389,8 +389,8 @@ class Complexity:
                 # Advanced filtering case
                 # 3 days before, 3 days later, and today
                 # within {width} on each side
-                for day in range(-3, 4):
-                    for width in range(-1, 2):  # 1 hour before and after
+                for day in config.cx_range_day_scan:
+                    for width in config.cx_range_t_band_scan:  # 1 hour before and after
                         current_offset = day * self.offset + width
 
                         if current_offset == 0 or fileindex_orig + current_offset == 0:
@@ -603,8 +603,8 @@ class Complexity:
                 # Advanced filtering case
                 # 3 days before, 3 days later, and today
                 # within {width} on each side
-                for day in range(-3, 4):
-                    for width in range(-1, 2):  # 1 hour before and after
+                for day in config.cx_range_day_scan:
+                    for width in config.cx_range_t_band_scan:  # 1 hour before and after
                         current_offset = day * self.offset + width
 
                         if current_offset == 0 or fileindex_orig + current_offset == 0:
@@ -818,8 +818,8 @@ class Complexity:
                 # Advanced filtering case
                 # 3 days before, 3 days later, and today
                 # within {width} on each side
-                for day in range(-3, 4):
-                    for width in range(-1, 2):  # 1 hour before and after
+                for day in config.cx_range_day_scan:
+                    for width in config.cx_range_t_band_scan:  # 1 hour before and after
                         current_offset = day * self.offset + width
 
                         if current_offset == 0 or fileindex_orig + current_offset == 0:
@@ -1026,6 +1026,53 @@ class Complexity:
 
 
 if __name__ == "__main__":
+    # combo experiments
+    for scale in config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
+        for city in config.city_list_def:
+            for i_o_length in config.i_o_lengths_def:
+                for pred_horiz in config.pred_horiz:
+                    for thresh in [100]:  # , 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
+                        obj = ProcessRaw(
+                            cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
+                        )
+                        train_data_folder = os.path.join(
+                            config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+                        )
+                        num_train = len(
+                            glob.glob(
+                                os.path.join(config.HOME_FOLDER, train_data_folder)
+                                + "/"
+                                + obj.key_dimensions()
+                                + "*_x.npy"
+                            )
+                        )
+                        train_gen = CustomDataGenerator(
+                            city,
+                            i_o_length,
+                            pred_horiz,
+                            scale,
+                            data_dir=train_data_folder,
+                            num_samples=num_train,
+                            batch_size=config.cl_batch_size,
+                            shuffle=True,
+                        )
+                        cx = Complexity(
+                            city,
+                            i_o_length=i_o_length,
+                            prediction_horizon=pred_horiz,
+                            grid_size=scale,
+                            thresh=thresh,
+                            perfect_model=True,
+                            model_func=None,
+                            model_train_gen=train_gen,
+                            run_pm=False,
+                            run_nm=False,
+                            run_gb=False,
+                        )
+                        cx.print_params()
+                        cx.csv_format()
+
+    ##########################################
     # io_lengths
     for scale in config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
         for city in config.city_list:
@@ -1164,74 +1211,6 @@ if __name__ == "__main__":
                         cx.print_params()
                         cx.csv_format()
                         # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
-
-        # for scale in [55]:  # [25, 35, 45, 55, 65, 75, 85, 105]:
-        #     for i_o_length in [4]:
-        #         for pred_horiz in [1, 2, 3, 4, 5, 6, 7, 8]:
-        #             for thresh in [100, 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
-        #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-        #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
-        #                 cx.print_params()
-        #                 cx.csv_format()
-        #             obj = ProcessRaw(cityname=city, i_o_length=i_o_length, \
-        #                              prediction_horizon=pred_horiz, grid_size=scale)
-        #             obj.clean_intermediate_files()
-        #
-        #
-        # for scale in [55]:  # [25, 35, 45, 55, 65, 75, 85, 105]:
-        #     for i_o_length in [1,2,3,4,5,6,7,8]:
-        #         for pred_horiz in [1]:
-        #             for thresh in [100, 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
-        #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-        #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
-        #                 cx.print_params()
-        #                 cx.csv_format()
-        #             obj = ProcessRaw(cityname=city, i_o_length=i_o_length, \
-        #                              prediction_horizon=pred_horiz, grid_size=scale)
-        #             obj.clean_intermediate_files()
-
-        # for scale in config.scales:
-        #     for i_o_length in config.i_o_lengths_def:
-        #         for pred_horiz in config.pred_horiz_def:
-        #             for thresh in [100, 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
-        #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-        #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
-        #                 cx.print_params()
-        #                 cx.csv_format()
-        #             obj = ProcessRaw(cityname=city, i_o_length=i_o_length, \
-        #                              prediction_horizon=pred_horiz, grid_size=scale)
-        #             obj.clean_intermediate_files()
-        #
-        # for scale in config.scales_def:
-        #     for i_o_length in config.i_o_lengths_def:
-        #         for pred_horiz in config.pred_horiz:
-        #             for thresh in [100, 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
-        #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-        #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
-        #                 cx.print_params()
-        #                 cx.csv_format()
-        #             obj = ProcessRaw(cityname=city, i_o_length=i_o_length, \
-        #                              prediction_horizon=pred_horiz, grid_size=scale)
-        #             obj.clean_intermediate_files()
-
-        # # pred_horiz
-        # for repeat in range(1):
-        #     for scale in config.scales_def:
-        #         for i_o_length in config.i_o_lengths_def:
-        #             for pred_horiz in config.pred_horiz:
-        #                 cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-        #                                 thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
-        #                 cx.print_params()
-        #                 cx.csv_format()
-        #
-        # # # scales
-        # for scale in config.scales:
-        #     for i_o_length in config.i_o_lengths_def:
-        #         for pred_horiz in config.pred_horiz_def:
-        #             cx = Complexity(city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale,
-        #                             thresh=thresh, perfect_model=True, model_func=None, model_train_gen=None)
-        #             cx.print_params()
-        #             cx.csv_format()
 
         # To parse the results into a csv:
         # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count,CSR_PM_no_thresh_median,CSR_PM_no_thresh_mean,CSR_PM_no_thresh_frac_median,CSR_PM_no_thresh_frac_mean'
