@@ -245,7 +245,10 @@ class Complexity:
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
-            assert len(sum_x_m_predict.tolist()) > 0
+            print("Length: ", len(sum_x_m_predict.tolist()))
+            if len(sum_x_m_predict.tolist()) == 0:
+                continue
+          
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
             mean_y = np.mean(sum_y_m_predict)
@@ -290,7 +293,7 @@ class Complexity:
 
         self.CSR_PM_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
 
-        self.CSR_PM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_PM_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
         self.CSR_PM_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
         self.CSR_PM_sum_exp_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_exp_dataset)
 
@@ -462,7 +465,9 @@ class Complexity:
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
-            assert len(sum_x_m_predict.tolist()) > 0
+            print("Length: ", len(sum_x_m_predict.tolist()))
+            if len(sum_x_m_predict.tolist()) == 0:
+                continue
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
             mean_y = np.mean(sum_y_m_predict)
@@ -504,7 +509,7 @@ class Complexity:
 
         self.CSR_NM_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
 
-        self.CSR_NM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_NM_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
         self.CSR_NM_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
         self.CSR_NM_sum_exp_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_exp_dataset)
 
@@ -676,7 +681,9 @@ class Complexity:
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
-            assert len(sum_x_m_predict.tolist()) > 0
+            print("Length: ", len(sum_x_m_predict.tolist()))
+            if len(sum_x_m_predict.tolist()) == 0:
+                continue
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
             mean_y = np.mean(sum_y_m_predict)
@@ -718,7 +725,7 @@ class Complexity:
 
         self.CSR_GB_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
 
-        self.CSR_GB_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_GB_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
         self.CSR_GB_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
         self.CSR_GB_sum_exp_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_exp_dataset)
 
@@ -891,7 +898,9 @@ class Complexity:
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
-            assert len(sum_x_m_predict.tolist()) > 0
+            print("Length: ", len(sum_x_m_predict.tolist()))
+            if len(sum_x_m_predict.tolist()) == 0:
+                continue
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
             mean_y = np.mean(sum_y_m_predict)
@@ -933,7 +942,7 @@ class Complexity:
 
         self.CSR_MP_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
 
-        self.CSR_MP_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_MP_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
         self.CSR_MP_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
         self.CSR_MP_sum_exp_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_exp_dataset)
 
@@ -1030,50 +1039,50 @@ class Complexity:
 
 if __name__ == "__main__":
     # combo experiments
-    for scale in config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
-        for city in config.city_list_def:
-            for i_o_length in config.i_o_lengths_def:
-                for pred_horiz in config.pred_horiz:
-                    for thresh in [100]:  # , 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
-                        obj = ProcessRaw(
-                            cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
-                        )
-                        train_data_folder = os.path.join(
-                            config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
-                        )
-                        num_train = len(
-                            glob.glob(
-                                os.path.join(config.HOME_FOLDER, train_data_folder)
-                                + "/"
-                                + obj.key_dimensions()
-                                + "*_x.npy"
-                            )
-                        )
-                        train_gen = CustomDataGenerator(
-                            city,
-                            i_o_length,
-                            pred_horiz,
-                            scale,
-                            data_dir=train_data_folder,
-                            num_samples=num_train,
-                            batch_size=config.cl_batch_size,
-                            shuffle=True,
-                        )
-                        cx = Complexity(
-                            city,
-                            i_o_length=i_o_length,
-                            prediction_horizon=pred_horiz,
-                            grid_size=scale,
-                            thresh=thresh,
-                            perfect_model=True,
-                            model_func=None,
-                            model_train_gen=train_gen,
-                            run_pm=False,
-                            run_nm=False,
-                            run_gb=False,
-                        )
-                        cx.print_params()
-                        cx.csv_format()
+    # for scale in config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
+    #     for city in config.city_list_def:
+    #         for i_o_length in config.i_o_lengths_def:
+    #             for pred_horiz in config.pred_horiz:
+    #                 for thresh in [100]:  # , 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
+    #                     obj = ProcessRaw(
+    #                         cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
+    #                     )
+    #                     train_data_folder = os.path.join(
+    #                         config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+    #                     )
+    #                     num_train = len(
+    #                         glob.glob(
+    #                             os.path.join(config.HOME_FOLDER, train_data_folder)
+    #                             + "/"
+    #                             + obj.key_dimensions()
+    #                             + "*_x.npy"
+    #                         )
+    #                     )
+    #                     train_gen = CustomDataGenerator(
+    #                         city,
+    #                         i_o_length,
+    #                         pred_horiz,
+    #                         scale,
+    #                         data_dir=train_data_folder,
+    #                         num_samples=num_train,
+    #                         batch_size=config.cl_batch_size,
+    #                         shuffle=True,
+    #                     )
+    #                     cx = Complexity(
+    #                         city,
+    #                         i_o_length=i_o_length,
+    #                         prediction_horizon=pred_horiz,
+    #                         grid_size=scale,
+    #                         thresh=thresh,
+    #                         perfect_model=True,
+    #                         model_func=None,
+    #                         model_train_gen=train_gen,
+    #                         run_pm=False,
+    #                         run_nm=False,
+    #                         run_gb=False,
+    #                     )
+    #                     cx.print_params()
+    #                     cx.csv_format()
 
     ##########################################
     # io_lengths
