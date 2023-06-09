@@ -6,3 +6,4 @@ tqdm==4.65.0
 haversine==2.8.0
 python-slugify==8.0.1
 peakdetect==1.2
+seaborn==0.12.2

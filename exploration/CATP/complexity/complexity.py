@@ -58,6 +58,8 @@ class Complexity:
         self.CSR_MP_no_thresh_frac_mean_2 = "NULL"
         self.CSR_MP_no_thresh_frac_mean_2_exp = "NULL"
         self.CSR_MP_no_thresh_frac_sum = "NULL"
+        self.CSR_MP_red_by_grey_sum = "NULL"
+
 
         self.CSR_PM_no_thresh_mean = "NULL"
         self.CSR_PM_no_thresh_median = "NULL"
@@ -68,6 +70,8 @@ class Complexity:
         self.CSR_PM_no_thresh_frac_mean_2 = "NULL"
         self.CSR_PM_no_thresh_frac_mean_2_exp = "NULL"
         self.CSR_PM_no_thresh_frac_sum = "NULL"
+        self.CSR_PM_red_by_grey_sum = "NULL"
+
 
         self.CSR_NM_no_thresh_mean = "NULL"
         self.CSR_NM_no_thresh_median = "NULL"
@@ -78,6 +82,8 @@ class Complexity:
         self.CSR_NM_no_thresh_frac_mean_2 = "NULL"
         self.CSR_NM_no_thresh_frac_mean_2_exp = "NULL"
         self.CSR_NM_no_thresh_frac_sum = "NULL"
+        self.CSR_NM_red_by_grey_sum = "NULL"
+
 
         self.CSR_GB_no_thresh_mean = "NULL"
         self.CSR_GB_no_thresh_median = "NULL"
@@ -88,6 +94,7 @@ class Complexity:
         self.CSR_GB_no_thresh_frac_mean_2 = "NULL"
         self.CSR_GB_no_thresh_frac_mean_2_exp = "NULL"
         self.CSR_GB_no_thresh_frac_sum = "NULL"
+        self.CSR_GB_red_by_grey_sum = "NULL"
 
         if perfect_model:
             assert model_func == None
@@ -141,6 +148,8 @@ class Complexity:
 
         sum_y_dataset = []
         sum_x_dataset = []
+        red_by_grey_sum_dataset = []
+
 
         random.shuffle(file_list)
 
@@ -245,7 +254,7 @@ class Complexity:
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
-            print("Length: ", len(sum_x_m_predict.tolist()))
+            # print("Length: ", len(sum_x_m_predict.tolist()))
             if len(sum_x_m_predict.tolist()) == 0:
                 continue
           
@@ -263,9 +272,10 @@ class Complexity:
 
             sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
             if len(sum_y_more_than_max_x.tolist()) > 0:
-                sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+                sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
+            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
             print ("parsing_for_temporal_criticality:", self.cityname, self.i_o_length, self.prediction_horizon,
                    self.grid_size,fileindex_orig, sum_y_more_than_max_x_dataset[-1])
 
@@ -292,6 +302,7 @@ class Complexity:
         self.CSR_PM_no_thresh_frac_sum = np.mean(frac_sum_dataset)
 
         self.CSR_PM_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
+        self.CSR_PM_red_by_grey_sum = np.sum(red_by_grey_sum_dataset)
 
         self.CSR_PM_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
         self.CSR_PM_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
@@ -300,33 +311,34 @@ class Complexity:
         self.CSR_PM_no_thresh_frac_mean_2 = np.mean(criticality_dataset_2)
         self.CSR_PM_no_thresh_frac_mean_2_exp = np.mean(criticality_dataset_2_exp)
 
-        plt.clf()
-        plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
-        plt.savefig("plots/PM_sum_y/PM_sum_y" + str(round(time.time(), 2)) + ".png")
-        # MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_
-        plt.clf()
-        plt.hist(sum_y_more_than_max_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/PM_more_max/PM_more_max_" + str(round(time.time(), 2)) + ".png")
+        if config.DEBUG:
+            plt.clf()
+            plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
+            plt.savefig("plots/PM_sum_y/PM_sum_y" + str(round(time.time(), 2)) + ".png")
+            # MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_
+            plt.clf()
+            plt.hist(sum_y_more_than_max_x_dataset, bins=100)
+            plt.xlim(0, 3000)
+            plt.savefig("plots/PM_more_max/PM_more_max_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/PM_mean/PM_mean_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
+            plt.xlim(0, 3000)
+            plt.savefig("plots/PM_mean/PM_mean_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
-        plt.savefig("plots/PM_mean_exp_/PM_mean_exp_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
+            plt.savefig("plots/PM_mean_exp_/PM_mean_exp_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
-        plt.ylim(0, 400)
-        plt.savefig("plots/PM_frac_2_/PM_frac_2_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
+            plt.ylim(0, 400)
+            plt.savefig("plots/PM_frac_2_/PM_frac_2_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(criticality_dataset_2_exp, bins=np.arange(0, 1, 1 / 100))
-        plt.ylim(0, 200)
-        plt.savefig("plots/PM_frac_2_exp_/PM_frac_2_exp_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(criticality_dataset_2_exp, bins=np.arange(0, 1, 1 / 100))
+            plt.ylim(0, 200)
+            plt.savefig("plots/PM_frac_2_exp_/PM_frac_2_exp_" + str(round(time.time(), 2)) + ".png")
 
     def cx_whole_dataset_NM_no_thresh(self, temporal_filter=False):
         """
@@ -359,6 +371,8 @@ class Complexity:
 
         sum_y_dataset = []
         sum_x_dataset = []
+        red_by_grey_sum_dataset = []
+
 
         random.shuffle(file_list)
 
@@ -465,7 +479,7 @@ class Complexity:
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
-            print("Length: ", len(sum_x_m_predict.tolist()))
+            # print("Length: ", len(sum_x_m_predict.tolist()))
             if len(sum_x_m_predict.tolist()) == 0:
                 continue
             max_x = np.max(sum_x_m_predict)
@@ -482,9 +496,10 @@ class Complexity:
 
             sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
             if len(sum_y_more_than_max_x.tolist()) > 0:
-                sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+                sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
+            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
@@ -508,6 +523,7 @@ class Complexity:
         self.CSR_NM_no_thresh_frac_sum = np.mean(frac_sum_dataset)
 
         self.CSR_NM_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
+        self.CSR_NM_red_by_grey_sum = np.sum(red_by_grey_sum_dataset)
 
         self.CSR_NM_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
         self.CSR_NM_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
@@ -516,33 +532,34 @@ class Complexity:
         self.CSR_NM_no_thresh_frac_mean_2 = np.mean(criticality_dataset_2)
         self.CSR_NM_no_thresh_frac_mean_2_exp = np.mean(criticality_dataset_2_exp)
 
-        plt.clf()
-        plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
-        plt.savefig("plots/NM_sum_y/NM_sum_y" + str(round(time.time(), 2)) + ".png")
-        # MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_
-        plt.clf()
-        plt.hist(sum_y_more_than_max_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/NM_more_max/NM_more_max_" + str(round(time.time(), 2)) + ".png")
+        if config.DEBUG:
+            plt.clf()
+            plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
+            plt.savefig("plots/NM_sum_y/NM_sum_y" + str(round(time.time(), 2)) + ".png")
+            # MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_
+            plt.clf()
+            plt.hist(sum_y_more_than_max_x_dataset, bins=100)
+            plt.xlim(0, 3000)
+            plt.savefig("plots/NM_more_max/NM_more_max_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/NM_mean/NM_mean_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
+            plt.xlim(0, 3000)
+            plt.savefig("plots/NM_mean/NM_mean_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
-        plt.savefig("plots/NM_mean_exp_/NM_mean_exp_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
+            plt.savefig("plots/NM_mean_exp_/NM_mean_exp_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
-        plt.ylim(0, 400)
-        plt.savefig("plots/NM_frac_2_/NM_frac_2_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
+            plt.ylim(0, 400)
+            plt.savefig("plots/NM_frac_2_/NM_frac_2_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(criticality_dataset_2_exp, bins=np.arange(0, 1, 1 / 100))
-        plt.ylim(0, 200)
-        plt.savefig("plots/NM_frac_2_exp_/NM_frac_2_exp_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(criticality_dataset_2_exp, bins=np.arange(0, 1, 1 / 100))
+            plt.ylim(0, 200)
+            plt.savefig("plots/NM_frac_2_exp_/NM_frac_2_exp_" + str(round(time.time(), 2)) + ".png")
 
     def cx_whole_dataset_Garbage_predict(self, temporal_filter=False):
         """
@@ -575,6 +592,8 @@ class Complexity:
 
         sum_y_dataset = []
         sum_x_dataset = []
+        red_by_grey_sum_dataset = []
+
 
         random.shuffle(file_list)
 
@@ -681,7 +700,7 @@ class Complexity:
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
-            print("Length: ", len(sum_x_m_predict.tolist()))
+            # print("Length: ", len(sum_x_m_predict.tolist()))
             if len(sum_x_m_predict.tolist()) == 0:
                 continue
             max_x = np.max(sum_x_m_predict)
@@ -698,9 +717,10 @@ class Complexity:
 
             sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
             if len(sum_y_more_than_max_x.tolist()) > 0:
-                sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+                sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
+            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
@@ -724,6 +744,7 @@ class Complexity:
         self.CSR_GB_no_thresh_frac_sum = np.mean(frac_sum_dataset)
 
         self.CSR_GB_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
+        self.CSR_GB_red_by_grey_sum = np.sum(red_by_grey_sum_dataset)
 
         self.CSR_GB_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
         self.CSR_GB_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
@@ -732,33 +753,34 @@ class Complexity:
         self.CSR_GB_no_thresh_frac_mean_2 = np.mean(criticality_dataset_2)
         self.CSR_GB_no_thresh_frac_mean_2_exp = np.mean(criticality_dataset_2_exp)
 
-        plt.clf()
-        plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
-        plt.savefig("plots/GB_sum_y/GB_sum_y" + str(round(time.time(), 2)) + ".png")
+        if config.DEBUG:
+            plt.clf()
+            plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
+            plt.savefig("plots/GB_sum_y/GB_sum_y" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(sum_y_more_than_max_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/GB_more_max/GB_more_max_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(sum_y_more_than_max_x_dataset, bins=100)
+            plt.xlim(0, 3000)
+            plt.savefig("plots/GB_more_max/GB_more_max_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/GB_mean/GB_mean_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
+            plt.xlim(0, 3000)
+            plt.savefig("plots/GB_mean/GB_mean_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
-        plt.savefig("plots/GB_mean_exp_/GB_mean_exp_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
+            plt.savefig("plots/GB_mean_exp_/GB_mean_exp_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
-        plt.ylim(0, 400)
-        plt.savefig("plots/GB_frac_2_/GB_frac_2_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
+            plt.ylim(0, 400)
+            plt.savefig("plots/GB_frac_2_/GB_frac_2_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(criticality_dataset_2_exp, bins=np.arange(0, 1, 1 / 100))
-        plt.ylim(0, 200)
-        plt.savefig("plots/GB_frac_2_exp_/GB_frac_2_exp_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(criticality_dataset_2_exp, bins=np.arange(0, 1, 1 / 100))
+            plt.ylim(0, 200)
+            plt.savefig("plots/GB_frac_2_exp_/GB_frac_2_exp_" + str(round(time.time(), 2)) + ".png")
 
     def cx_whole_dataset_m_predict(self, temporal_filter=False):
         """
@@ -791,6 +813,7 @@ class Complexity:
 
         sum_y_dataset = []
         sum_x_dataset = []
+        red_by_grey_sum_dataset = []
 
         random.shuffle(file_list)
 
@@ -898,7 +921,7 @@ class Complexity:
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
-            print("Length: ", len(sum_x_m_predict.tolist()))
+            # print("Length: ", len(sum_x_m_predict.tolist()))
             if len(sum_x_m_predict.tolist()) == 0:
                 continue
             max_x = np.max(sum_x_m_predict)
@@ -915,9 +938,10 @@ class Complexity:
 
             sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
             if len(sum_y_more_than_max_x.tolist()) > 0:
-                sum_y_more_than_max_x_dataset.append(np.mean(sum_y_more_than_max_x))
+                sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
+            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
@@ -941,6 +965,7 @@ class Complexity:
         self.CSR_MP_no_thresh_frac_sum = np.mean(frac_sum_dataset)
 
         self.CSR_MP_count_y_exceeding_r_x = np.mean(count_y_more_than_max_x_dataset)
+        self.CSR_MP_red_by_grey_sum = np.sum(red_by_grey_sum_dataset)        
 
         self.CSR_MP_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
         self.CSR_MP_sum_y_exceeding_r_x_mean = np.mean(sum_y_more_than_mean_x_dataset)
@@ -949,33 +974,34 @@ class Complexity:
         self.CSR_MP_no_thresh_frac_mean_2 = np.mean(criticality_dataset_2)
         self.CSR_MP_no_thresh_frac_mean_2_exp = np.mean(criticality_dataset_2_exp)
 
-        plt.clf()
-        plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
-        plt.savefig("plots/MP_sum_y/MP_sum_y" + str(round(time.time(), 2)) + ".png")
-        # MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_
-        plt.clf()
-        plt.hist(sum_y_more_than_max_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/MP_more_max/MP_more_max_" + str(round(time.time(), 2)) + ".png")
+        if config.DEBUG:
+            plt.clf()
+            plt.hist(sum_y_dataset, bins=np.arange(0, 5000, 5000 / 200))
+            plt.savefig("plots/MP_sum_y/MP_sum_y" + str(round(time.time(), 2)) + ".png")
+            # MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_
+            plt.clf()
+            plt.hist(sum_y_more_than_max_x_dataset, bins=100)
+            plt.xlim(0, 3000)
+            plt.savefig("plots/MP_more_max/MP_more_max_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
-        plt.xlim(0, 3000)
-        plt.savefig("plots/MP_mean/MP_mean_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(sum_y_more_than_mean_x_dataset, bins=100)
+            plt.xlim(0, 3000)
+            plt.savefig("plots/MP_mean/MP_mean_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
-        plt.savefig("plots/MP_mean_exp_/MP_mean_exp_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(sum_y_more_than_mean_x_exp_dataset, bins=np.arange(0, 1, 1 / 20))
+            plt.savefig("plots/MP_mean_exp_/MP_mean_exp_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
-        plt.ylim(0, 400)
-        plt.savefig("plots/MP_frac_2_/MP_frac_2_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(criticality_dataset_2, bins=np.arange(0, 10, 10 / 100))
+            plt.ylim(0, 400)
+            plt.savefig("plots/MP_frac_2_/MP_frac_2_" + str(round(time.time(), 2)) + ".png")
 
-        plt.clf()
-        plt.hist(criticality_dataset_2_exp, bins=np.arange(0, 1, 1 / 100))
-        plt.ylim(0, 200)
-        plt.savefig("plots/MP_frac_2_exp_/MP_frac_2_exp_" + str(round(time.time(), 2)) + ".png")
+            plt.clf()
+            plt.hist(criticality_dataset_2_exp, bins=np.arange(0, 1, 1 / 100))
+            plt.ylim(0, 200)
+            plt.savefig("plots/MP_frac_2_exp_/MP_frac_2_exp_" + str(round(time.time(), 2)) + ".png")
 
     def print_params(self):
         supress_outputs = True
@@ -1032,6 +1058,10 @@ class Complexity:
             self.CSR_GB_no_thresh_frac_mean_2,
             self.CSR_GB_no_thresh_frac_mean_2_exp,
             self.CSR_GB_no_thresh_frac_sum,
+            self.CSR_GB_red_by_grey_sum,
+            self.CSR_NM_red_by_grey_sum,
+            self.CSR_PM_red_by_grey_sum,
+            self.CSR_MP_red_by_grey_sum,
             sep=",",
         )
         print("###################################################")
@@ -1085,6 +1115,7 @@ if __name__ == "__main__":
     #                     cx.csv_format()
 
     ##########################################
+
     # io_lengths
     for scale in config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
         for city in config.city_list:
