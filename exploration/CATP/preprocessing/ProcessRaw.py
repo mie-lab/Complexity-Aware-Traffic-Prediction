@@ -333,7 +333,7 @@ if __name__ == "__main__":
     # os.system("rm -rf data_samples && mkdir data_samples")
     for city in config.city_list:
         # scales
-        for scale in config.scales:
+        for scale in config.scales_def:
             for i_o_length in config.i_o_lengths_def:
                 for pred_horiz in config.pred_horiz_def:
                     ProcessRaw(cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale)
