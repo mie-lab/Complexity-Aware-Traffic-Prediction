@@ -61,9 +61,13 @@ class ProcessRaw:
         city = self.cityname
 
         nodes = pandas.read_parquet(BASEDIR / "road_graph" / city / "road_graph_nodes.parquet")
+        # nodes = pandas.read_parquet(os.path.join(BASEDIR, "data", "road_graph", city, "road_graph_nodes.parquet"))
+
         counters = nodes[nodes["counter_info"] != ""]
 
         daily_counts = pandas.read_parquet(BASEDIR / "loop_counter" / city / "counters_daily_by_node.parquet")
+        # daily_counts = pandas.read_parquet(os.path.join(BASEDIR, "data", "loop_counter", city, "counters_daily_by_node.parquet"))
+
         daily_counts = daily_counts.reset_index()
         daily_counts["counter_info"] = daily_counts["counter_info"].apply(lambda x: x[0])
 
