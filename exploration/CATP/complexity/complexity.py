@@ -237,8 +237,11 @@ class Complexity:
 
                 assert x_neighbour.shape[0] == y_neighbour.shape[0]
 
-                dist_y = np.max((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1)
-                dist_x = np.max((abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1)
+                y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+
+                dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+                dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
 
                 # Shape of y, y_neighbour etc.:  (2, 4, 25, 25, 1); 2 is the batch size here
 
@@ -502,8 +505,10 @@ class Complexity:
 
         if not os.path.exists(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix)):
             os.mkdir(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix))
+
         np.save(
-            os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix, "_PM_spatial_complexity" + ".npy"),
+            os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix, "_PM_spatial_complexity" +
+                         str(int(np.random.rand() * 10000000000))+ ".npy"),
             self.CSR_PM_sum_y_exceeding_r_x_max_scales)
 
 
@@ -624,8 +629,11 @@ class Complexity:
 
                 assert x_neighbour.shape[0] == y_neighbour.shape[0]
 
-                dist_y = np.max((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1)
-                dist_x = np.max((abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1)
+                y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+
+                dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+                dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
 
                 if config.DEBUG:
                     # should be same order;
@@ -845,8 +853,11 @@ class Complexity:
 
                 assert x_neighbour.shape[0] == y_neighbour.shape[0]
 
-                dist_y = np.max((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1)
-                dist_x = np.max((abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1)
+                y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+
+                dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+                dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
 
                 if config.DEBUG:
                     # should be same order;
@@ -1066,8 +1077,11 @@ class Complexity:
 
                 assert x_neighbour.shape[0] == y_neighbour.shape[0]
 
-                dist_y = np.max((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1)
-                dist_x = np.max((abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1)
+                y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+
+                dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+                dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
 
                 if config.cx_spatial_cx_dist_enabled:
                     np.save(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix, str(int(np.random.rand()*10000000000) + ".npy")),
