@@ -299,7 +299,7 @@ class ComputeMetrics(Callback):
 
 
 class ConvLSTM:
-    def __init__(self, cityname, io_length, pred_horiz, scale, log_dir, shape, validation_csv_file):
+    def __init__(self, cityname, io_length, pred_horiz, scale, log_dir, shape, validation_csv_file, saved_model_filename=None):
         """
         Input and output shapes are the same (tuple of length 5)
         """
@@ -504,36 +504,53 @@ class ConvLSTM:
         else:
             callbacks.extend([ComputeMetrics(), csv_logger])
 
-        self.model.fit(
-            self.train_gen,
-            validation_data=self.validation_gen,
-            epochs=epochs,
-            callbacks=callbacks,
-            workers=config.cl_dataloader_workers,
-        )
+        if self.saved_model_filename is not None:
+            # Loading saved model is written inside train instead of create model since
+            # our callback classes/ params need to be in the environment before loading
+            # otherwise it fails to load
+            self.model = tf.keras.models.load_model(
+                os.path.join(
+                    config.INTERMEDIATE_FOLDER,
+                    os.path.basename(os.path.normpath(self.model.prefix)) + "_epoch_" + str(epoch) + ".h5",
+                )
+            )
+            # no need to train anymore
+            return self.model
 
-        # if config.cl_during_training_CSR_enabled_train_end:
-        #     cx = Complexity(
-        #         self.model.cityname,
-        #         i_o_length=self.model.io_length,
-        #         prediction_horizon=self.model.pred_horiz,
-        #         grid_size=self.model.scale,
-        #         thresh=config.cl_thresh,
-        #         perfect_model=False,
-        #         model_func=self.model.predict,
-        #         model_train_gen=self.model.validation_gen,
-        #     )
-        #     print(
-        #         "TRAIN_END: ",
-        #         self.prefix,
-        #         self.cityname,
-        #         self.io_length,
-        #         self.pred_horiz,
-        #         self.scale,
-        #         cx.CSR_MP_no_thresh_mean,
-        #         cx.CSR_PM_no_thresh_frac_mean,
-        #         cx.CSR_PM_no_thresh_mean,
-        #     )
+        else:
+            self.model.fit(
+                self.train_gen,
+                validation_data=self.validation_gen,
+                epochs=epochs,
+                callbacks=callbacks,
+                workers=config.cl_dataloader_workers,
+            )
+
+        if config.cl_during_training_CSR_enabled_train_end:
+            cx = Complexity(
+                self.model.cityname,
+                i_o_length = self.model.io_length,
+                prediction_horizon = self.model.pred_horiz,
+                grid_size = self.model.scale,
+                thresh = config.cl_thresh,
+                perfect_model = False,
+                model_func = self.model.predict,
+                model_train_gen = self.model.train_gen,
+                run_pm = False,
+                run_nm = False,
+                run_gb = False,
+            )
+            print(
+                "TRAIN_END: ",
+                self.prefix,
+                self.cityname,
+                self.io_length,
+                self.pred_horiz,
+                self.scale,
+                cx.CSR_MP_no_thresh_mean,
+                cx.CSR_PM_no_thresh_frac_mean,
+                cx.CSR_PM_no_thresh_mean,
+            )
 
     def print_model_and_class_values(self, print_model_summary=True):
         sprint(self.train_data_folder)

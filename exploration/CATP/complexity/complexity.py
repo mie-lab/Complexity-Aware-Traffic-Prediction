@@ -46,7 +46,7 @@ class Complexity:
         self.model_train_gen = model_train_gen
         self.thresh = thresh
 
-        self.offset = 96 - (prediction_horizon + i_o_length * 2)  # one time for ip; one for op; one for pred_horiz
+        self.offset = 96 - (prediction_horizon + i_o_length * 2 + 1)  # one time for ip; one for op; one for pred_horiz;
         # self.offset replaces 96 to account for edge effects of specific experiments
 
         self.CSR_MP_no_thresh_mean = "NULL"
@@ -96,10 +96,14 @@ class Complexity:
         self.CSR_GB_no_thresh_frac_sum = "NULL"
         self.CSR_GB_red_by_grey_sum = "NULL"
 
+        self.CSR_PM_sum_y_exceeding_r_x_max_scales = np.random.rand(self.grid_size, self.grid_size) * 0
+
         if perfect_model:
             assert model_func == None
             # self.cx_whole_dataset_PM(temporal_filter=True)
             self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
+            if config.cx_spatial_cx_dist_enabled:
+                self.cx_whole_dataset_PM_no_thresh_spatial(temporal_filter=True)
             # self.cx_whole_dataset_NM_no_thresh(temporal_filter=True)
 
         else:
@@ -182,6 +186,7 @@ class Complexity:
 
                 neighbour_indexes = neighbour_indexes[:50]
 
+
             elif temporal_filter:
                 # Advanced filtering case
                 # 3 days before, 3 days later, and today
@@ -234,6 +239,8 @@ class Complexity:
 
                 dist_y = np.max((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1)
                 dist_x = np.max((abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1)
+
+                # Shape of y, y_neighbour etc.:  (2, 4, 25, 25, 1); 2 is the batch size here
 
                 if config.DEBUG:
                     # should be same order;
@@ -339,6 +346,151 @@ class Complexity:
             plt.hist(criticality_dataset_2_exp, bins=np.arange(0, 1, 1 / 100))
             plt.ylim(0, 200)
             plt.savefig("plots/PM_frac_2_exp_/PM_frac_2_exp_" + str(round(time.time(), 2)) + ".png")
+
+    def cx_whole_dataset_PM_no_thresh_spatial(self, temporal_filter=False):
+        """
+        temporal_filter: If true, filtering is carried out using nearest neighbours
+        """
+        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
+
+        # we compute this information only using training data; no need for validation data
+        # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
+
+        obj = ProcessRaw(
+            cityname=self.cityname,
+            i_o_length=self.i_o_length,
+            prediction_horizon=self.prediction_horizon,
+            grid_size=self.grid_size,
+        )
+
+        file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
+        random.shuffle(file_list)
+
+        sum_y_more_than_max_x_dataset = {}
+        for m_x in range(self.grid_size):
+            for m_y in range(self.grid_size):
+                sum_y_more_than_max_x_dataset[m_x, m_y] = []
+                sum_y_more_than_max_x_dataset[m_x, m_y] = []
+
+        random.shuffle(file_list)
+
+        for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+            sum_y = {}
+            sum_x = {}
+
+            count_missing = 0
+
+            filename = file_list[i]
+            x = np.load(filename)
+
+            # get corresponding y
+            fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
+            y = np.load((self.validation_folder + "/" + self.file_prefix) + str(fileindex_orig) + "_y.npy")
+
+            neighbour_indexes = []
+
+            if not temporal_filter:
+                # uniform sampling case
+                while len(neighbour_indexes) < 50:
+                    random.shuffle(file_list)
+                    for j in range(config.cx_sample_single_point):
+                        sample_point_x = np.load(file_list[j])
+
+                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
+                            fileindex = int(file_list[j].split("_x.npy")[-2].split("-")[-1])
+                            neighbour_indexes.append(fileindex)
+                    # sprint (len(neighbour_indexes))
+
+                neighbour_indexes = neighbour_indexes[:50]
+
+
+            elif temporal_filter:
+                # Advanced filtering case
+                # 3 days before, 3 days later, and today
+                # within {width} on each side
+                for day in config.cx_range_day_scan:
+                    for width in config.cx_range_t_band_scan:  # 1 hour before and after
+                        current_offset = day * self.offset + width
+
+                        if current_offset == 0 or fileindex_orig + current_offset == 0:
+                            # ignore the same point
+                            # fileindex_orig + current_offset == 0: since our file indexing starts from 1
+                            continue
+                        index_with_offset = fileindex_orig + current_offset
+
+                        # Test if x_neighbours and y_neighbours both exist;
+                        if not os.path.exists(
+                                (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
+                        ) or not os.path.exists(
+                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+                        ):
+                            count_missing += 1
+                            # print ("Point ignored; x or y label not found; edge effect")
+                            continue
+
+                        neighbour_indexes.append(index_with_offset)
+
+            sum_x_m_predict = {}
+            sum_y_m_predict = {}
+            for m_x in range(self.grid_size):
+                for m_y in range(self.grid_size):
+                    sum_x_m_predict[m_x, m_y] = []
+                    sum_y_m_predict[m_x, m_y] = []
+
+            for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
+                fileindices = neighbour_indexes[j: j + config.cx_batch_size]
+                if 0 in fileindices:
+                    print("Skipped file indexed with 0")
+                    continue
+
+                # sprint (len(self.model_train_gen.__getitem__(fileindices)))
+
+                x_neighbour, y_neighbour = self.model_train_gen.__getitem__(fileindices)
+
+                # Since this is the no thresh case
+                # if np.max(np.abs(y_neighbour - y)) > self.thresh:
+
+                assert (config.cx_batch_size == x_neighbour.shape[0]) or (
+                        j + config.cx_batch_size >= len(neighbour_indexes)
+                )  # for the last batch
+
+                assert x_neighbour.shape[0] == y_neighbour.shape[0]
+
+                for m_x in range(self.grid_size):
+                    for m_y in range(self.grid_size):
+
+                        dist_y = np.max((abs(y_neighbour[:, :, m_x:m_x+1, m_y:m_y+1, :] -
+                                             y[:, :, m_x:m_x+1, m_y:m_y+1, :]))
+                                        .reshape(x_neighbour.shape[0], -1), axis=1)
+                        dist_x = np.max((abs(x_neighbour[:, :, m_x:m_x+1, m_y:m_y+1, :] -
+                                             x[:, :, m_x:m_x+1, m_y:m_y+1, :]))
+                                        .reshape(x_neighbour.shape[0], -1), axis=1)
+
+                        # Shape of y, y_neighbour etc.:  (2, 4, 25, 25, 1); 2 is the batch size here
+
+                        sum_x_m_predict[m_x, m_y].append(dist_x.tolist())
+                        sum_y_m_predict[m_x, m_y].append(dist_y.tolist())
+
+            for m_x in range(self.grid_size):
+                for m_y in range(self.grid_size):
+                    sum_x_m_predict[m_x, m_y] = np.array(sum_x_m_predict[m_x, m_y])
+                    sum_y_m_predict[m_x, m_y] = np.array(sum_y_m_predict[m_x, m_y])
+
+                    max_x[m_x, m_y] = np.max(sum_x_m_predict[m_x, m_y])
+                    sum_y_more_than_max_x[m_x, m_y] = sum_y_m_predict[(sum_y_m_predict[m_x, m_y] > max_x[m_x, m_y])]
+
+                    if len(sum_y_more_than_max_x[m_x, m_y].tolist()) > 0:
+                        sum_y_more_than_max_x_dataset[m_x, m_y].append(np.sum(sum_y_more_than_max_x[m_x, m_y]))
+                    else:
+                        sum_y_more_than_max_x_dataset[m_x, m_y].append(0)
+
+        for m_x in range(self.grid_size):
+            for m_y in range(self.grid_size):
+                self.CSR_PM_sum_y_exceeding_r_x_max_scales[m_x, m_y] = np.sum(sum_y_more_than_max_x_dataset[m_x, m_y])
+        np.save(
+            os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix, "_PM_spatial_complexity" + ".npy"),
+            self.CSR_PM_sum_y_exceeding_r_x_max_scales)
+
 
     def cx_whole_dataset_NM_no_thresh(self, temporal_filter=False):
         """
@@ -886,7 +1038,7 @@ class Complexity:
 
                 # sprint (len(self.model_train_gen.__getitem__(fileindices)))
 
-                x_neighbour, _ = self.model_train_gen.__getitem__(fileindices)
+                x_neighbour, y_neighbour_gt = self.model_train_gen.__getitem__(fileindices)
 
                 y_neighbour = self.model_predict(x_neighbour)
 
@@ -901,6 +1053,10 @@ class Complexity:
 
                 dist_y = np.max((abs(y_neighbour - y)).reshape(x_neighbour.shape[0], -1), axis=1)
                 dist_x = np.max((abs(x_neighbour - x)).reshape(x_neighbour.shape[0], -1), axis=1)
+
+                if config.cx_spatial_cx_dist_enabled:
+                    np.save(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix, str(int(np.random.rand()*10000000000) + ".npy")),
+                            (y_neighbour - y_neighbour_gt)**2)
 
                 if config.DEBUG:
                     # should be same order;

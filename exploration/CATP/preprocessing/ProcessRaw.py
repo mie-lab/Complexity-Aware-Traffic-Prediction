@@ -54,8 +54,8 @@ class ProcessRaw:
 
         self.create_train_val_data_points_x_y()
 
-        self.offset = 96 - (prediction_horizon + i_o_length * 2)
-
+        self.offset = 96 - (prediction_horizon + i_o_length * 2 + 1)  # one time for ip; one for op; one for pred_horiz;
+        # self.offset replaces 96 to account for edge effects of specific experiments
     def create_spatial_npy_from_loop_lat_lon(self):
         BASEDIR = load_basedir(fn="t4c22_config.json", pkg=t4c22)
         city = self.cityname
