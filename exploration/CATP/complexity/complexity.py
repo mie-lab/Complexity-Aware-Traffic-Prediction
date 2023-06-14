@@ -432,10 +432,14 @@ class Complexity:
 
             sum_x_m_predict = {}
             sum_y_m_predict = {}
+            sum_y_more_than_max_x = {}
+            max_x = {}
+
             for m_x in range(self.grid_size):
                 for m_y in range(self.grid_size):
                     sum_x_m_predict[m_x, m_y] = []
                     sum_y_m_predict[m_x, m_y] = []
+
 
             for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
                 fileindices = neighbour_indexes[j: j + config.cx_batch_size]
@@ -456,14 +460,22 @@ class Complexity:
 
                 assert x_neighbour.shape[0] == y_neighbour.shape[0]
 
+                y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+
+                if config.DEBUG:
+                    sprint (x_reshaped.shape, x.shape)
+                    sprint(y_reshaped.shape, y.shape)
+                    sprint(x_neighbour.shape, x_reshaped.shape, y_reshaped.shape)
+
                 for m_x in range(self.grid_size):
                     for m_y in range(self.grid_size):
 
                         dist_y = np.max((abs(y_neighbour[:, :, m_x:m_x+1, m_y:m_y+1, :] -
-                                             y[:, :, m_x:m_x+1, m_y:m_y+1, :]))
+                                             y_reshaped[:, :, m_x:m_x+1, m_y:m_y+1, :]))
                                         .reshape(x_neighbour.shape[0], -1), axis=1)
                         dist_x = np.max((abs(x_neighbour[:, :, m_x:m_x+1, m_y:m_y+1, :] -
-                                             x[:, :, m_x:m_x+1, m_y:m_y+1, :]))
+                                             x_reshaped[:, :, m_x:m_x+1, m_y:m_y+1, :]))
                                         .reshape(x_neighbour.shape[0], -1), axis=1)
 
                         # Shape of y, y_neighbour etc.:  (2, 4, 25, 25, 1); 2 is the batch size here
@@ -477,7 +489,7 @@ class Complexity:
                     sum_y_m_predict[m_x, m_y] = np.array(sum_y_m_predict[m_x, m_y])
 
                     max_x[m_x, m_y] = np.max(sum_x_m_predict[m_x, m_y])
-                    sum_y_more_than_max_x[m_x, m_y] = sum_y_m_predict[(sum_y_m_predict[m_x, m_y] > max_x[m_x, m_y])]
+                    sum_y_more_than_max_x[m_x, m_y] = sum_y_m_predict[m_x, m_y][(sum_y_m_predict[m_x, m_y] > max_x[m_x, m_y])]
 
                     if len(sum_y_more_than_max_x[m_x, m_y].tolist()) > 0:
                         sum_y_more_than_max_x_dataset[m_x, m_y].append(np.sum(sum_y_more_than_max_x[m_x, m_y]))
@@ -487,6 +499,9 @@ class Complexity:
         for m_x in range(self.grid_size):
             for m_y in range(self.grid_size):
                 self.CSR_PM_sum_y_exceeding_r_x_max_scales[m_x, m_y] = np.sum(sum_y_more_than_max_x_dataset[m_x, m_y])
+
+        if not os.path.exists(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix)):
+            os.mkdir(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix))
         np.save(
             os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix, "_PM_spatial_complexity" + ".npy"),
             self.CSR_PM_sum_y_exceeding_r_x_max_scales)
