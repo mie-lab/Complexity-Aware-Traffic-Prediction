@@ -102,7 +102,7 @@ class Complexity:
             assert model_func == None
             # self.cx_whole_dataset_PM(temporal_filter=True)
             self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
-            if config.cx_spatial_cx_dist_enabled:
+            if config.cx_spatial_cx_PM_dist_enabled:
                 self.cx_whole_dataset_PM_no_thresh_spatial(temporal_filter=True)
             # self.cx_whole_dataset_NM_no_thresh(temporal_filter=True)
 
@@ -239,6 +239,9 @@ class Complexity:
 
                 y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
                 x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+
+                assert (y_reshaped.shape[1:] == y_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+                assert (x_reshaped.shape[1:] == x_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
 
                 dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
                 dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
@@ -466,6 +469,9 @@ class Complexity:
                 y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
                 x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
 
+                assert (y_reshaped.shape[1:] == y_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+                assert (x_reshaped.shape[1:] == x_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+
                 if config.DEBUG:
                     sprint (x_reshaped.shape, x.shape)
                     sprint(y_reshaped.shape, y.shape)
@@ -631,6 +637,9 @@ class Complexity:
 
                 y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
                 x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+
+                assert (y_reshaped.shape[1:] == y_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+                assert (x_reshaped.shape[1:] == x_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
 
                 dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
                 dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
@@ -856,6 +865,9 @@ class Complexity:
                 y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
                 x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
 
+                assert (y_reshaped.shape[1:] == y_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+                assert (x_reshaped.shape[1:] == x_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+
                 dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
                 dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
 
@@ -964,10 +976,21 @@ class Complexity:
         """
         temporal_filter: If true, filtering is carried out using nearest neighbours
         """
-        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
+
+        # self.model_train_gen is set from ConvLSTM class; It is traingen when computing cx; and
+        # val_gen when computing errors
+        # So, we need to set the foldernames accordingly
+        if config.cx_post_model_loading_from_saved_val_error_plots_temporal or \
+                config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy or  \
+                config.cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal:
+            # error computation case (Spatial or Temporal)
+            self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
+        else:
+            # CX computation case
+            self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
 
         # we compute this information only using training data; no need for validation data
-        # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
+        #
 
         obj = ProcessRaw(
             cityname=self.cityname,
@@ -1007,7 +1030,7 @@ class Complexity:
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
             y = self.model_predict(np.moveaxis(x, [0, 1, 2], [1, 2, 0])[np.newaxis, ..., np.newaxis])
-            y = np.moveaxis(y[0, :, :, :, 0], [0, 1, 2], [2, 0, 1]).shape
+            y = np.moveaxis(y[0, :, :, :, 0], [0, 1, 2], [2, 0, 1])
 
             neighbour_indexes = []
 
@@ -1057,35 +1080,47 @@ class Complexity:
             criticality_2_exp = []
 
             for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
-                fileindices = neighbour_indexes[j : j + config.cx_batch_size]
-                if 0 in fileindices:
-                    print("Skipped file indexed with 0")
-                    continue
 
-                # sprint (len(self.model_train_gen.__getitem__(fileindices)))
+                if config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy:
+                    fileindices = neighbour_indexes[j : j + config.cx_batch_size]
+                    if 0 in fileindices:
+                        print("Skipped file indexed with 0")
+                        continue
 
-                x_neighbour, y_neighbour_gt = self.model_train_gen.__getitem__(fileindices)
+                    # sprint (len(self.model_train_gen.__getitem__(fileindices)))
 
-                y_neighbour = self.model_predict(x_neighbour)
+                    x_neighbour, y_neighbour_gt = self.model_train_gen.__getitem__(fileindices)
 
-                # Since this is the no thresh case
-                # if np.max(np.abs(y_neighbour - y)) > self.thresh:
+                    y_neighbour = self.model_predict(x_neighbour)
 
-                assert (config.cx_batch_size == x_neighbour.shape[0]) or (
-                    j + config.cx_batch_size >= len(neighbour_indexes)
-                )  # for the last batch
+                    # Since this is the no thresh case
+                    # if np.max(np.abs(y_neighbour - y)) > self.thresh:
 
-                assert x_neighbour.shape[0] == y_neighbour.shape[0]
+                    assert (config.cx_batch_size == x_neighbour.shape[0]) or (
+                        j + config.cx_batch_size >= len(neighbour_indexes)
+                    )  # for the last batch
 
-                y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
-                x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                    assert x_neighbour.shape[0] == y_neighbour.shape[0]
 
-                dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
-                dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+                    y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                    x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
 
-                if config.cx_spatial_cx_dist_enabled:
-                    np.save(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix, str(int(np.random.rand()*10000000000) + ".npy")),
-                            (y_neighbour - y_neighbour_gt)**2)
+                    assert (y_reshaped.shape[1:] == y_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+                    assert (x_reshaped.shape[1:] == x_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+
+                    dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+                    dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+
+                    if not os.path.exists(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix + "-spatial-errors")):
+                        os.mkdir(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix + "-spatial-errors"))
+                    np.save(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix + "-spatial-errors", str(int(np.random.rand()*10000000000)) + ".npy"),
+                            np.mean((y_neighbour - y_neighbour_gt) ** 2, axis=0))
+
+                else:
+                    # create two dummy lists dist_x and dist_y for the computation below;
+                    # this case is useful when we just want the temporal errors
+                    dist_x = np.array([1])
+                    dist_y = np.array([1])
 
                 if config.DEBUG:
                     # should be same order;
@@ -1102,6 +1137,24 @@ class Complexity:
 
                 criticality_2.extend(frac.tolist())
                 criticality_2_exp.extend(np.exp(-frac).tolist())
+
+            # Speedup for when running only the temporal case, no spatial;
+            # Later we can run them together; but for now, they must be run separately (spatial and temporal)
+            if config.cx_post_model_loading_from_saved_val_error_plots_temporal:
+                assert  not  config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy
+
+                # need to do this explicitly, since for computing complexiy, we don't keep the corresponding GT for this specific case
+                # we don't keep this in the model predict function; This will be present in the PM function
+                x_orig, y_gt = self.model_train_gen.__getitem__([fileindex_orig])
+
+                x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis] # remember this y is infact f(x)
+
+                assert (x_orig == x_reshaped).all()
+                assert (y_reshaped.shape == y_gt.shape)
+                print("parsing_model_predict_for_temporal_errors:", self.cityname, self.i_o_length,
+                      self.prediction_horizon,
+                      self.grid_size, fileindex_orig, np.mean((y_reshaped-y_gt) ** 2), np.mean((y_reshaped-x_reshaped) ** 2) ** 0.5)
 
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
@@ -1126,6 +1179,8 @@ class Complexity:
                 sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
+
+
             red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
@@ -1144,6 +1199,8 @@ class Complexity:
             if config.DEBUG:
                 assert len(sum_x_dataset) == len(sum_y_dataset)
                 sprint(len(sum_y))
+
+
 
         self.CSR_MP_no_thresh_mean = np.mean(sum_y_dataset)
         self.CSR_MP_no_thresh_median = np.median(sum_y_dataset)

@@ -306,6 +306,7 @@ class ConvLSTM:
         self.cityname, self.io_length, self.pred_horiz, self.scale = cityname, io_length, pred_horiz, scale
         self.prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
 
+        self.saved_model_filename = saved_model_filename
         self.train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, self.prefix)
         self.validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER, self.prefix)
         self.shape = shape
@@ -313,6 +314,7 @@ class ConvLSTM:
         sprint(validation_csv_file, self.validation_csv_file)
         self.log_dir = os.path.join(config.INTERMEDIATE_FOLDER, log_dir)
         self.model = self.create_model()
+
 
     def create_model(self):
         _, a, b, c, d = self.shape
@@ -508,15 +510,9 @@ class ConvLSTM:
             # Loading saved model is written inside train instead of create model since
             # our callback classes/ params need to be in the environment before loading
             # otherwise it fails to load
-            self.model = tf.keras.models.load_model(
-                os.path.join(
-                    config.INTERMEDIATE_FOLDER,
-                    os.path.basename(os.path.normpath(self.model.prefix)) + "_epoch_" + str(epoch) + ".h5",
-                )
-            )
-            # no need to train anymore
-            return self.model
+            self.model.load_weights(self.saved_model_filename)
 
+            # no need to train in that case
         else:
             self.model.fit(
                 self.train_gen,
@@ -547,10 +543,34 @@ class ConvLSTM:
                 self.io_length,
                 self.pred_horiz,
                 self.scale,
-                cx.CSR_MP_no_thresh_mean,
-                cx.CSR_PM_no_thresh_frac_mean,
-                cx.CSR_PM_no_thresh_mean,
+                cx.CSR_MP_sum_y_exceeding_r_x_max
             )
+        elif config.cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal:
+            cx = Complexity(
+                self.model.cityname,
+                i_o_length = self.model.io_length,
+                prediction_horizon = self.model.pred_horiz,
+                grid_size = self.model.scale,
+                thresh = config.cl_thresh,
+                perfect_model = False,
+                model_func = self.model.predict,
+                model_train_gen = self.model.validation_gen, # only one line change compared to the standard call above
+                run_pm = False,
+                run_nm = False,
+                run_gb = False,
+            )
+            print(
+                "TRAIN_END: ",
+                self.prefix,
+                self.cityname,
+                self.io_length,
+                self.pred_horiz,
+                self.scale,
+                cx.CSR_MP_sum_y_exceeding_r_x_max,
+            )
+        # no need to train anymore
+        return self.model
+
 
     def print_model_and_class_values(self, print_model_summary=True):
         sprint(self.train_data_folder)

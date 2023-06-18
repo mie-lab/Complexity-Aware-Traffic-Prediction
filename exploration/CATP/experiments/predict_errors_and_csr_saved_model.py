@@ -8,6 +8,7 @@ from smartprint import smartprint as sprint
 from preprocessing.ProcessRaw import ProcessRaw
 import glob
 from tqdm import tqdm
+import pandas as pd
 
 
 class Experiment_Epoch:
@@ -40,8 +41,30 @@ class Experiment_Epoch:
 
             sprint(cityname, io_length, pred_horiz, scale, log_dir, shape, validation_csv_file)
             if self.model_class_str == "ConvLSTM":
-                epoch = 4
-                model.model = self.model_class(
+                if config.val_err_choose_last_epoch:
+                    epoch = 1
+                    while os.path.exists(os.path.join(config.INTERMEDIATE_FOLDER,
+                            os.path.basename(os.path.normpath(self.postfix)) + "_epoch_" + str(epoch) + ".h5")):
+                        epoch += 1
+                    epoch -= 1
+
+                else:
+                    assert config.val_error_log_csv_folder_path is not None
+                    prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
+                    filename = os.path.join(config.val_error_log_csv_folder_path,  "val_csv_"+ prefix + ".csv")
+
+                    df = pd.read_csv(filename)
+
+                    # Find the epoch with the lowest val_loss
+                    lowest_epoch = df['epoch'][df['val_loss'].idxmin()]
+                    sprint (prefix)
+                    print("The epoch with the lowest val_loss is: ", lowest_epoch)
+
+                    epoch = lowest_epoch
+
+                sprint (cityname, io_length, pred_horiz, scale, epoch)
+
+                model = self.model_class(
                     cityname,
                     io_length,
                     pred_horiz,
@@ -50,20 +73,21 @@ class Experiment_Epoch:
                     shape,
                     validation_csv_file,
                     saved_model_filename=os.path.join(config.INTERMEDIATE_FOLDER,
-                        os.path.basename(os.path.normpath(self.model.prefix)) + "_epoch_" + str(epoch) + ".h5")
+                        os.path.basename(os.path.normpath(self.postfix)) + "_epoch_" + str(epoch) + ".h5")
                 )
 
                 # model.model = model.create_model_small_epochs()
                 print(model.model.summary())
                 model.model = model.train()
+                print ("Model loaded successfully; epoch@", epoch)
             else:
                 raise (Exception("Wrong model class; not implemented!"))
 
 
 if __name__ == "__main__":
-    for io_length in [1]:  # config.i_o_lengths_def:
+    for io_length in [4]:  # config.i_o_lengths_def:
         for pred_horiz in [1]:  # config.pred_horiz_def:
-            for scale in [55]:  # config.scales_def:
+            for scale in [85]:  # config.scales_def:
                 for cityname in config.city_list:
                     sprint(cityname, io_length, pred_horiz, scale)
 
