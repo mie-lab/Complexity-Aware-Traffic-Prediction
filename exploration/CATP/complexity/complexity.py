@@ -125,7 +125,10 @@ class Complexity:
         """
         temporal_filter: If true, filtering is carried out using nearest neighbours
         """
-        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
+        if config.cx_special_case_validation_data:
+            self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
+        else:
+            self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
         # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
@@ -489,8 +492,8 @@ class Complexity:
 
                         # Shape of y, y_neighbour etc.:  (2, 4, 25, 25, 1); 2 is the batch size here
 
-                        sum_x_m_predict[m_x, m_y].append(dist_x.tolist())
-                        sum_y_m_predict[m_x, m_y].append(dist_y.tolist())
+                        sum_x_m_predict[m_x, m_y].extend(dist_x.tolist())
+                        sum_y_m_predict[m_x, m_y].extend(dist_y.tolist())
 
             for m_x in range(self.grid_size):
                 for m_y in range(self.grid_size):
@@ -498,6 +501,7 @@ class Complexity:
                     sum_y_m_predict[m_x, m_y] = np.array(sum_y_m_predict[m_x, m_y])
 
                     max_x[m_x, m_y] = np.max(sum_x_m_predict[m_x, m_y])
+
                     sum_y_more_than_max_x[m_x, m_y] = sum_y_m_predict[m_x, m_y][(sum_y_m_predict[m_x, m_y] > max_x[m_x, m_y])]
 
                     if len(sum_y_more_than_max_x[m_x, m_y].tolist()) > 0:
@@ -986,6 +990,9 @@ class Complexity:
             # error computation case (Spatial or Temporal)
             self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
         else:
+            assert  config.cx_post_model_loading_from_saved_val_error_plots_temporal ==  \
+                    config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy == \
+                    config.cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal == False
             # CX computation case
             self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
 
@@ -1359,7 +1366,7 @@ if __name__ == "__main__":
     ##########################################
 
     # io_lengths
-    for scale in config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
+    for scale in [85]: #config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
         for city in config.city_list:
             for i_o_length in config.i_o_lengths_def:
                 for pred_horiz in config.pred_horiz_def:
@@ -1367,9 +1374,14 @@ if __name__ == "__main__":
                         obj = ProcessRaw(
                             cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
                         )
-                        train_data_folder = os.path.join(
-                            config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
-                        )
+                        if config.cx_special_case_validation_data:
+                            train_data_folder = os.path.join(
+                                config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER, obj.key_dimensions()
+                            )
+                        else:
+                            train_data_folder = os.path.join(
+                                config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+                            )
                         num_train = len(
                             glob.glob(
                                 os.path.join(config.HOME_FOLDER, train_data_folder)
@@ -1405,6 +1417,7 @@ if __name__ == "__main__":
                         cx.csv_format()
                         # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
 
+    """
     for scale in config.scales_def:  # [25, 35, 45, 55, 65, 75, 85, 105]:
         for city in config.city_list:
             for i_o_length in config.i_o_lengths:
@@ -1413,9 +1426,14 @@ if __name__ == "__main__":
                         obj = ProcessRaw(
                             cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
                         )
-                        train_data_folder = os.path.join(
-                            config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
-                        )
+                        if config.cx_special_case_validation_data:
+                            train_data_folder = os.path.join(
+                                config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER, obj.key_dimensions()
+                            )
+                        else:
+                            train_data_folder = os.path.join(
+                                config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+                            )
                         num_train = len(
                             glob.glob(
                                 os.path.join(config.HOME_FOLDER, train_data_folder)
@@ -1459,9 +1477,14 @@ if __name__ == "__main__":
                         obj = ProcessRaw(
                             cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
                         )
-                        train_data_folder = os.path.join(
-                            config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
-                        )
+                        if config.cx_special_case_validation_data:
+                            train_data_folder = os.path.join(
+                                config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER, obj.key_dimensions()
+                            )
+                        else:
+                            train_data_folder = os.path.join(
+                                config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+                            )
                         num_train = len(
                             glob.glob(
                                 os.path.join(config.HOME_FOLDER, train_data_folder)
@@ -1496,7 +1519,7 @@ if __name__ == "__main__":
                         cx.print_params()
                         cx.csv_format()
                         # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
-
+    """
         # To parse the results into a csv:
         # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count,CSR_PM_no_thresh_median,CSR_PM_no_thresh_mean,CSR_PM_no_thresh_frac_median,CSR_PM_no_thresh_frac_mean'
 # mkdir MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_ PM_more_max PM_sum_y PM_mean PM_mean_exp_ PM_frac_2_ PM_frac_2_exp_ GB_more_max GB_sum_y GB_mean GB_mean_exp_ GB_frac_2_ GB_frac_2_exp_ NM_more_max NM_sum_y NM_mean NM_mean_exp_ NM_frac_2_ NM_frac_2_exp_

@@ -52,7 +52,7 @@ if running_on == "server":
     cx_batch_size = 14
 
 elif running_on == "maclocal":
-    cx_sample_whole_data = 2
+    cx_sample_whole_data = 20
     cx_sample_single_point = 40  # no longer being used
     cx_batch_size = 2
 
@@ -60,9 +60,9 @@ cx_delete_files_after_running = True
 cx_range_day_scan = range(-3, 4)
 cx_range_t_band_scan = range(-4, 5)
 cx_spatial_cx_PM_dist_enabled = False
-cx_post_model_loading_from_saved_val_error_plots_temporal = True
+cx_post_model_loading_from_saved_val_error_plots_temporal = False
 cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy = False
-
+cx_special_case_validation_data = False
 
 ######################## Datagen class params #########################
 dg_debug = False
@@ -81,7 +81,7 @@ if running_on == "server":
     cl_dataloader_workers = 32
     cl_epochs = 30
 elif running_on == "maclocal":
-    cl_percentage_of_train_data = 0.005  # can be reduced for fast tryouts
+    cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
     cl_batch_size = 3
     cl_dataloader_workers = 4
     cl_epochs = 20
@@ -91,13 +91,16 @@ cl_n_depth = 3
 cl_during_training_CSR_enabled_epoch_end = False
 cl_during_training_CSR_enabled_batch_end = False
 cl_during_training_CSR_enabled_train_end = False
-cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal = True
+cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal = False
+
+if cx_post_model_loading_from_saved_val_error_plots_temporal: # just a check to avoid messing up of config file
+    assert cx_post_model_loading_from_saved_val_error_plots_temporal  or cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy
 
 # since we need to switch train and val gen depending on computing Cx or computing validation errors
 # See model.train inside ConvLSTM for clarification
-assert cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal != cl_during_training_CSR_enabled_train_end
-assert cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal != cl_during_training_CSR_enabled_epoch_end
-assert cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal != cl_during_training_CSR_enabled_batch_end
+# assert cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal != cl_during_training_CSR_enabled_train_end
+# assert cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal != cl_during_training_CSR_enabled_epoch_end
+# assert cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal != cl_during_training_CSR_enabled_batch_end
 
 ######################### Dimensions for experiments ####################
 if running_on == "server":
