@@ -2,16 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="50be4248-7d46-4ba6-acbc-139fb977f939" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/CATP/intermediate_folder/logs_dir_1_4_1/train/events.out.tfevents.1677476227.SEC-M10241.local.13989.0.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/CATP/intermediate_folder/logs_dir_1_4_1/train/events.out.tfevents.1677476266.SEC-M10241.local.14112.0.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/CATP/intermediate_folder/logs_dir_1_4_1/train/events.out.tfevents.1677476301.SEC-M10241.local.14157.0.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/CATP/intermediate_folder/logs_dir_1_4_1/validation/events.out.tfevents.1677476277.SEC-M10241.local.14112.1.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/CATP/intermediate_folder/logs_dir_1_4_1/validation/events.out.tfevents.1677476314.SEC-M10241.local.14157.1.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/CATP/intermediate_folder/logs_dir_7_4_7/train/events.out.tfevents.1677476768.SEC-M10241.local.14157.2.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/CATP/intermediate_folder/logs_dir_7_4_7/validation/events.out.tfevents.1677476799.SEC-M10241.local.14157.3.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/CATP/intermediate_folder/val_csv_1_4_1.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/CATP/intermediate_folder/val_csv_7_4_7.csv" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/exploration/CATP/plotting/('london', 4, 1, 55)_hourly_plots.png" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/CATP/plotting/('london', 4, 1, 55)_hourly_plots.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/exploration/CATP/plotting/('madrid', 4, 1, 55)_hourly_plots.png" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/CATP/plotting/('madrid', 4, 1, 55)_hourly_plots.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/exploration/CATP/plotting/('melbourne', 4, 1, 55)_hourly_plots.png" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/CATP/plotting/('melbourne', 4, 1, 55)_hourly_plots.png" afterDir="false" />
@@ -26,11 +16,6 @@
       <change beforePath="$PROJECT_DIR$/exploration/CATP/plotting/i_o_length_csr_val_combo.png" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/CATP/plotting/i_o_length_csr_val_combo.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/exploration/CATP/plotting/london-1-1-55-epochs.png" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/CATP/plotting/london-1-1-55-epochs.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/exploration/CATP/plotting/regression_plots.png" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/CATP/plotting/regression_plots.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/FFNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/FFNN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/create_training_data_from_iH_oH.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/create_training_data_from_iH_oH.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/generate_training_data_npy.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/generate_training_data_npy.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/historic_distribution.py" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/historic_distribution.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exploration/move_codes_to_server.sh" beforeDir="false" afterPath="$PROJECT_DIR$/exploration/move_codes_to_server.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,16 +49,13 @@
     <setting file="file://$PROJECT_DIR$/LICENSE" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/exploration/CATP/experiments/across_epoch_experiments.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/exploration/CATP/models/ConvLSTM.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/tryouts/timeseries/univariate/nk.txt" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/exploration/CATP/config.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$USER_HOME$/Library/Caches/JetBrains/PyCharm2021.3/python_stubs/-726661379/sklearn/metrics/__init__.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/exploration/CATP/experiments/predict_errors_and_csr_saved_model.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$USER_HOME$/opt/anaconda3/envs/complexity/lib/python3.10/site-packages/tqdm/std.py" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/tryouts/timeseries/univariate/toy_examples_classical_ml.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$USER_HOME$/opt/anaconda3/envs/complexity/lib/python3.10/site-packages/timesynth-0.2.4-py3.10.egg/timesynth/timesampler/timesampler.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/requirements.txt" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$USER_HOME$/opt/anaconda3/envs/complexity/lib/python3.10/site-packages/numpy/core/fromnumeric.py" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/tryouts/timeseries/univariate/GBM_n_estimators/results_GBM.csv" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/exploration/CATP/preprocessing/ProcessRaw.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/exploration/CATP/preprocessing/datagen.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$USER_HOME$/opt/anaconda3/envs/complexity/lib/python3.10/site-packages/sklearn/neural_network/_multilayer_perceptron.py" root0="SKIP_INSPECTION" />
@@ -322,7 +304,7 @@
       <workItem from="1686538439781" duration="20721000" />
       <workItem from="1686922291022" duration="1969000" />
       <workItem from="1687024831228" duration="22199000" />
-      <workItem from="1687705393117" duration="181000" />
+      <workItem from="1687705393117" duration="487000" />
     </task>
     <servers />
   </component>
