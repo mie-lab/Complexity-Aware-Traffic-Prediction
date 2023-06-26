@@ -2,8 +2,8 @@ rm -rf CATP/intermediate_folder
 mkdir CATP/intermediate_folder
 tar -czvf CATP.tar.gz CATP
 echo "zipped CATP folder; moving to server"
-scp CATP.tar.gz niskumar@kelut.sec.sg:
-ssh -t  niskumar@kelut.sec.sg << EOF
+scp CATP.tar.gz niskumar@172.25.185.141:
+ssh -t  niskumar@172.25.185.141 << EOF
   cd ~/NeurIPS2022-traffic4cast/exploration
   rm -rf CATP
   mv ~/CATP.tar.gz ./

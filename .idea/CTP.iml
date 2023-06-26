@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/NeurIPS2022-traffic4cast/exploration/CATP" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/exploration/CATP" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/tryouts/timeseries/univariate/TimeSynth/.eggs" />
+      <excludeFolder url="file://$MODULE_DIR$/tryouts/timeseries/univariate/TimeSynth/build" />
+      <excludeFolder url="file://$MODULE_DIR$/tryouts/timeseries/univariate/TimeSynth/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/tryouts/timeseries/univariate/TimeSynth/timesynth.egg-info" />
+      <excludeFolder url="file://$MODULE_DIR$/tryouts/timeseries/univariate/.ipynb_checkpoints" />
+      <excludeFolder url="file://$MODULE_DIR$/NeurIPS2022-traffic4cast/data" />
+      <excludeFolder url="file://$MODULE_DIR$/NeurIPS2022-traffic4cast/exploration/data_samples" />
+    </content>
+    <orderEntry type="jdk" jdkName="Python 3.10 (tf_gpu)" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
