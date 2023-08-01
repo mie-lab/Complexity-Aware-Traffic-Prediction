@@ -1,7 +1,28 @@
 
-Complexity-Aware Traffic Prediction 
+# Complexity-Aware Traffic Prediction 
+
+
 This is the code accompanying the paper _Intrinsic Complexity of Deep learning-based City-wide Traffic Prediction_
 
-- pip install requirements.txt to install dependencies for default t4c22 repository
-- 
+## Dependencies
+- Please use `pip install -r requirements.txt` to install all dependencies, including the ones needed for reading files from the competition repository for Traffic4Cast2022.
 
+
+## Config file
+The config file (located at `CATP/config.py`) contains the key paramters that can be changed in the current version of the code. The default values are coherent with the results in our paper. 
+
+- The key dimensions that can be changed to redefine experiments are present in the config file. The variable names inside the config file are self-explanatory. The most important ones are described below:
+  https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/8e80dd4c29db6a598377d9210955c6c2bdf327d7/CATP/config.py#L112-L114
+- The home folder should be specified in the config file as shown below:
+  https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/8e80dd4c29db6a598377d9210955c6c2bdf327d7/CATP/config.py#L24
+- The train-validation split can be modified as shown below:
+  https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/8e80dd4c29db6a598377d9210955c6c2bdf327d7/CATP/config.py#L185
+- If the trained model is to be saved after each epoch, the parameters should be set accordingly as shown below:
+  https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/8e80dd4c29db6a598377d9210955c6c2bdf327d7/CATP/config.py#L72
+- The GPU number can be changed as shown below:
+  https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/8e80dd4c29db6a598377d9210955c6c2bdf327d7/CATP/config.py#L6
+  Please note that multiple GPU's is not supported with the current version of the code. It will be released later on as needed.
+  
+
+## Data
+- The traffic data can be downloaded by following the instructions provided on the competition page for [Traffic4Cast2022](https://github.com/iarai/NeurIPS2022-traffic4cast)
