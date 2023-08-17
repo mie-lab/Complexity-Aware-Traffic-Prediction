@@ -66,15 +66,15 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
 
         assert len(indexes) > 0
 
-        # order of dim required: [batch, timedim, X_dim, Y_dim, channels]
-        x_batch = np.moveaxis(x_batch, [0, 1, 2, 3], [0, 2, 3, 1])
-        y_batch = np.moveaxis(y_batch, [0, 1, 2, 3], [0, 2, 3, 1])
+        # Only change compared to datagen_for_Unet
+        # x_batch = np.moveaxis(x_batch, [0, 1, 2, 3], [0, 2, 3, 1])
+        # y_batch = np.moveaxis(y_batch, [0, 1, 2, 3], [0, 2, 3, 1])
 
         # sprint ((x_batch[..., np.newaxis]).shape, (y_batch[..., np.newaxis]).shape)
 
         # Only change compared to datagen_for_Unet
-        x_batch, y_batch = (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis])  # the last new axis is for channels
-        return x_batch[:, :, :-1, :-1, :], y_batch[:, :, :-1, :-1, :]
+        # return x_batch[:, :, :-1, :-1, :], y_batch[:, :, :-1, :-1, :]
+        return x_batch[:, :-1, :-1, :], y_batch[:, :-1, :-1, :]
 
     # def custom_get_item_with_file_name(self, index, specific_files=None):
     #
