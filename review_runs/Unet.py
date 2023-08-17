@@ -1,9 +1,9 @@
 import os
 import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "../"))  # location of config file
 
 from complexity.complexityUNET import Complexity
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../"))  # location of config file
 import config
 
 from validation_metrics.custom_losses import non_zero_mape, non_zero_mse
@@ -91,12 +91,14 @@ class Unet:
         self.log_dir = os.path.join(config.INTERMEDIATE_FOLDER, log_dir)
         self.model = self.create_model(input_shape)
 
-    def create_model(self, input_shape):
-        inputs = layers.Input(input_shape)
-        print(f"Input shape: {inputs.shape}")
+    def create_model(self, input_shape=(54, 54, 4)):
+        # Pad the input to 56x56x4
+        inputs = layers.Input((54, 54, 4))
+        padded_input = layers.ZeroPadding2D(((1, 1), (1, 1)))(inputs)
+        print(f"Padded input shape: {padded_input.shape}")
 
         # Encoder
-        c1 = (layers.Conv2D(64, (3, 3), activation='relu', padding='same'))(inputs)
+        c1 = (layers.Conv2D(64, (3, 3), activation='relu', padding='same'))(padded_input)
         print(f"c1 shape: {c1.shape}")
         p1 = (layers.MaxPooling2D((2, 2)))(c1)
         print(f"p1 shape: {p1.shape}")
@@ -123,7 +125,11 @@ class Unet:
         outputs = (layers.Conv2D(4, (1, 1), activation='sigmoid'))(c5)
         print(f"outputs shape: {outputs.shape}")
 
-        self.model = tensorflow.keras.Model(inputs=inputs, outputs=outputs)
+        # Crop the output to 54x54x4
+        outputs_cropped = layers.Cropping2D(((1, 1), (1, 1)))(outputs)
+        print(f"Cropped outputs shape: {outputs_cropped.shape}")
+
+        self.model = tensorflow.keras.Model(inputs=inputs, outputs=outputs_cropped)
         return self.model
 
     def train(self):
@@ -287,7 +293,7 @@ if __name__ == "__main__":
     cityname = "london"
     io_length = 4
     pred_horiz = 1
-    scale = 85
+    scale = 55
 
     obj = ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
 
