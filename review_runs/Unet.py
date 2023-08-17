@@ -238,7 +238,7 @@ class ComputeMetrics(Callback):
             )
 
 class Unet:
-    def __init__(self, cityname, io_length, pred_horiz, scale, log_dir, shape, validation_csv_file,input_shape=(None, 84, 84, 4),
+    def __init__(self, cityname, io_length, pred_horiz, scale, log_dir, shape, validation_csv_file, input_shape=(84, 84, 4),
                  saved_model_filename=None):
         """
         Input and output shapes are the same (tuple of length 5)
@@ -257,27 +257,35 @@ class Unet:
 
     def create_model(self, input_shape):
         inputs = layers.Input(input_shape)
+        print(f"Input shape: {inputs.shape}")
 
         # Encoder
-        c1 = layers.TimeDistributed(layers.Conv2D(64, (3, 3), activation='relu', padding='same'))(inputs)
-        p1 = layers.TimeDistributed(layers.MaxPooling2D((2, 2)))(c1)
-        c2 = layers.TimeDistributed(layers.Conv2D(128, (3, 3), activation='relu', padding='same'))(p1)
-        p2 = layers.TimeDistributed(layers.MaxPooling2D((2, 2)))(c2)
+        c1 = (layers.Conv2D(64, (3, 3), activation='relu', padding='same'))(inputs)
+        print(f"c1 shape: {c1.shape}")
+        p1 = (layers.MaxPooling2D((2, 2)))(c1)
+        print(f"p1 shape: {p1.shape}")
+        c2 = (layers.Conv2D(128, (3, 3), activation='relu', padding='same'))(p1)
+        print(f"c2 shape: {c2.shape}")
+        p2 = (layers.MaxPooling2D((2, 2)))(c2)
+        print(f"p2 shape: {p2.shape}")
 
         # Middle
-        c3 = layers.TimeDistributed(layers.Conv2D(256, (3, 3), activation='relu', padding='same'))(p2)
+        c3 = (layers.Conv2D(256, (3, 3), activation='relu', padding='same'))(p2)
+        print(f"c3 shape: {c3.shape}")
 
         # Decoder
-        u1 = layers.TimeDistributed(layers.Conv2DTranspose(128, (2, 2), strides=(2, 2), activation='relu', padding='same'))(c3)
-        c4 = layers.TimeDistributed(layers.Conv2D(128, (3, 3), activation='relu', padding='same'))(u1)
-        u2 = layers.TimeDistributed(layers.Conv2DTranspose(64, (2, 2), strides=(2, 2), activation='relu', padding='same'))(c4)
-        c5 = layers.TimeDistributed(layers.Conv2D(64, (3, 3), activation='relu', padding='same'))(u2)
-
-        # Cropping to ensure the output shape is [?,5,84,84,1]
-        cropped = layers.TimeDistributed(layers.Cropping2D(cropping=((0, 0), (0, 0))))(c5)
+        u1 = (layers.Conv2DTranspose(128, (2, 2), strides=(2, 2), activation='relu', padding='same'))(c3)
+        print(f"u1 shape: {u1.shape}")
+        c4 = (layers.Conv2D(128, (3, 3), activation='relu', padding='same'))(u1)
+        print(f"c4 shape: {c4.shape}")
+        u2 = (layers.Conv2DTranspose(64, (2, 2), strides=(2, 2), activation='relu', padding='same'))(c4)
+        print(f"u2 shape: {u2.shape}")
+        c5 = (layers.Conv2D(64, (3, 3), activation='relu', padding='same'))(u2)
+        print(f"c5 shape: {c5.shape}")
 
         # Output
-        outputs = layers.TimeDistributed(layers.Conv2D(1, (1, 1), activation='sigmoid'))(cropped)
+        outputs = (layers.Conv2D(4, (1, 1), activation='sigmoid'))(c5)
+        print(f"outputs shape: {outputs.shape}")
 
         self.model = tensorflow.keras.Model(inputs=inputs, outputs=outputs)
         return self.model
@@ -459,6 +467,7 @@ if __name__ == "__main__":
     )
     print(model.model.summary())
     model.print_model_and_class_values(print_model_summary=False)
+    model.model.predict(np.random.rand(4, 84, 84, 4))
     model.train()
     # model.predict_train_data_and_save_all()
 
