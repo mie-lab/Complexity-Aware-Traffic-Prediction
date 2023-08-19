@@ -121,12 +121,12 @@ if __name__ == "__main__":
     # validation_data_folder = "validation_data_1_4_1"
     validation_data_folder = config.VALIDATION_DATA_FOLDER
 
-    r = 0.06  # ratio: what fraction of data points to use
+    r = 1  # ratio: what fraction of data points to use
 
     cityname = "london"
     io_length = 4
     pred_horiz = 1
-    scale = 85
+    scale = 55
 
     prefix = ProcessRaw.file_prefix(cityname, io_length, pred_horiz, scale)
     num_train = len(glob.glob(os.path.join(config.DATA_FOLDER, train_data_folder, prefix) + "/" + prefix + "*_x.npy"))
