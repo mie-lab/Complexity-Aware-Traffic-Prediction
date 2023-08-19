@@ -30,8 +30,8 @@ from preprocessing.ProcessRaw import ProcessRaw
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        if epoch % 5 == 0 or True: # Always run for the case of Unet
-            if config.cl_during_training_CSR_enabled_epoch_end:
+        if config.cl_during_training_CSR_enabled_epoch_end:
+            if epoch % 5 == 0:  # Always run for the case of Unet
                 cx = Complexity(
                     self.model.cityname,
                     i_o_length=self.model.io_length,
@@ -45,18 +45,31 @@ class ComputeMetrics(Callback):
                     run_nm=True,
                     run_gb=True,
                 )
-
-
-                logs["CSR_MP_sum_y_exceeding_r_x_max"] = cx.CSR_MP_sum_y_exceeding_r_x_max
-                logs["CSR_PM_sum_y_exceeding_r_x_max"] = cx.CSR_PM_sum_y_exceeding_r_x_max
-                logs["CSR_NM_sum_y_exceeding_r_x_max"] = cx.CSR_NM_sum_y_exceeding_r_x_max
-                logs["CSR_GB_sum_y_exceeding_r_x_max"] = cx.CSR_GB_sum_y_exceeding_r_x_max
-
             else:
-                logs["CSR_MP_sum_y_exceeding_r_x_max"] = -1
-                logs["CSR_PM_sum_y_exceeding_r_x_max"] = -1
-                logs["CSR_NM_sum_y_exceeding_r_x_max"] = -1
-                logs["CSR_GB_sum_y_exceeding_r_x_max"] = -1
+                cx = Complexity(
+                    self.model.cityname,
+                    i_o_length=self.model.io_length,
+                    prediction_horizon=self.model.pred_horiz,
+                    grid_size=self.model.scale,
+                    thresh=config.cl_thresh,
+                    perfect_model=False,
+                    model_func=self.model.predict,
+                    model_train_gen=self.model.train_gen,
+                    run_pm=False,
+                    run_nm=False,
+                    run_gb=False,
+                )
+
+            logs["CSR_MP_sum_y_exceeding_r_x_max"] = cx.CSR_MP_sum_y_exceeding_r_x_max
+            logs["CSR_PM_sum_y_exceeding_r_x_max"] = cx.CSR_PM_sum_y_exceeding_r_x_max
+            logs["CSR_NM_sum_y_exceeding_r_x_max"] = cx.CSR_NM_sum_y_exceeding_r_x_max
+            logs["CSR_GB_sum_y_exceeding_r_x_max"] = cx.CSR_GB_sum_y_exceeding_r_x_max
+
+        else:
+            logs["CSR_MP_sum_y_exceeding_r_x_max"] = -1
+            logs["CSR_PM_sum_y_exceeding_r_x_max"] = -1
+            logs["CSR_NM_sum_y_exceeding_r_x_max"] = -1
+            logs["CSR_GB_sum_y_exceeding_r_x_max"] = -1
 
 
         logs["naive-model-non-zero_Unet"] = (
@@ -122,7 +135,7 @@ class Unet:
         print(f"c5 shape: {c5.shape}")
 
         # Output
-        outputs = (layers.Conv2D(4, (1, 1), activation='sigmoid'))(c5)
+        outputs = (layers.Conv2D(4, (1, 1), activation='relu'))(c5)
         print(f"outputs shape: {outputs.shape}")
 
         # Crop the output to 54x54x4
@@ -295,7 +308,7 @@ if __name__ == "__main__":
     pred_horiz = 1
     scale = 55
 
-    obj = ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
+    # obj = ProcessRaw(cityname=cityname, i_o_length=io_length, prediction_horizon=pred_horiz, grid_size=scale)
 
     model = Unet(
         cityname,
