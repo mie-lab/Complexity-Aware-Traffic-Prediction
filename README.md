@@ -6,6 +6,8 @@ This is the code accompanying the paper _Intrinsic Complexity of Deep Learning-b
 
 ## Dependencies
 - Please use `pip install -r requirements.txt` to install all dependencies, including the ones needed for reading files from the competition repository for Traffic4Cast2022.
+- To ensure that tensorflow runs without any issues, please create a new env with exact versions for ptyhon and tensorflow `conda create --name tf python=3.9` and then activate it. Thereafter, use `bash requirements_tensorflow.txt`
+ 
 
 
 ## Config file
