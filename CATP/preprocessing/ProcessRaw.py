@@ -112,6 +112,8 @@ class ProcessRaw:
         n: Scale; 32 implies 32X32
         """
         #     print (get_NS_EW_distance(df))
+        if not os.path.exists(os.path.join(config.DATA_FOLDER, "data_samples")):
+            os.mkdir(os.path.join(config.DATA_FOLDER, "data_samples"))
         npy_filename = os.path.join(
             config.DATA_FOLDER, "data_samples", self.cityname + "_" + date_ + "-" + str(n) + "x" + str(n) + "x96.npy"
         )
@@ -175,10 +177,9 @@ class ProcessRaw:
         for i in range(df.shape[0]):
             M[x_bins[i], y_bins[i], :] = M[x_bins[i], y_bins[i], :] / count_dict[x_bins[i], y_bins[i]]
 
-        if not os.path.exists("data_samples"):
-            os.mkdir("data_samples")
-        np.save(npy_filename, M)
-        #     print(M.shape)
+        temp_file_name = str(int(np.random.rand() * 100000000000)) + ".npy"
+        np.save(temp_file_name, M)
+        os.rename(temp_file_name, npy_filename)
 
         return M
 
@@ -209,7 +210,7 @@ class ProcessRaw:
         ph = self.prediction_horizon
         ih = oh
 
-        fnames = glob.glob("data_samples/*x96.npy")
+        fnames = glob.glob(os.path.join(os.path.join(config.DATA_FOLDER, "data_samples")) + "/*x96.npy")
         fnames = [
             x
             for x in fnames
@@ -257,8 +258,15 @@ class ProcessRaw:
                     x = m[:, :, j - ih : j]
                     y = m[:, :, j + ph : j + ph + oh]
 
-                    np.save(os.path.join(self.training_folder, self.key_dimensions() + str(r) + "_x.npy"), x)
-                    np.save(os.path.join(self.training_folder, self.key_dimensions() + str(r) + "_y.npy"), y)
+                    temp_file_name = str(int(np.random.rand() * 100000000000)) + ".npy"
+                    np.save(temp_file_name, x)
+                    os.rename(temp_file_name, 
+                              os.path.join(self.training_folder, self.key_dimensions() + str(r) + "_x.npy"))
+
+                    temp_file_name = str(int(np.random.rand() * 100000000000)) + ".npy"
+                    np.save(temp_file_name, y)
+                    os.rename(temp_file_name,
+                              os.path.join(self.training_folder, self.key_dimensions() + str(r) + "_y.npy"))
 
             elif f.split("data_samples")[1].split(self.cityname)[1][1:11] in validation_dates:
                 for j in range(ih, 96 - (oh + ph + 1)):
@@ -268,8 +276,15 @@ class ProcessRaw:
 
                     r = vcount
 
-                    np.save(os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_x.npy"), x)
-                    np.save(os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_y.npy"), y)
+                    temp_file_name = str(int(np.random.rand() * 100000000000)) + ".npy"
+                    np.save(temp_file_name, x)
+                    os.rename(temp_file_name,
+                              os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_x.npy"))
+
+                    temp_file_name = str(int(np.random.rand() * 100000000000)) + ".npy"
+                    np.save(temp_file_name, y)
+                    os.rename(temp_file_name,
+                              os.path.join(self.validation_folder, self.key_dimensions() + str(r) + "_y.npy"))
 
         sprint(self.key_dimensions(), tcount, vcount)
         sprint(
