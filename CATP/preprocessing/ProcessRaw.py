@@ -175,6 +175,8 @@ class ProcessRaw:
         for i in range(df.shape[0]):
             M[x_bins[i], y_bins[i], :] = M[x_bins[i], y_bins[i], :] / count_dict[x_bins[i], y_bins[i]]
 
+        if not os.path.exists("data_samples"):
+            os.mkdir("data_samples")
         np.save(npy_filename, M)
         #     print(M.shape)
 
@@ -335,7 +337,7 @@ class ProcessRaw:
 
 if __name__ == "__main__":
     # os.system("rm -rf data_samples && mkdir data_samples")
-    for city in config.city_list:
+    for city in config.city_list_def:
         # scales
         for scale in config.scales_def:
             for i_o_length in config.i_o_lengths_def:

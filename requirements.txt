@@ -1,9 +1,0 @@
-torch==1.11.0
-pyarrow==12.0.0
-h5py==3.8.0
-smartprint==1.0.5
-tqdm==4.65.0
-haversine==2.8.0
-python-slugify==8.0.1
-peakdetect==1.2
-seaborn==0.12.2

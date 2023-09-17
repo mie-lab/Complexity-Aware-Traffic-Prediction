@@ -28,7 +28,6 @@ if running_on == "server":
 elif running_on == "maclocal":
     HOME_FOLDER = "/Users/nishant/Documents/GitHub/CTP/exploration/CATP"
     DATA_FOLDER = "/Users/nishant/Downloads/NeurIPS2022-traffic4cast"
-
 else:
     raise Exception("HOME_FOLDER and DATA_FOLDER not specified; please check config file")
 
@@ -81,7 +80,7 @@ if running_on == "server":
     cl_dataloader_workers = 32
     cl_epochs = 30
 elif running_on == "maclocal":
-    cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
+    cl_percentage_of_train_data = 0.02  # can be reduced for fast tryouts
     cl_batch_size = 3
     cl_dataloader_workers = 4
     cl_epochs = 20
@@ -128,16 +127,16 @@ elif running_on == "maclocal":
     # i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     # pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     city_list = [
-        "london",
+        # "london",
         "melbourne",
-        "madrid",
+        # "madrid",
         
     ]  # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
-    scales = list(range(25, 106, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
-    i_o_lengths = list(range(1, 9))
-    pred_horiz = list(range(1, 9))
+    scales = [55] # list(range(100, 106, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
+    i_o_lengths = [4] # list(range(1, 9))
+    pred_horiz = [1] # list(range(1, 9))
 
-    city_list_def = ["London"]
+    city_list_def = ["melbourne"]
     scales_def = [55]
     i_o_lengths_def = [4]
     pred_horiz_def = [1]

@@ -5,10 +5,19 @@
 This is the code accompanying the paper _Intrinsic Complexity of Deep Learning-based City-wide Traffic Prediction_
 
 ## Dependencies
-- Please use `pip install -r requirements.txt` to install all dependencies, including the ones needed for reading files from the competition repository for Traffic4Cast2022.
-- To ensure that tensorflow runs without any issues, please create a new env with exact versions for ptyhon and tensorflow `conda create --name tf python=3.9` and then activate it. Thereafter, use `bash requirements_tensorflow.txt`
- 
 
+Ubuntu: 
+```bash
+conda create --name pyenv python=3.11
+conda activate pyenv
+pip install -r requirements_frozen.txt
+```
+If GPU not available, comment out these lines:
+```bash
+# #######################
+# nvidia-cublas-cu11==11.11.3.6
+# nvidia-cudnn-cu11==8.6.0.163
+```
 
 ## Config file
 The config file (located at `CATP/config.py`) contains the key parameters that can be changed in the current code version. The default values are coherent with the results in our paper. 
