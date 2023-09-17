@@ -323,53 +323,6 @@ class ConvLSTM:
                 callbacks=callbacks,
                 workers=config.cl_dataloader_workers,
             )
-
-        if config.cl_during_training_CSR_enabled_train_end:
-            cx = Complexity(
-                self.model.cityname,
-                i_o_length = self.model.io_length,
-                prediction_horizon = self.model.pred_horiz,
-                grid_size = self.model.scale,
-                thresh = config.cl_thresh,
-                perfect_model = False,
-                model_func = self.model.predict,
-                model_train_gen = self.model.train_gen,
-                run_pm = False,
-                run_nm = False,
-                run_gb = False,
-            )
-            print(
-                "TRAIN_END: ",
-                self.prefix,
-                self.cityname,
-                self.io_length,
-                self.pred_horiz,
-                self.scale,
-                cx.CSR_MP_sum_y_exceeding_r_x_max
-            )
-        elif config.cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal:
-            cx = Complexity(
-                self.model.cityname,
-                i_o_length = self.model.io_length,
-                prediction_horizon = self.model.pred_horiz,
-                grid_size = self.model.scale,
-                thresh = config.cl_thresh,
-                perfect_model = False,
-                model_func = self.model.predict,
-                model_train_gen = self.model.validation_gen, # only one line change compared to the standard call above
-                run_pm = False,
-                run_nm = False,
-                run_gb = False,
-            )
-            print(
-                "TRAIN_END: ",
-                self.prefix,
-                self.cityname,
-                self.io_length,
-                self.pred_horiz,
-                self.scale,
-                cx.CSR_MP_sum_y_exceeding_r_x_max,
-            )
         # no need to train anymore
         return self.model
 
@@ -416,4 +369,4 @@ if __name__ == "__main__":
     # model.predict_train_data_and_save_all()
 
     # Now, we can delete the temp files after training for one scenario
-    obj._clean_intermediate_files()
+    # obj._clean_intermediate_files()

@@ -113,7 +113,7 @@ class ProcessRaw:
         """
         #     print (get_NS_EW_distance(df))
         npy_filename = os.path.join(
-            "data_samples", self.cityname + "_" + date_ + "-" + str(n) + "x" + str(n) + "x96.npy"
+            config.DATA_FOLDER, "data_samples", self.cityname + "_" + date_ + "-" + str(n) + "x" + str(n) + "x96.npy"
         )
         if os.path.exists(npy_filename):
             return

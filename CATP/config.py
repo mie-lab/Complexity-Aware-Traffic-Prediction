@@ -80,26 +80,15 @@ if running_on == "server":
     cl_dataloader_workers = 32
     cl_epochs = 30
 elif running_on == "maclocal":
-    cl_percentage_of_train_data = 0.02  # can be reduced for fast tryouts
+    cl_percentage_of_train_data = 0.002  # can be reduced for fast tryouts
     cl_batch_size = 3
     cl_dataloader_workers = 4
-    cl_epochs = 20
+    cl_epochs = 2
 
 cl_loss_func = "mse"  # "mse"
 cl_n_depth = 3
 cl_during_training_CSR_enabled_epoch_end = False
-cl_during_training_CSR_enabled_batch_end = False
-cl_during_training_CSR_enabled_train_end = False
-cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal = False
 
-if cx_post_model_loading_from_saved_val_error_plots_temporal: # just a check to avoid messing up of config file
-    assert cx_post_model_loading_from_saved_val_error_plots_temporal  or cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy
-
-# since we need to switch train and val gen depending on computing Cx or computing validation errors
-# See model.train inside ConvLSTM for clarification
-# assert cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal != cl_during_training_CSR_enabled_train_end
-# assert cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal != cl_during_training_CSR_enabled_epoch_end
-# assert cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal != cl_during_training_CSR_enabled_batch_end
 
 ######################### Dimensions for experiments ####################
 if running_on == "server":
