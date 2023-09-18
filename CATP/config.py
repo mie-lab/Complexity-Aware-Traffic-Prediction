@@ -55,12 +55,11 @@ elif running_on == "maclocal":
     cx_batch_size = 2
 
 cx_delete_files_after_running = True
-cx_range_day_scan = range(-3, 4)
-cx_range_t_band_scan = range(-4, 5)
+cx_range_day_scan = range(0, 1)
+cx_range_t_band_scan = range(-1, 2)
 cx_spatial_cx_PM_dist_enabled = False
 cx_post_model_loading_from_saved_val_error_plots_temporal = False
 cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy = False
-cx_special_case_validation_data = False
 
 ######################## Datagen class params #########################
 dg_debug = False
@@ -150,22 +149,15 @@ DATA_END_DATE = {
 
 val_folder_name = "val_data_all_cities"
 train_folder_name = "train_data_all_cities"
-val_folder_name_sparse = "val_data_all_cities_sparse"
-train_folder_name_sparse = "train_data_all_cities_sparse"
+
 
 if not os.path.exists(os.path.join(DATA_FOLDER, train_folder_name)):
     os.mkdir(os.path.join(DATA_FOLDER, train_folder_name))
 if not os.path.exists(os.path.join(DATA_FOLDER, val_folder_name)):
     os.mkdir(os.path.join(DATA_FOLDER, val_folder_name))
-if not os.path.exists(os.path.join(DATA_FOLDER, train_folder_name_sparse)):
-    os.mkdir(os.path.join(DATA_FOLDER, train_folder_name_sparse))
-if not os.path.exists(os.path.join(DATA_FOLDER, val_folder_name_sparse)):
-    os.mkdir(os.path.join(DATA_FOLDER, val_folder_name_sparse))
 
 TRAINING_DATA_FOLDER = os.path.join(DATA_FOLDER, train_folder_name)
 VALIDATION_DATA_FOLDER = os.path.join(DATA_FOLDER, val_folder_name)
-TRAINING_DATA_FOLDER_SPARSE = os.path.join(DATA_FOLDER, train_folder_name_sparse)
-VALIDATION_DATA_FOLDER_SPARSE = os.path.join(DATA_FOLDER, val_folder_name_sparse)
 
 if running_on == "server":
     cutoff_day_number_train = int(30 * 3.5)
