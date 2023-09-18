@@ -785,6 +785,228 @@ class Complexity:
             plt.xlim(0, 3000)
             plt.savefig("plots/GB_more_max/GB_more_max_" + str(round(time.time(), 2)) + ".png")
 
+    # def cx_whole_dataset_m_predict_legacy(self, temporal_filter=False):
+    #     """
+    #     temporal_filter: If true, filtering is carried out using nearest neighbours
+    #     """
+    #
+    #     # self.model_train_gen is set from ConvLSTM class; It is traingen when computing cx; and
+    #     # val_gen when computing errors
+    #     # So, we need to set the foldernames accordingly
+    #
+    #     self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, ProcessRaw.file_prefix(cityname=self.cityname, io_length=self.i_o_length, pred_horiz=self.prediction_horizon, scale=self.grid_size))
+    #
+    #     file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
+    #     random.shuffle(file_list)
+    #
+    #     criticality_dataset_2 = []
+    #     criticality_dataset_2_exp = []
+    #     count_y_more_than_max_x_dataset = []
+    #     sum_y_more_than_max_x_dataset = []
+    #     sum_y_more_than_mean_x_dataset = []
+    #     sum_y_more_than_mean_x_exp_dataset = []
+    #     frac_sum_dataset = []
+    #
+    #
+    #     sum_y_dataset = []
+    #     sum_x_dataset = []
+    #     red_by_grey_sum_dataset = []
+    #
+    #     random.shuffle(file_list)
+    #
+    #     for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+    #         sum_y = []
+    #         sum_x = []
+    #
+    #         count_missing = 0
+    #
+    #         filename = file_list[i]
+    #         x = np.load(filename)
+    #
+    #         # get corresponding y
+    #         fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
+    #         y = self.model_predict(np.moveaxis(x, [0, 1, 2], [1, 2, 0])[np.newaxis, ..., np.newaxis])
+    #         y = np.moveaxis(y[0, :, :, :, 0], [0, 1, 2], [2, 0, 1])
+    #
+    #         neighbour_indexes = []
+    #
+    #         if not temporal_filter:
+    #             # uniform sampling case
+    #             while len(neighbour_indexes) < 50:
+    #                 random.shuffle(file_list)
+    #                 for j in range(config.cx_sample_single_point):
+    #                     sample_point_x = np.load(file_list[j])
+    #
+    #                     if np.max(np.abs(sample_point_x - x)) < self.thresh:
+    #                         fileindex = int(file_list[j].split("_x.npy")[-2].split("-")[-1])
+    #                         neighbour_indexes.append(fileindex)
+    #                 # sprint (len(neighbour_indexes))
+    #
+    #             neighbour_indexes = neighbour_indexes[:50]
+    #
+    #         elif temporal_filter:
+    #             # Advanced filtering case
+    #             # 3 days before, 3 days later, and today
+    #             # within {width} on each side
+    #             for day in config.cx_range_day_scan:
+    #                 for width in config.cx_range_t_band_scan:  # 1 hour before and after
+    #                     current_offset = day * self.offset + width
+    #
+    #                     if current_offset == 0 or fileindex_orig + current_offset == 0:
+    #                         # ignore the same point
+    #                         # fileindex_orig + current_offset == 0: since our file indexing starts from 1
+    #                         continue
+    #                     index_with_offset = fileindex_orig + current_offset
+    #
+    #                     # Test if x_neighbours and y_neighbours both exist;
+    #                     if not os.path.exists(
+    #                         (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
+    #                     ) or not os.path.exists(
+    #                         (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+    #                     ):
+    #                         count_missing += 1
+    #                         # print ("Point ignored; x or y label not found; edge effect")
+    #                         continue
+    #
+    #                     neighbour_indexes.append(index_with_offset)
+    #
+    #         sum_x_m_predict = []
+    #         sum_y_m_predict = []
+    #         criticality_2 = []
+    #         criticality_2_exp = []
+    #
+    #         for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
+    #
+    #             if config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy:
+    #                 fileindices = neighbour_indexes[j : j + config.cx_batch_size]
+    #                 if 0 in fileindices:
+    #                     print("Skipped file indexed with 0")
+    #                     continue
+    #
+    #                 # sprint (len(self.model_train_gen.__getitem__(fileindices)))
+    #
+    #                 x_neighbour, y_neighbour_gt = self.model_train_gen.__getitem__(fileindices)
+    #
+    #                 y_neighbour = self.model_predict(x_neighbour)
+    #
+    #                 # Since this is the no thresh case
+    #                 # if np.max(np.abs(y_neighbour - y)) > self.thresh:
+    #
+    #                 assert (config.cx_batch_size == x_neighbour.shape[0]) or (
+    #                     j + config.cx_batch_size >= len(neighbour_indexes)
+    #                 )  # for the last batch
+    #
+    #                 assert x_neighbour.shape[0] == y_neighbour.shape[0]
+    #
+    #                 y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+    #                 x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+    #
+    #                 assert (y_reshaped.shape[1:] == y_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+    #                 assert (x_reshaped.shape[1:] == x_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+    #
+    #                 dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+    #                 dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+    #
+    #                 if not os.path.exists(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix + "-spatial-errors")):
+    #                     os.mkdir(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix + "-spatial-errors"))
+    #                 np.save(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix + "-spatial-errors", str(int(np.random.rand()*10000000000)) + ".npy"),
+    #                         np.mean((y_neighbour - y_neighbour_gt) ** 2, axis=0))
+    #
+    #             else:
+    #                 # create two dummy lists dist_x and dist_y for the computation below;
+    #                 # this case is useful when we just want the temporal errors
+    #                 dist_x = np.array([1])
+    #                 dist_y = np.array([1])
+    #
+    #             if config.DEBUG:
+    #                 # should be same order;
+    #                 # implies we do not need to recompute the x distances, but just to be safe
+    #                 # we recompute the distances nevertheless, since it is super fast (i/o is the bottleneck)
+    #                 sprint(sum_x)
+    #                 sprint(dist_x)
+    #
+    #             sum_x_m_predict.extend(dist_x.tolist())
+    #             sum_y_m_predict.extend(dist_y.tolist())
+    #
+    #             frac = dist_y / dist_x
+    #             frac = frac[~np.isnan(frac)]
+    #
+    #             criticality_2.extend(frac.tolist())
+    #             criticality_2_exp.extend(np.exp(-frac).tolist())
+    #
+    #         # Speedup for when running only the temporal case, no spatial;
+    #         # Later we can run them together; but for now, they must be run separately (spatial and temporal)
+    #         if config.cx_post_model_loading_from_saved_val_error_plots_temporal:
+    #             assert  not  config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy
+    #
+    #             # need to do this explicitly, since for computing complexiy, we don't keep the corresponding GT for this specific case
+    #             # we don't keep this in the model predict function; This will be present in the PM function
+    #             x_orig, y_gt = self.model_train_gen.__getitem__([fileindex_orig])
+    #
+    #             x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+    #             y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis] # remember this y is infact f(x)
+    #
+    #             assert (x_orig == x_reshaped).all()
+    #             assert (y_reshaped.shape == y_gt.shape)
+    #             print("parsing_model_predict_for_temporal_errors:", self.cityname, self.i_o_length,
+    #                   self.prediction_horizon,
+    #                   self.grid_size, fileindex_orig, np.mean((y_reshaped-y_gt) ** 2), np.mean((y_reshaped-x_reshaped) ** 2) ** 0.5)
+    #
+    #         sum_x_m_predict = np.array(sum_x_m_predict)
+    #         sum_y_m_predict = np.array(sum_y_m_predict)
+    #
+    #         # print("Length: ", len(sum_x_m_predict.tolist()))
+    #         if len(sum_x_m_predict.tolist()) == 0:
+    #             continue
+    #         max_x = np.max(sum_x_m_predict)
+    #         mean_x = np.mean(sum_x_m_predict)
+    #         mean_y = np.mean(sum_y_m_predict)
+    #
+    #         frac_sum_dataset.append(mean_y / mean_x)
+    #
+    #         count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
+    #         count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
+    #
+    #         criticality_dataset_2.append(np.mean(criticality_2))
+    #         criticality_dataset_2_exp.append(np.mean(criticality_2_exp))
+    #
+    #         sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
+    #         if len(sum_y_more_than_max_x.tolist()) > 0:
+    #             sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
+    #         else:
+    #             sum_y_more_than_max_x_dataset.append(0)
+    #
+    #
+    #         red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
+    #
+    #         sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
+    #         if len(sum_y_more_than_mean_x.tolist()) > 0:
+    #             sum_y_more_than_mean_x_dataset.append(np.mean(sum_y_more_than_mean_x))
+    #         else:
+    #             sum_y_more_than_mean_x_dataset.append(0)
+    #
+    #         sum_y_more_than_mean_x_exp = np.exp(-np.abs(sum_y_m_predict - mean_x))
+    #         if len(sum_y_more_than_mean_x_exp.tolist()) > 0:
+    #             sum_y_more_than_mean_x_exp_dataset.append(np.mean(sum_y_more_than_mean_x_exp))
+    #
+    #         sum_y_dataset.append(np.mean(sum_y_m_predict))
+    #         sum_x_dataset.append(np.mean(sum_x_m_predict))
+    #
+    #         if config.DEBUG:
+    #             assert len(sum_x_dataset) == len(sum_y_dataset)
+    #             sprint(len(sum_y))
+    #
+    #
+    #
+    #     self.CSR_MP_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
+    #
+    #
+    #     if config.DEBUG:
+    #         plt.clf()
+    #         plt.hist(sum_y_more_than_max_x_dataset, bins=100)
+    #         plt.xlim(0, 3000)
+    #         plt.savefig("plots/MP_more_max/MP_more_max_" + str(round(time.time(), 2)) + ".png")
+
     def cx_whole_dataset_m_predict(self, temporal_filter=False):
         """
         temporal_filter: If true, filtering is carried out using nearest neighbours
@@ -794,7 +1016,10 @@ class Complexity:
         # val_gen when computing errors
         # So, we need to set the foldernames accordingly
 
-        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, ProcessRaw.file_prefix(cityname=self.cityname, io_length=self.i_o_length, pred_horiz=self.prediction_horizon, scale=self.grid_size))
+        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER,
+                                              ProcessRaw.file_prefix(cityname=self.cityname, io_length=self.i_o_length,
+                                                                     pred_horiz=self.prediction_horizon,
+                                                                     scale=self.grid_size))
 
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
@@ -806,7 +1031,6 @@ class Complexity:
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
         frac_sum_dataset = []
-
 
         sum_y_dataset = []
         sum_x_dataset = []
@@ -830,45 +1054,31 @@ class Complexity:
 
             neighbour_indexes = []
 
-            if not temporal_filter:
-                # uniform sampling case
-                while len(neighbour_indexes) < 50:
-                    random.shuffle(file_list)
-                    for j in range(config.cx_sample_single_point):
-                        sample_point_x = np.load(file_list[j])
 
-                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
-                            fileindex = int(file_list[j].split("_x.npy")[-2].split("-")[-1])
-                            neighbour_indexes.append(fileindex)
-                    # sprint (len(neighbour_indexes))
+            # Advanced filtering case
+            # 3 days before, 3 days later, and today
+            # within {width} on each side
+            for day in config.cx_range_day_scan:
+                for width in config.cx_range_t_band_scan:  # 1 hour before and after
+                    current_offset = day * self.offset + width
 
-                neighbour_indexes = neighbour_indexes[:50]
+                    if current_offset == 0 or fileindex_orig + current_offset == 0:
+                        # ignore the same point
+                        # fileindex_orig + current_offset == 0: since our file indexing starts from 1
+                        continue
+                    index_with_offset = fileindex_orig + current_offset
 
-            elif temporal_filter:
-                # Advanced filtering case
-                # 3 days before, 3 days later, and today
-                # within {width} on each side
-                for day in config.cx_range_day_scan:
-                    for width in config.cx_range_t_band_scan:  # 1 hour before and after
-                        current_offset = day * self.offset + width
-
-                        if current_offset == 0 or fileindex_orig + current_offset == 0:
-                            # ignore the same point
-                            # fileindex_orig + current_offset == 0: since our file indexing starts from 1
-                            continue
-                        index_with_offset = fileindex_orig + current_offset
-
-                        # Test if x_neighbours and y_neighbours both exist;
-                        if not os.path.exists(
+                    # Test if x_neighbours and y_neighbours both exist;
+                    if not os.path.exists(
                             (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
-                        ) or not os.path.exists(
-                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
-                        ):
-                            count_missing += 1
-                            # print ("Point ignored; x or y label not found; edge effect")
-                            continue
+                    ) or not os.path.exists(
+                        (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+                    ):
+                        count_missing += 1
+                        # print ("Point ignored; x or y label not found; edge effect")
+                        continue
 
-                        neighbour_indexes.append(index_with_offset)
+                    neighbour_indexes.append(index_with_offset)
 
             sum_x_m_predict = []
             sum_y_m_predict = []
@@ -876,47 +1086,37 @@ class Complexity:
             criticality_2_exp = []
 
             for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
+                fileindices = neighbour_indexes[j: j + config.cx_batch_size]
+                if 0 in fileindices:
+                    print("Skipped file indexed with 0")
+                    continue
 
-                if config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy:
-                    fileindices = neighbour_indexes[j : j + config.cx_batch_size]
-                    if 0 in fileindices:
-                        print("Skipped file indexed with 0")
-                        continue
+                # sprint (len(self.model_train_gen.__getitem__(fileindices)))
 
-                    # sprint (len(self.model_train_gen.__getitem__(fileindices)))
+                x_neighbour, y_neighbour_gt = self.model_train_gen.__getitem__(fileindices)
 
-                    x_neighbour, y_neighbour_gt = self.model_train_gen.__getitem__(fileindices)
+                y_neighbour = self.model_predict(x_neighbour)
 
-                    y_neighbour = self.model_predict(x_neighbour)
+                # Since this is the no thresh case
+                # if np.max(np.abs(y_neighbour - y)) > self.thresh:
 
-                    # Since this is the no thresh case
-                    # if np.max(np.abs(y_neighbour - y)) > self.thresh:
-
-                    assert (config.cx_batch_size == x_neighbour.shape[0]) or (
+                assert (config.cx_batch_size == x_neighbour.shape[0]) or (
                         j + config.cx_batch_size >= len(neighbour_indexes)
-                    )  # for the last batch
+                )  # for the last batch
 
-                    assert x_neighbour.shape[0] == y_neighbour.shape[0]
+                assert x_neighbour.shape[0] == y_neighbour.shape[0]
 
-                    y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
-                    x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
+                x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
 
-                    assert (y_reshaped.shape[1:] == y_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
-                    assert (x_reshaped.shape[1:] == x_neighbour.shape[1:]) # ignore the batch size dimension (the first one)
+                assert (y_reshaped.shape[1:] == y_neighbour.shape[
+                                                1:])  # ignore the batch size dimension (the first one)
+                assert (x_reshaped.shape[1:] == x_neighbour.shape[
+                                                1:])  # ignore the batch size dimension (the first one)
 
-                    dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
-                    dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+                dist_y = np.max((abs(y_neighbour - y_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
+                dist_x = np.max((abs(x_neighbour - x_reshaped)).reshape(x_neighbour.shape[0], -1), axis=1)
 
-                    if not os.path.exists(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix + "-spatial-errors")):
-                        os.mkdir(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix + "-spatial-errors"))
-                    np.save(os.path.join(config.INTERMEDIATE_FOLDER, self.file_prefix + "-spatial-errors", str(int(np.random.rand()*10000000000)) + ".npy"),
-                            np.mean((y_neighbour - y_neighbour_gt) ** 2, axis=0))
-
-                else:
-                    # create two dummy lists dist_x and dist_y for the computation below;
-                    # this case is useful when we just want the temporal errors
-                    dist_x = np.array([1])
-                    dist_y = np.array([1])
 
                 if config.DEBUG:
                     # should be same order;
@@ -934,23 +1134,6 @@ class Complexity:
                 criticality_2.extend(frac.tolist())
                 criticality_2_exp.extend(np.exp(-frac).tolist())
 
-            # Speedup for when running only the temporal case, no spatial;
-            # Later we can run them together; but for now, they must be run separately (spatial and temporal)
-            if config.cx_post_model_loading_from_saved_val_error_plots_temporal:
-                assert  not  config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy
-
-                # need to do this explicitly, since for computing complexiy, we don't keep the corresponding GT for this specific case
-                # we don't keep this in the model predict function; This will be present in the PM function
-                x_orig, y_gt = self.model_train_gen.__getitem__([fileindex_orig])
-
-                x_reshaped = np.moveaxis(x, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis]
-                y_reshaped = np.moveaxis(y, (0, 1, 2), (1, 2, 0))[np.newaxis, ..., np.newaxis] # remember this y is infact f(x)
-
-                assert (x_orig == x_reshaped).all()
-                assert (y_reshaped.shape == y_gt.shape)
-                print("parsing_model_predict_for_temporal_errors:", self.cityname, self.i_o_length,
-                      self.prediction_horizon,
-                      self.grid_size, fileindex_orig, np.mean((y_reshaped-y_gt) ** 2), np.mean((y_reshaped-x_reshaped) ** 2) ** 0.5)
 
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
@@ -976,8 +1159,7 @@ class Complexity:
             else:
                 sum_y_more_than_max_x_dataset.append(0)
 
-
-            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
+            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x) / np.sum(sum_x_m_predict))
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
@@ -996,17 +1178,13 @@ class Complexity:
                 assert len(sum_x_dataset) == len(sum_y_dataset)
                 sprint(len(sum_y))
 
-
-
         self.CSR_MP_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
-
 
         if config.DEBUG:
             plt.clf()
             plt.hist(sum_y_more_than_max_x_dataset, bins=100)
             plt.xlim(0, 3000)
             plt.savefig("plots/MP_more_max/MP_more_max_" + str(round(time.time(), 2)) + ".png")
-
 
     def csv_format(self):
         print("###################################################")
