@@ -25,7 +25,6 @@ class Complexity:
         i_o_length,
         prediction_horizon,
         grid_size,
-        thresh,
         perfect_model,
         model_func,
         model_train_gen,
@@ -44,7 +43,6 @@ class Complexity:
             cityname=self.cityname, io_length=self.i_o_length, pred_horiz=self.prediction_horizon, scale=self.grid_size
         )
         self.model_train_gen = model_train_gen
-        self.thresh = thresh
 
         self.offset = 96 - (prediction_horizon + i_o_length * 2 + 1)  # one time for ip; one for op; one for pred_horiz;
         # self.offset replaces 96 to account for edge effects of specific experiments
@@ -58,28 +56,25 @@ class Complexity:
 
         if perfect_model:
             assert model_func == None
-            self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
+            self.cx_whole_dataset_PM_no_thresh()
             if config.cx_spatial_cx_PM_dist_enabled:
-                self.cx_whole_dataset_PM_no_thresh_spatial(temporal_filter=True)
+                self.cx_whole_dataset_PM_no_thresh_spatial()
 
         else:
             assert model_func != None
             self.model_predict = model_func
 
-            self.cx_whole_dataset_m_predict(temporal_filter=True)
+            self.cx_whole_dataset_m_predict()
 
             if run_pm:
-                self.cx_whole_dataset_PM_no_thresh(temporal_filter=True)
+                self.cx_whole_dataset_PM_no_thresh()
             if run_nm:
-                self.cx_whole_dataset_NM_no_thresh(temporal_filter=True)
+                self.cx_whole_dataset_NM_no_thresh()
             if run_gb:
-                self.cx_whole_dataset_Garbage_predict(temporal_filter=True)
+                self.cx_whole_dataset_Garbage_predict()
             self.csv_format()
 
-    def cx_whole_dataset_PM_no_thresh(self, temporal_filter=False):
-        """
-        temporal_filter: If true, filtering is carried out using nearest neighbours
-        """
+    def cx_whole_dataset_PM_no_thresh(self):
         if config.cx_special_case_validation_data:
             self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
         else:
@@ -121,46 +116,31 @@ class Complexity:
 
             neighbour_indexes = []
 
-            if not temporal_filter:
-                # uniform sampling case
-                while len(neighbour_indexes) < 50:
-                    random.shuffle(file_list)
-                    for j in range(config.cx_sample_single_point):
-                        sample_point_x = np.load(file_list[j])
 
-                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
-                            fileindex = int(file_list[j].split("_x.npy")[-2].split("-")[-1])
-                            neighbour_indexes.append(fileindex)
-                    # sprint (len(neighbour_indexes))
+            # Advanced filtering case
+            # 3 days before, 3 days later, and today
+            # within {width} on each side
+            for day in config.cx_range_day_scan:
+                for width in config.cx_range_t_band_scan:  # 1 hour before and after
+                    current_offset = day * self.offset + width
 
-                neighbour_indexes = neighbour_indexes[:50]
+                    if current_offset == 0 or fileindex_orig + current_offset == 0:
+                        # ignore the same point
+                        # fileindex_orig + current_offset == 0: since our file indexing starts from 1
+                        continue
+                    index_with_offset = fileindex_orig + current_offset
 
+                    # Test if x_neighbours and y_neighbours both exist;
+                    if not os.path.exists(
+                        (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
+                    ) or not os.path.exists(
+                        (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+                    ):
+                        count_missing += 1
+                        # print ("Point ignored; x or y label not found; edge effect")
+                        continue
 
-            elif temporal_filter:
-                # Advanced filtering case
-                # 3 days before, 3 days later, and today
-                # within {width} on each side
-                for day in config.cx_range_day_scan:
-                    for width in config.cx_range_t_band_scan:  # 1 hour before and after
-                        current_offset = day * self.offset + width
-
-                        if current_offset == 0 or fileindex_orig + current_offset == 0:
-                            # ignore the same point
-                            # fileindex_orig + current_offset == 0: since our file indexing starts from 1
-                            continue
-                        index_with_offset = fileindex_orig + current_offset
-
-                        # Test if x_neighbours and y_neighbours both exist;
-                        if not os.path.exists(
-                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
-                        ) or not os.path.exists(
-                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
-                        ):
-                            count_missing += 1
-                            # print ("Point ignored; x or y label not found; edge effect")
-                            continue
-
-                        neighbour_indexes.append(index_with_offset)
+                    neighbour_indexes.append(index_with_offset)
 
             sum_x_m_predict = []
             sum_y_m_predict = []
@@ -268,10 +248,7 @@ class Complexity:
             plt.xlim(0, 3000)
             plt.savefig("plots/PM_more_max/PM_more_max_" + str(round(time.time(), 2)) + ".png")
 
-    def cx_whole_dataset_PM_no_thresh_spatial(self, temporal_filter=False):
-        """
-        temporal_filter: If true, filtering is carried out using nearest neighbours
-        """
+    def cx_whole_dataset_PM_no_thresh_spatial(self):
         self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
@@ -303,46 +280,31 @@ class Complexity:
 
             neighbour_indexes = []
 
-            if not temporal_filter:
-                # uniform sampling case
-                while len(neighbour_indexes) < 50:
-                    random.shuffle(file_list)
-                    for j in range(config.cx_sample_single_point):
-                        sample_point_x = np.load(file_list[j])
 
-                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
-                            fileindex = int(file_list[j].split("_x.npy")[-2].split("-")[-1])
-                            neighbour_indexes.append(fileindex)
-                    # sprint (len(neighbour_indexes))
+            # Advanced filtering case
+            # 3 days before, 3 days later, and today
+            # within {width} on each side
+            for day in config.cx_range_day_scan:
+                for width in config.cx_range_t_band_scan:  # 1 hour before and after
+                    current_offset = day * self.offset + width
 
-                neighbour_indexes = neighbour_indexes[:50]
+                    if current_offset == 0 or fileindex_orig + current_offset == 0:
+                        # ignore the same point
+                        # fileindex_orig + current_offset == 0: since our file indexing starts from 1
+                        continue
+                    index_with_offset = fileindex_orig + current_offset
 
+                    # Test if x_neighbours and y_neighbours both exist;
+                    if not os.path.exists(
+                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
+                    ) or not os.path.exists(
+                        (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+                    ):
+                        count_missing += 1
+                        # print ("Point ignored; x or y label not found; edge effect")
+                        continue
 
-            elif temporal_filter:
-                # Advanced filtering case
-                # 3 days before, 3 days later, and today
-                # within {width} on each side
-                for day in config.cx_range_day_scan:
-                    for width in config.cx_range_t_band_scan:  # 1 hour before and after
-                        current_offset = day * self.offset + width
-
-                        if current_offset == 0 or fileindex_orig + current_offset == 0:
-                            # ignore the same point
-                            # fileindex_orig + current_offset == 0: since our file indexing starts from 1
-                            continue
-                        index_with_offset = fileindex_orig + current_offset
-
-                        # Test if x_neighbours and y_neighbours both exist;
-                        if not os.path.exists(
-                                (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
-                        ) or not os.path.exists(
-                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
-                        ):
-                            count_missing += 1
-                            # print ("Point ignored; x or y label not found; edge effect")
-                            continue
-
-                        neighbour_indexes.append(index_with_offset)
+                    neighbour_indexes.append(index_with_offset)
 
             sum_x_m_predict = {}
             sum_y_m_predict = {}
@@ -426,10 +388,7 @@ class Complexity:
                          str(int(np.random.rand() * 10000000000))+ ".npy"),
             self.CSR_PM_sum_y_exceeding_r_x_max_scales)
 
-    def cx_whole_dataset_NM_no_thresh(self, temporal_filter=False):
-        """
-        temporal_filter: If true, filtering is carried out using nearest neighbours
-        """
+    def cx_whole_dataset_NM_no_thresh(self):
         self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
@@ -467,45 +426,32 @@ class Complexity:
 
             neighbour_indexes = []
 
-            if not temporal_filter:
-                # uniform sampling case
-                while len(neighbour_indexes) < 50:
-                    random.shuffle(file_list)
-                    for j in range(config.cx_sample_single_point):
-                        sample_point_x = np.load(file_list[j])
 
-                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
-                            fileindex = int(file_list[j].split("_x.npy")[-2].split("-")[-1])
-                            neighbour_indexes.append(fileindex)
-                    # sprint (len(neighbour_indexes))
 
-                neighbour_indexes = neighbour_indexes[:50]
+            # Advanced filtering case
+            # 3 days before, 3 days later, and today
+            # within {width} on each side
+            for day in config.cx_range_day_scan:
+                for width in config.cx_range_t_band_scan:  # 1 hour before and after
+                    current_offset = day * self.offset + width
 
-            elif temporal_filter:
-                # Advanced filtering case
-                # 3 days before, 3 days later, and today
-                # within {width} on each side
-                for day in config.cx_range_day_scan:
-                    for width in config.cx_range_t_band_scan:  # 1 hour before and after
-                        current_offset = day * self.offset + width
+                    if current_offset == 0 or fileindex_orig + current_offset == 0:
+                        # ignore the same point
+                        # fileindex_orig + current_offset == 0: since our file indexing starts from 1
+                        continue
+                    index_with_offset = fileindex_orig + current_offset
 
-                        if current_offset == 0 or fileindex_orig + current_offset == 0:
-                            # ignore the same point
-                            # fileindex_orig + current_offset == 0: since our file indexing starts from 1
-                            continue
-                        index_with_offset = fileindex_orig + current_offset
+                    # Test if x_neighbours and y_neighbours both exist;
+                    if not os.path.exists(
+                        (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
+                    ) or not os.path.exists(
+                        (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+                    ):
+                        count_missing += 1
+                        # print ("Point ignored; x or y label not found; edge effect")
+                        continue
 
-                        # Test if x_neighbours and y_neighbours both exist;
-                        if not os.path.exists(
-                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
-                        ) or not os.path.exists(
-                            (self.validation_folder + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
-                        ):
-                            count_missing += 1
-                            # print ("Point ignored; x or y label not found; edge effect")
-                            continue
-
-                        neighbour_indexes.append(index_with_offset)
+                    neighbour_indexes.append(index_with_offset)
 
             sum_x_m_predict = []
             sum_y_m_predict = []
@@ -608,10 +554,7 @@ class Complexity:
             plt.xlim(0, 3000)
             plt.savefig("plots/NM_more_max/NM_more_max_" + str(round(time.time(), 2)) + ".png")
 
-    def cx_whole_dataset_Garbage_predict(self, temporal_filter=False):
-        """
-        temporal_filter: If true, filtering is carried out using nearest neighbours
-        """
+    def cx_whole_dataset_Garbage_predict(self):
         self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
@@ -650,25 +593,10 @@ class Complexity:
 
             neighbour_indexes = []
 
-            if not temporal_filter:
-                # uniform sampling case
-                while len(neighbour_indexes) < 50:
-                    random.shuffle(file_list)
-                    for j in range(config.cx_sample_single_point):
-                        sample_point_x = np.load(file_list[j])
-
-                        if np.max(np.abs(sample_point_x - x)) < self.thresh:
-                            fileindex = int(file_list[j].split("_x.npy")[-2].split("-")[-1])
-                            neighbour_indexes.append(fileindex)
-                    # sprint (len(neighbour_indexes))
-
-                neighbour_indexes = neighbour_indexes[:50]
-
-            elif temporal_filter:
-                # Advanced filtering case
-                # 3 days before, 3 days later, and today
-                # within {width} on each side
-                for day in config.cx_range_day_scan:
+            # Advanced filtering case
+            # 3 days before, 3 days later, and today
+            # within {width} on each side
+            for day in config.cx_range_day_scan:
                     for width in config.cx_range_t_band_scan:  # 1 hour before and after
                         current_offset = day * self.offset + width
 
@@ -1007,11 +935,7 @@ class Complexity:
     #         plt.xlim(0, 3000)
     #         plt.savefig("plots/MP_more_max/MP_more_max_" + str(round(time.time(), 2)) + ".png")
 
-    def cx_whole_dataset_m_predict(self, temporal_filter=False):
-        """
-        temporal_filter: If true, filtering is carried out using nearest neighbours
-        """
-
+    def cx_whole_dataset_m_predict(self):
         # self.model_train_gen is set from ConvLSTM class; It is traingen when computing cx; and
         # val_gen when computing errors
         # So, we need to set the foldernames accordingly
@@ -1194,7 +1118,6 @@ class Complexity:
             self.i_o_length,
             self.prediction_horizon,
             self.grid_size,
-            self.thresh,
             config.cx_sample_whole_data,
             self.CSR_MP_sum_y_exceeding_r_x_max,
             self.CSR_PM_sum_y_exceeding_r_x_max,
@@ -1211,52 +1134,50 @@ if __name__ == "__main__":
         for city in config.city_list_def:
             for i_o_length in config.i_o_lengths_def:
                 for pred_horiz in config.pred_horiz_def:
-                    for thresh in [100]:  # , 200, 400, 600, 800, 1100, 1300, 1500, 2000, 2500, 3000, 3500]:
-                        obj = ProcessRaw(
-                            cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
+                    obj = ProcessRaw(
+                        cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
+                    )
+                    if config.cx_special_case_validation_data:
+                        train_data_folder = os.path.join(
+                            config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER, obj.key_dimensions()
                         )
-                        if config.cx_special_case_validation_data:
-                            train_data_folder = os.path.join(
-                                config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER, obj.key_dimensions()
-                            )
-                        else:
-                            train_data_folder = os.path.join(
-                                config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
-                            )
-                        num_train = len(
-                            glob.glob(
-                                os.path.join(config.HOME_FOLDER, train_data_folder)
-                                + "/"
-                                + obj.key_dimensions()
-                                + "*_x.npy"
-                            )
+                    else:
+                        train_data_folder = os.path.join(
+                            config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
                         )
-                        train_gen = CustomDataGenerator(
-                            city,
-                            i_o_length,
-                            pred_horiz,
-                            scale,
-                            data_dir=train_data_folder,
-                            num_samples=num_train,
-                            batch_size=config.cl_batch_size,
-                            shuffle=True,
+                    num_train = len(
+                        glob.glob(
+                            os.path.join(config.HOME_FOLDER, train_data_folder)
+                            + "/"
+                            + obj.key_dimensions()
+                            + "*_x.npy"
                         )
-                        cx = Complexity(
-                            city,
-                            i_o_length=i_o_length,
-                            prediction_horizon=pred_horiz,
-                            grid_size=scale,
-                            thresh=thresh,
-                            perfect_model=True,
-                            model_func=None,
-                            model_train_gen=train_gen,
-                            run_pm=False,
-                            run_nm=False,
-                            run_gb=False,
-                        )
-                        
-                        cx.csv_format()
-                        # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
+                    )
+                    train_gen = CustomDataGenerator(
+                        city,
+                        i_o_length,
+                        pred_horiz,
+                        scale,
+                        data_dir=train_data_folder,
+                        num_samples=num_train,
+                        batch_size=config.cl_batch_size,
+                        shuffle=True,
+                    )
+                    cx = Complexity(
+                        city,
+                        i_o_length=i_o_length,
+                        prediction_horizon=pred_horiz,
+                        grid_size=scale,
+                        perfect_model=True,
+                        model_func=None,
+                        model_train_gen=train_gen,
+                        run_pm=False,
+                        run_nm=False,
+                        run_gb=False,
+                    )
+
+                    cx.csv_format()
+                    # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
 
         # To parse the results into a csv:
         # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count,CSR_PM_no_thresh_median,CSR_PM_no_thresh_mean,CSR_PM_no_thresh_frac_median,CSR_PM_no_thresh_frac_mean'

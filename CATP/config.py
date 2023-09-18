@@ -22,11 +22,11 @@ else:
 
 
 if running_on == "server":
-    HOME_FOLDER = "/home/niskumar/NeurIPS2022-traffic4cast/exploration/CATP"
-    DATA_FOLDER = "/home/niskumar/NeurIPS2022-traffic4cast"
+    HOME_FOLDER = "/home/niskumar/CATP/CATP"
+    DATA_FOLDER = "/home/niskumar/CATP/NeurIPS2022-traffic4cast"
 
 elif running_on == "maclocal":
-    HOME_FOLDER = "/Users/nishant/Documents/GitHub/CTP/exploration/CATP"
+    HOME_FOLDER = "/Users/nishant/Documents/GitHub/CTP/CATP"
     DATA_FOLDER = "/Users/nishant/Downloads/NeurIPS2022-traffic4cast"
 else:
     raise Exception("HOME_FOLDER and DATA_FOLDER not specified; please check config file")
@@ -43,7 +43,6 @@ RESULTS_FOLDER = os.path.join(DATA_FOLDER, "intermediate_folder")
 #     cx_N = 300
 # else:
 #     cx_N = 5
-# cx_re_compute_y_thresh = False  # if not recomputing, then we use the value of y_thresh from the variable "cx_y_thresh"
 cx_debug = True
 if running_on == "server":
     cx_sample_whole_data = 1500
@@ -72,7 +71,6 @@ cl_model_save_epoch_end = True
 cl_model_save_train_end = True
 cl_early_stopping_patience = 5  # -1 implies no early stopping
 cl_tensorboard = False
-cl_thresh = 750
 
 if running_on == "server":
     cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
@@ -87,7 +85,7 @@ elif running_on == "maclocal":
 
 cl_loss_func = "mse"  # "mse"
 cl_n_depth = 3
-cl_during_training_CSR_enabled_epoch_end = False
+cl_during_training_CSR_enabled_epoch_end = True
 
 
 ######################### Dimensions for experiments ####################
