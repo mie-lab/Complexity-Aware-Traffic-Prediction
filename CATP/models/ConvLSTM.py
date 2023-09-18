@@ -384,20 +384,21 @@ class ConvLSTM:
 
 if __name__ == "__main__":
     # ConvLSTM.test_ConvLSTM()
-    for city in config.city_list:
-        obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
-                         prediction_horizon=config.pred_horiz_def[0], grid_size=config.scales_def[0])
-    
-        model = ConvLSTM(
-            city,
-            config.i_o_lengths_def[0],
-            config.pred_horiz_def[0],
-            config.scales_def[0],
-            shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
-            validation_csv_file=obj.key_dimensions() + "validation.csv",
-            log_dir=obj.key_dimensions() + "log_dir",
-        )
-        print(model.model.summary())
-        print(model)
-        model.train()
+    for city in config.city_list_def:
+        for pred_horiz in config.pred_horiz:
+            obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                             prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
+
+            model = ConvLSTM(
+                city,
+                config.i_o_lengths_def[0],
+                pred_horiz,
+                config.scales_def[0],
+                shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+            )
+            print(model.model.summary())
+            print(model)
+            model.train()
 

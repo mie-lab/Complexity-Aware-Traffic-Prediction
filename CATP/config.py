@@ -56,7 +56,7 @@ elif running_on == "maclocal":
 
 cx_delete_files_after_running = True
 cx_range_day_scan = range(0, 1)
-cx_range_t_band_scan = range(-1, 2)
+cx_range_t_band_scan = -1 # range(-1, 2)
 cx_spatial_cx_PM_dist_enabled = False
 cx_post_model_loading_from_saved_val_error_plots_temporal = False
 cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy = False
@@ -113,14 +113,14 @@ elif running_on == "maclocal":
     # i_o_lengths = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     # pred_horiz = [1] # , 8]  # [1, 2, 3, 4, 5, 6, 7, 8]
     city_list = [
-        # "london",
+        "london",
         "melbourne",
-        # "madrid",
+        "madrid",
         
     ]  # , "madrid", "MELBOURNE"]  # all are converted to lower case later on
-    scales = [55] # list(range(100, 106, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
-    i_o_lengths = [4] # list(range(1, 9))
-    pred_horiz = [1] # list(range(1, 9))
+    scales = list(range(25, 106, 10))  # [25, 200, 250, 150, 225, 50, 125, 75, 100, 175]
+    i_o_lengths = list(range(1, 9))
+    pred_horiz = list(range(1, 9))
 
     city_list_def = ["melbourne"]
     scales_def = [55]
