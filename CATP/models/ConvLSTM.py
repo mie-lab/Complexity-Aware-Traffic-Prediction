@@ -340,7 +340,7 @@ class ConvLSTM:
         return self.model
 
 
-    def print_model_and_class_values(self, print_model_summary=True):
+    def print_model_and_class_values(self):
         sprint(self.train_data_folder)
         sprint(self.validation_data_folder)
         sprint(self.shape)
@@ -348,38 +348,56 @@ class ConvLSTM:
         sprint(self.log_dir)
         sprint(self.model)
         sprint(self.prefix)
-        if print_model_summary:
-            sprint(self.model.summary())
 
     def __repr__(self):
-        sprint(self.train_data_folder)
-        sprint(self.validation_data_folder)
-        sprint(self.shape)
-        sprint(self.validation_csv_file)
-        sprint(self.log_dir)
-        sprint(self.model)
-        sprint(self.prefix)
-        if print_model_summary:
-            sprint(self.model.summary())
+        attributes = [
+            f"train_data_folder={self.train_data_folder}",
+            f"validation_data_folder={self.validation_data_folder}",
+            f"shape={self.shape}",
+            f"validation_csv_file={self.validation_csv_file}",
+            f"log_dir={self.log_dir}",
+            f"model={self.model}",
+            # This might not provide a meaningful string representation depending on what self.model is
+            f"prefix={self.prefix}"
+        ]
+
+        return "<ConvLSTM " + "\n".join(attributes) + ">"
+
+    @staticmethod
+    def test_ConvLSTM():
+        obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
+                         prediction_horizon=config.pred_horiz_def[0], grid_size=config.scales_def[0])
+
+        model = ConvLSTM(
+            config.city_list_def[0],
+            config.i_o_lengths_def[0],
+            config.pred_horiz_def[0],
+            config.scales_def[0],
+            shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+            validation_csv_file=obj.key_dimensions() + "validation.csv",
+            log_dir=obj.key_dimensions() + "log_dir",
+        )
+        print (model.model.summary())
+        print (model)
+        model.train()
 
 
 if __name__ == "__main__":
-    obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
-                     prediction_horizon=config.pred_horiz_def[0], grid_size=config.scales_def[0])
+    # ConvLSTM.test_ConvLSTM()
+    for city in config.city_list:
+        obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                         prediction_horizon=config.pred_horiz_def[0], grid_size=config.scales_def[0])
     
-    model = ConvLSTM(
-        config.city_list_def[0],
-        config.i_o_lengths_def[0],
-        config.pred_horiz_def[0],
-        config.scales_def[0],
-        shape=(2,  config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
-        validation_csv_file="validation.csv",
-        log_dir="log_dir",
-    )
-    print(model.model.summary())
-    model.print_model_and_class_values(print_model_summary=False)
-    model.train()
-    # model.predict_train_data_and_save_all()
+        model = ConvLSTM(
+            city,
+            config.i_o_lengths_def[0],
+            config.pred_horiz_def[0],
+            config.scales_def[0],
+            shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+            validation_csv_file=obj.key_dimensions() + "validation.csv",
+            log_dir=obj.key_dimensions() + "log_dir",
+        )
+        print(model.model.summary())
+        print(model)
+        model.train()
 
-    # Now, we can delete the temp files after training for one scenario
-    # obj._clean_intermediate_files()
