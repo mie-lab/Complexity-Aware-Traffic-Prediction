@@ -24,67 +24,10 @@ import glob
 from tensorflow.keras.callbacks import Callback
 from baselines.NaiveBaseline import NaiveBaseline
 from preprocessing.ProcessRaw import ProcessRaw
-
+import shutil
 
 class ComputeMetrics(Callback):
     def on_epoch_end(self, epoch, logs):
-        if epoch % 5 == 0:
-            if config.cl_during_training_CSR_enabled_epoch_end:
-                cx = Complexity(
-                    self.model.cityname,
-                    i_o_length=self.model.io_length,
-                    prediction_horizon=self.model.pred_horiz,
-                    grid_size=self.model.scale,
-                    thresh=config.cl_thresh,
-                    perfect_model=False,
-                    model_func=self.model.predict,
-                    model_train_gen=self.model.train_gen,
-                    run_pm=True,
-                    run_nm=True,
-                    run_gb=True,
-                )
-
-                logs["CSR_MP_sum_y_exceeding_r_x_max"] = cx.CSR_MP_sum_y_exceeding_r_x_max
-                logs["CSR_PM_sum_y_exceeding_r_x_max"] = cx.CSR_PM_sum_y_exceeding_r_x_max
-                logs["CSR_NM_sum_y_exceeding_r_x_max"] = cx.CSR_NM_sum_y_exceeding_r_x_max
-                logs["CSR_GB_sum_y_exceeding_r_x_max"] = cx.CSR_GB_sum_y_exceeding_r_x_max
-
-
-            else:
-                logs["CSR_MP_sum_y_exceeding_r_x_max"] = -1
-                logs["CSR_PM_sum_y_exceeding_r_x_max"] = -1
-                logs["CSR_NM_sum_y_exceeding_r_x_max"] = -1
-                logs["CSR_GB_sum_y_exceeding_r_x_max"] = -1
-
-
-        else:
-            if config.cl_during_training_CSR_enabled_epoch_end:
-                cx = Complexity(
-                    self.model.cityname,
-                    i_o_length=self.model.io_length,
-                    prediction_horizon=self.model.pred_horiz,
-                    grid_size=self.model.scale,
-                    thresh=config.cl_thresh,
-                    perfect_model=False,
-                    model_func=self.model.predict,
-                    model_train_gen=self.model.train_gen,
-                    run_pm=False,
-                    run_nm=False,
-                    run_gb=False,
-                )
-
-                logs["CSR_MP_sum_y_exceeding_r_x_max"] = cx.CSR_MP_sum_y_exceeding_r_x_max
-                logs["CSR_PM_sum_y_exceeding_r_x_max"] = cx.CSR_PM_sum_y_exceeding_r_x_max
-                logs["CSR_NM_sum_y_exceeding_r_x_max"] = cx.CSR_NM_sum_y_exceeding_r_x_max
-                logs["CSR_GB_sum_y_exceeding_r_x_max"] = cx.CSR_GB_sum_y_exceeding_r_x_max
-
-
-            else:
-                logs["CSR_MP_sum_y_exceeding_r_x_max"] = -1
-                logs["CSR_PM_sum_y_exceeding_r_x_max"] = -1
-                logs["CSR_NM_sum_y_exceeding_r_x_max"] = -1
-                logs["CSR_GB_sum_y_exceeding_r_x_max"] = -1
-
         logs["naive-model-non-zero"] = (
             NaiveBaseline(1, 1).from_dataloader(self.model.train_gen, 50)
         ).naive_baseline_mse_non_zero
@@ -99,6 +42,63 @@ class ComputeMetrics(Callback):
                 )
             )
 
+        # Clean directory
+        predictions_dir = self.model.predictions_folder
+        sprint (predictions_dir)
+        if os.path.exists(predictions_dir):
+            shutil.rmtree(predictions_dir)
+        if not os.path.exists(predictions_dir):
+            os.makedirs(predictions_dir)
+
+        for index in range(len(self.model.train_gen)):
+            x_batch, _, indexes = self.model.train_gen.get_item_with_indexes(index)
+            predictions = self.model.predict(x_batch)
+
+            for idx, (input_data, pred) in enumerate(zip(x_batch, predictions)):
+                # Save the input data and the prediction into the corect prediction folder
+                input_file = os.path.join(predictions_dir, 
+                                          "{}{}_x.npy".format(self.model.train_gen.prefix, indexes[idx]))
+                temp_input_file_name = str(int(np.random.rand() * 100000000000)) + "_x.npy"
+                np.save(temp_input_file_name, input_data)
+                os.rename(temp_input_file_name, input_file)
+
+                # Save the prediction
+                predictions_file = os.path.join(predictions_dir,
+                                                "{}{}_y.npy".format(self.model.train_gen.prefix, indexes[idx]))
+                temp_pred_file_name = str(int(np.random.rand() * 100000000000)) + "_y.npy"
+                np.save(temp_pred_file_name, pred)
+                os.rename(temp_pred_file_name, predictions_file)
+                
+        # if epoch % 0 == 0:
+
+        if config.cl_during_training_CSR_enabled_epoch_end:
+            cx = Complexity(
+                self.model.cityname,
+                i_o_length=self.model.io_length,
+                prediction_horizon=self.model.pred_horiz,
+                grid_size=self.model.scale,
+                perfect_model=False,
+                model_func=self.model.predict,
+                model_train_gen=self.model.train_gen,
+                model_predict_gen=self.model.predict_gen,
+                run_pm=True,
+                run_nm=True,
+                run_gb=True,
+            )
+
+            logs["CSR_MP_sum_y_exceeding_r_x_max"] = cx.CSR_MP_sum_y_exceeding_r_x_max
+            logs["CSR_PM_sum_y_exceeding_r_x_max"] = cx.CSR_PM_sum_y_exceeding_r_x_max
+            logs["CSR_NM_sum_y_exceeding_r_x_max"] = cx.CSR_NM_sum_y_exceeding_r_x_max
+            logs["CSR_GB_sum_y_exceeding_r_x_max"] = cx.CSR_GB_sum_y_exceeding_r_x_max
+
+
+        else:
+            logs["CSR_MP_sum_y_exceeding_r_x_max"] = -1
+            logs["CSR_PM_sum_y_exceeding_r_x_max"] = -1
+            logs["CSR_NM_sum_y_exceeding_r_x_max"] = -1
+            logs["CSR_GB_sum_y_exceeding_r_x_max"] = -1
+
+
 
 class ConvLSTM:
     def __init__(self, cityname, io_length, pred_horiz, scale, log_dir, shape, validation_csv_file, saved_model_filename=None):
@@ -111,6 +111,8 @@ class ConvLSTM:
         self.saved_model_filename = saved_model_filename
         self.train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, self.prefix)
         self.validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER, self.prefix)
+        self.predictions_folder = os.path.join(config.HOME_FOLDER, "predictions_folder", self.prefix)
+
         self.shape = shape
         self.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, validation_csv_file)
         sprint(validation_csv_file, self.validation_csv_file)
@@ -277,6 +279,16 @@ class ConvLSTM:
             batch_size=batch_size,
             shuffle=True,
         )
+        self.prediction_gen = CustomDataGenerator(
+            self.cityname,
+            self.io_length,
+            self.pred_horiz,
+            self.scale,
+            data_dir=self.predictions_folder,
+            num_samples=int(num_train * r),
+            batch_size=batch_size,
+            shuffle=True,
+        )
 
         csv_logger = CSVLogger(self.validation_csv_file)
         sprint(csv_logger, self.validation_data_folder)
@@ -284,6 +296,8 @@ class ConvLSTM:
 
         self.model.train_gen = self.train_gen
         self.model.validation_gen = self.validation_gen
+        self.model.predict_gen = self.prediction_gen
+        self.model.predictions_folder = self.predictions_folder
         self.model.prefix = self.prefix
         self.model.cityname, self.model.io_length, self.model.pred_horiz, self.model.scale = (
             self.cityname,
@@ -323,7 +337,6 @@ class ConvLSTM:
                 callbacks=callbacks,
                 workers=config.cl_dataloader_workers,
             )
-        # no need to train anymore
         return self.model
 
 

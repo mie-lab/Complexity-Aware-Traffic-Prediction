@@ -73,39 +73,11 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
         # sprint ((x_batch[..., np.newaxis]).shape, (y_batch[..., np.newaxis]).shape)
         return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis])  # the last new axis is for channels
 
-    # def custom_get_item_with_file_name(self, index, specific_files=None):
-    #
-    #     # Two functionalities:
-    #     # 1. If specific files is None; this function does the same thing as __get_item__ but also returns the file
-    #     #                             names.
-    #     # 2. If specific files is a file number, this function returns the batch starting from the same file number
-    #     # This function is used to speed up the predict for all data points, so that we can speed up the CSR computation
-    #     # for each epoch
-    #
-    #     if specific_files == None:
-    #         indexes = self.indexes[index * self.batch_size : (index + 1) * self.batch_size]
-    #     else:
-    #         assert isinstance(specific_files, int)
-    #         indexes = [specific_files]
-    #     x_batch = []
-    #     y_batch = []
-    #     for i in indexes:
-    #         file_x = os.path.join(config.DATA_FOLDER, self.data_dir, self.prefix + "{}_x.npy".format(i))
-    #         file_y = os.path.join(config.DATA_FOLDER, self.data_dir, self.prefix + "{}_y.npy".format(i))
-    #         x = np.load(file_x)
-    #         y = np.load(file_y)
-    #         x_batch.append(x)
-    #         y_batch.append(y)
-    #     x_batch = np.array(x_batch)
-    #     y_batch = np.array(y_batch)
-    #     if config.dg_debug:
-    #         sprint(x_batch.shape, y_batch.shape)
-    #         sprint(file_y)
-    #         sprint(file_x)
-    #     x_batch = np.moveaxis(x_batch, [0, 1, 2, 3], [0, 2, 3, 1])
-    #     y_batch = np.moveaxis(y_batch, [0, 1, 2, 3], [0, 2, 3, 1])
-    #
-    #     return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis]), indexes
+    def get_item_with_indexes(self, index):
+        assert isinstance(index, int)
+        x_batch, y_batch = self.__getitem__(index)
+        indexes = self.indexes[index * self.batch_size : (index + 1) * self.batch_size]
+        return x_batch, y_batch, indexes
 
     def on_epoch_end(self):
         if self.shuffle:
