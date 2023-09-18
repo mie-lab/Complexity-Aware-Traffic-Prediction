@@ -49,10 +49,10 @@ class Complexity:
         self.offset = 96 - (prediction_horizon + i_o_length * 2 + 1)  # one time for ip; one for op; one for pred_horiz;
         # self.offset replaces 96 to account for edge effects of specific experiments
 
-        self.CSR_MP_sum_y_exceeding_r_x_max = "NULL"
-        self.CSR_PM_sum_y_exceeding_r_x_max = "NULL"
-        self.CSR_NM_sum_y_exceeding_r_x_max = "NULL"
-        self.CSR_GB_sum_y_exceeding_r_x_max = "NULL"
+        self.CSR_MP_sum_y_exceeding_r_x_max = -1
+        self.CSR_PM_sum_y_exceeding_r_x_max = -1
+        self.CSR_NM_sum_y_exceeding_r_x_max = -1
+        self.CSR_GB_sum_y_exceeding_r_x_max = -1
 
         self.CSR_PM_sum_y_exceeding_r_x_max_scales = np.random.rand(self.grid_size, self.grid_size) * 0
 
@@ -88,13 +88,6 @@ class Complexity:
         # we compute this information only using training data; no need for validation data
         # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
 
-        obj = ProcessRaw(
-            cityname=self.cityname,
-            i_o_length=self.i_o_length,
-            prediction_horizon=self.prediction_horizon,
-            grid_size=self.grid_size,
-        )
-
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
@@ -105,8 +98,6 @@ class Complexity:
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
         frac_sum_dataset = []
-
-        mse_y_dataset = []
 
         sum_y_dataset = []
         sum_x_dataset = []
@@ -286,13 +277,6 @@ class Complexity:
         # we compute this information only using training data; no need for validation data
         # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
 
-        obj = ProcessRaw(
-            cityname=self.cityname,
-            i_o_length=self.i_o_length,
-            prediction_horizon=self.prediction_horizon,
-            grid_size=self.grid_size,
-        )
-
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
@@ -451,13 +435,6 @@ class Complexity:
         # we compute this information only using training data; no need for validation data
         # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
 
-        obj = ProcessRaw(
-            cityname=self.cityname,
-            i_o_length=self.i_o_length,
-            prediction_horizon=self.prediction_horizon,
-            grid_size=self.grid_size,
-        )
-
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
@@ -469,12 +446,9 @@ class Complexity:
         sum_y_more_than_mean_x_exp_dataset = []
         frac_sum_dataset = []
 
-        mse_y_dataset = []
-
         sum_y_dataset = []
         sum_x_dataset = []
         red_by_grey_sum_dataset = []
-
 
         random.shuffle(file_list)
 
@@ -643,13 +617,6 @@ class Complexity:
         # we compute this information only using training data; no need for validation data
         # self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
 
-        obj = ProcessRaw(
-            cityname=self.cityname,
-            i_o_length=self.i_o_length,
-            prediction_horizon=self.prediction_horizon,
-            grid_size=self.grid_size,
-        )
-
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
@@ -660,8 +627,6 @@ class Complexity:
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
         frac_sum_dataset = []
-
-        mse_y_dataset = []
 
         sum_y_dataset = []
         sum_x_dataset = []
@@ -736,8 +701,6 @@ class Complexity:
                     print("Skipped file indexed with 0")
                     continue
 
-                # sprint (len(self.model_train_gen.__getitem__(fileindices)))
-
                 x_neighbour, _ = self.model_train_gen.__getitem__(fileindices)
 
                 y_neighbour = np.random.random_sample(x_neighbour.shape) * np.max(x_neighbour.flatten())
@@ -776,7 +739,6 @@ class Complexity:
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
-            # print("Length: ", len(sum_x_m_predict.tolist()))
             if len(sum_x_m_predict.tolist()) == 0:
                 continue
             max_x = np.max(sum_x_m_predict)
@@ -831,27 +793,8 @@ class Complexity:
         # self.model_train_gen is set from ConvLSTM class; It is traingen when computing cx; and
         # val_gen when computing errors
         # So, we need to set the foldernames accordingly
-        if config.cx_post_model_loading_from_saved_val_error_plots_temporal or \
-                config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy or  \
-                config.cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal:
-            # error computation case (Spatial or Temporal)
-            self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
-        else:
-            assert  config.cx_post_model_loading_from_saved_val_error_plots_temporal ==  \
-                    config.cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy == \
-                    config.cl_post_model_loading_from_saved_val_error_plots_spatial_or_temporal == False
-            # CX computation case
-            self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.key_dimensions())
 
-        # we compute this information only using training data; no need for validation data
-        #
-
-        obj = ProcessRaw(
-            cityname=self.cityname,
-            i_o_length=self.i_o_length,
-            prediction_horizon=self.prediction_horizon,
-            grid_size=self.grid_size,
-        )
+        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, ProcessRaw.file_prefix(cityname=self.cityname, io_length=self.i_o_length, pred_horiz=self.prediction_horizon, scale=self.grid_size))
 
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
@@ -864,7 +807,6 @@ class Complexity:
         sum_y_more_than_mean_x_exp_dataset = []
         frac_sum_dataset = []
 
-        mse_y_dataset = []
 
         sum_y_dataset = []
         sum_x_dataset = []
