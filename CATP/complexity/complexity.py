@@ -246,6 +246,8 @@ class Complexity:
 
 
         self.CSR_PM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_PM_count = len(sum_y_more_than_max_x_dataset)
+
         self.CSR_PM_std = np.std(sum_y_more_than_max_x_dataset)
 
         if config.DEBUG:
@@ -410,6 +412,8 @@ class Complexity:
                 sprint(len(sum_y))
 
         self.CSR_MP_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_MP_count = len(sum_y_more_than_max_x_dataset)
+
         self.CSR_MP_std = np.std(sum_y_more_than_max_x_dataset)
 
 
@@ -578,6 +582,8 @@ class Complexity:
                 sprint(len(sum_y))
 
         self.CSR_NM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_NM_count = len(sum_y_more_than_max_x_dataset)
+
 
         if config.DEBUG:
             plt.clf()
@@ -737,6 +743,7 @@ class Complexity:
                 sprint(len(sum_y))
 
         self.CSR_GB_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_GB_count = len(sum_y_more_than_max_x_dataset)
 
         if config.DEBUG:
             plt.clf()
