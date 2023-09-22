@@ -43,7 +43,7 @@ class Complexity:
         if config.cx_range_t_band_scan != -1:
             self.cx_range_t_band_scan = config.cx_range_t_band_scan
         else:
-            self.cx_range_t_band_scan = range(- i_o_length - prediction_horizon, i_o_length  + prediction_horizon + 1)
+            self.cx_range_t_band_scan = range(- prediction_horizon, prediction_horizon + 1)
 
         self.file_prefix = ProcessRaw.file_prefix(
             cityname=self.cityname, io_length=self.i_o_length, pred_horiz=self.prediction_horizon, scale=self.grid_size
@@ -58,6 +58,9 @@ class Complexity:
         self.CSR_PM_sum_y_exceeding_r_x_max = -1
         self.CSR_NM_sum_y_exceeding_r_x_max = -1
         self.CSR_GB_sum_y_exceeding_r_x_max = -1
+        self.CSR_MP_std = -1
+        self.CSR_PM_std = -1
+
 
         self.CSR_PM_sum_y_exceeding_r_x_max_scales = np.random.rand(self.grid_size, self.grid_size) * 0
 
@@ -83,7 +86,7 @@ class Complexity:
 
     def cx_whole_dataset_PM_no_thresh(self):
         self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
-        
+
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
@@ -101,7 +104,7 @@ class Complexity:
 
         random.shuffle(file_list)
 
-        for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+        for i in tqdm(range(len(file_list)), desc="Iterating through whole/subset of dataset"):
             sum_y = []
             sum_x = []
 
@@ -199,7 +202,7 @@ class Complexity:
             # print("Length: ", len(sum_x_m_predict.tolist()))
             if len(sum_x_m_predict.tolist()) == 0:
                 continue
-          
+
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
             mean_y = np.mean(sum_y_m_predict)
@@ -240,7 +243,8 @@ class Complexity:
                 sprint(len(sum_y))
 
 
-        self.CSR_PM_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
+        self.CSR_PM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_PM_std = np.std(sum_y_more_than_max_x_dataset)
 
         if config.DEBUG:
             plt.clf()
@@ -403,7 +407,9 @@ class Complexity:
                 assert len(sum_x_dataset) == len(sum_y_dataset)
                 sprint(len(sum_y))
 
-        self.CSR_MP_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
+        self.CSR_MP_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
+        self.CSR_MP_std = np.std(sum_y_more_than_max_x_dataset)
+
 
         if config.DEBUG:
             plt.clf()
@@ -434,7 +440,7 @@ class Complexity:
 
         random.shuffle(file_list)
 
-        for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+        for i in tqdm(range(len(file_list)), desc="Iterating through whole/subset of dataset"):
             sum_y = []
             sum_x = []
 
@@ -569,7 +575,7 @@ class Complexity:
                 assert len(sum_x_dataset) == len(sum_y_dataset)
                 sprint(len(sum_y))
 
-        self.CSR_NM_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
+        self.CSR_NM_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
 
         if config.DEBUG:
             plt.clf()
@@ -601,7 +607,7 @@ class Complexity:
 
         random.shuffle(file_list)
 
-        for i in tqdm(range(config.cx_sample_whole_data), desc="Iterating through whole/subset of dataset"):
+        for i in tqdm(range(len(file_list)), desc="Iterating through whole/subset of dataset"):
             sum_y = []
             sum_x = []
 
@@ -728,7 +734,7 @@ class Complexity:
                 assert len(sum_x_dataset) == len(sum_y_dataset)
                 sprint(len(sum_y))
 
-        self.CSR_GB_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
+        self.CSR_GB_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
 
         if config.DEBUG:
             plt.clf()
@@ -749,6 +755,8 @@ class Complexity:
             self.CSR_PM_sum_y_exceeding_r_x_max,
             self.CSR_NM_sum_y_exceeding_r_x_max,
             self.CSR_GB_sum_y_exceeding_r_x_max,
+            self.CSR_PM_std,
+            self.CSR_MP_std,
             sep=",",
         )
         print("###################################################")
@@ -1106,7 +1114,7 @@ class Complexity:
 #
 #
 #
-#     self.CSR_MP_sum_y_exceeding_r_x_max = np.sum(sum_y_more_than_max_x_dataset)
+#     self.CSR_MP_sum_y_exceeding_r_x_max = np.mean(sum_y_more_than_max_x_dataset)
 #
 #
 #     if config.DEBUG:
