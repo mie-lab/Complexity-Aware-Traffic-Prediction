@@ -60,6 +60,8 @@ class Complexity:
         self.CSR_GB_sum_y_exceeding_r_x_max = -1
         self.CSR_MP_std = -1
         self.CSR_PM_std = -1
+        
+        self.CSR_MP_count, self.CSR_PM_count, self.CSR_NM_count, self.CSR_GB_count = -1, -1, -1, -1
 
 
         self.CSR_PM_sum_y_exceeding_r_x_max_scales = np.random.rand(self.grid_size, self.grid_size) * 0
@@ -757,6 +759,10 @@ class Complexity:
             self.CSR_GB_sum_y_exceeding_r_x_max,
             self.CSR_PM_std,
             self.CSR_MP_std,
+            self.CSR_MP_count, 
+            self.CSR_PM_count, 
+            self.CSR_NM_count, 
+            self.CSR_GB_count,
             sep=",",
         )
         print("###################################################")
