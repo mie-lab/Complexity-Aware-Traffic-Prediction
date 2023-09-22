@@ -90,13 +90,19 @@ class ComputeMetrics(Callback):
             logs["CSR_PM_sum_y_exceeding_r_x_max"] = cx.CSR_PM_sum_y_exceeding_r_x_max
             logs["CSR_NM_sum_y_exceeding_r_x_max"] = cx.CSR_NM_sum_y_exceeding_r_x_max
             logs["CSR_GB_sum_y_exceeding_r_x_max"] = cx.CSR_GB_sum_y_exceeding_r_x_max
-
-
+            logs["CSR_MP_std"] = cx.CSR_MP_std
+            logs["CSR_PM_std"] = cx.CSR_PM_std
+            logs["CSR_MP_count"], logs["self.CSR_PM_count"], logs["self.CSR_NM_count"], logs["self.CSR_GB_count"]\
+                = cx.CSR_MP_count, cx.CSR_PM_count, cx.CSR_NM_count, cx.CSR_GB_count
         else:
             logs["CSR_MP_sum_y_exceeding_r_x_max"] = -1
             logs["CSR_PM_sum_y_exceeding_r_x_max"] = -1
             logs["CSR_NM_sum_y_exceeding_r_x_max"] = -1
             logs["CSR_GB_sum_y_exceeding_r_x_max"] = -1
+            logs["CSR_MP_std"] = -1
+            logs["CSR_PM_std"] = -1
+            logs["CSR_MP_count"], logs["self.CSR_PM_count"], logs["self.CSR_NM_count"], logs["self.CSR_GB_count"] \
+                = -1, -1, -1, -1
 
 
 
@@ -235,6 +241,7 @@ class ConvLSTM:
 
         return model
 
+
     def train(self):
         # Train the model
         batch_size = config.cl_batch_size
@@ -244,7 +251,7 @@ class ConvLSTM:
         elif config.cl_loss_func == "non-zero-mse":
             loss_fn = non_zero_mse
 
-        optimizer = optimizers.Adam(1e-3)
+        optimizer = optimizers.Adam(0.001)
 
         # manual reset the model since sometimes it does not reset a new model (not sure why)
         tensorflow.keras.backend.clear_session()
