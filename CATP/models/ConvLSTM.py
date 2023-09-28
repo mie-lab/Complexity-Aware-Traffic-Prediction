@@ -56,7 +56,7 @@ class ComputeMetrics(Callback):
 
             for idx, (input_data, pred) in enumerate(zip(x_batch, predictions)):
                 # Save the input data and the prediction into the corect prediction folder
-                input_file = os.path.join(predictions_dir, 
+                input_file = os.path.join(predictions_dir,
                                           "{}{}_x.npy".format(self.model.train_gen.prefix, indexes[idx]))
                 temp_input_file_name = str(int(np.random.rand() * 100000000000)) + "_x.npy"
                 np.save(temp_input_file_name, input_data)
@@ -68,7 +68,7 @@ class ComputeMetrics(Callback):
                 temp_pred_file_name = str(int(np.random.rand() * 100000000000)) + "_y.npy"
                 np.save(temp_pred_file_name, pred)
                 os.rename(temp_pred_file_name, predictions_file)
-                
+
         # if epoch % 0 == 0:
 
         if config.cl_during_training_CSR_enabled_epoch_end:
@@ -242,10 +242,13 @@ class ConvLSTM:
         return model
 
 
-    def train(self):
+    def train(self, epochs_param=-1):
         # Train the model
         batch_size = config.cl_batch_size
-        epochs = config.cl_epochs
+        if epochs_param == -1:
+            epochs = config.cl_epochs
+        else:
+            epochs = epochs_param
         if config.cl_loss_func == "mse":
             loss_fn = config.cl_loss_func
         elif config.cl_loss_func == "non-zero-mse":
@@ -388,24 +391,186 @@ class ConvLSTM:
         print (model)
         model.train()
 
+    @staticmethod
+    def experiment_simple():
+        for city in config.city_list_def:
+            for pred_horiz in config.pred_horiz:
+                obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                                 prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
+
+                model = ConvLSTM(
+                    city,
+                    config.i_o_lengths_def[0],
+                    pred_horiz,
+                    config.scales_def[0],
+                    shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                    validation_csv_file=obj.key_dimensions() + "validation.csv",
+                    log_dir=obj.key_dimensions() + "log_dir",
+                )
+                print(model.model.summary())
+                print(model)
+                model.train()
+
+    @staticmethod
+    def experiment_mix_examples_control():
+        for city in config.city_list_def:
+            for pred_horiz in [1]:
+                obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                                 prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
+                orig_name = ProcessRaw.file_prefix(city, config.i_o_lengths_def[0],pred_horiz, config.scales_def[0])
+
+                model = ConvLSTM(
+                    city,
+                    config.i_o_lengths_def[0],
+                    pred_horiz,
+                    config.scales_def[0],
+                    shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                    validation_csv_file=obj.key_dimensions() + "validation_orig.csv",
+                    log_dir=obj.key_dimensions() + "log_dir_orig",
+                )
+                model.predictions_folder = os.path.join(config.HOME_FOLDER, "predictions_folder_orig", orig_name)
+                print(model.model.summary())
+                model.train(epochs_param=50)
+
+    @staticmethod
+    def experiment_mix_examples():
+        for city in config.city_list_def:
+            for pred_horiz in [1]:
+                obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                                 prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
+
+                model = ConvLSTM(
+                    city,
+                    config.i_o_lengths_def[0],
+                    pred_horiz,
+                    config.scales_def[0],
+                    shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                    validation_csv_file=obj.key_dimensions() + "val_file_exp.csv",
+                    log_dir=obj.key_dimensions() + "log_dir_exp",
+                )
+                print(model.model.summary())
+
+                # We dont train on the easy case
+                # model.train(50)
+
+                # Keep track of original paths
+                orig_name = ProcessRaw.file_prefix(city, config.i_o_lengths_def[0],pred_horiz, config.scales_def[0])
+                self_orig_train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, orig_name)
+                self_orig_validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER,
+                                                           orig_name)
+                self_orig_predictions_folder = os.path.join(config.HOME_FOLDER, "predictions_folder_exp", orig_name)
+
+                NEW_PRED_HORIZ = 7
+                # Switch to new paths for the intermediate epochs
+                obj_new = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                                 prediction_horizon=NEW_PRED_HORIZ, grid_size=config.scales_def[0])
+                new_name = ProcessRaw.file_prefix(city, config.i_o_lengths_def[0],NEW_PRED_HORIZ, config.scales_def[0])
+                self_new_name_train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, new_name)
+                self_new_name_validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER,
+                                                           new_name)
+                self_new_name_predictions_folder = os.path.join(config.HOME_FOLDER, "predictions_folder_exp", new_name)
+                num_train = len(
+                    glob.glob(self_new_name_train_data_folder + "/" + new_name + "*_x.npy")
+                )
+                num_validation = len(
+                    glob.glob(
+                        self_new_name_validation_data_folder + "/" + new_name + "*_x.npy")
+                )
+                r = config.cl_percentage_of_train_data
+                batch_size = config.cl_batch_size
+                model.train_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    NEW_PRED_HORIZ,
+                    model.scale,
+                    data_dir=self_new_name_train_data_folder,
+                    num_samples=int(num_train * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.validation_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    NEW_PRED_HORIZ,
+                    model.scale,
+                    data_dir=self_new_name_validation_data_folder,
+                    num_samples=int(num_validation * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.prediction_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    NEW_PRED_HORIZ,
+                    model.scale,
+                    data_dir=self_new_name_predictions_folder,
+                    num_samples=int(num_train * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.log_dir = os.path.join(config.INTERMEDIATE_FOLDER, obj.key_dimensions() +
+                                             "log_dir_exp_switched")
+                model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, obj.key_dimensions() +
+                                                         "validation_exp_switched.csv")
+
+                model.train(epochs_param=25)
+                print(obj.key_dimensions())
+
+                # Switch to old paths for the final epochs
+                num_train = len(
+                    glob.glob(self_orig_train_data_folder + "/" + orig_name + "*_x.npy")
+                )
+                num_validation = len(
+                    glob.glob(
+                        self_orig_validation_data_folder + "/" + orig_name + "*_x.npy")
+                )
+                model.train_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    pred_horiz,
+                    model.scale,
+                    data_dir=self_orig_train_data_folder,
+                    num_samples=int(num_train * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.validation_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    pred_horiz,
+                    model.scale,
+                    data_dir=self_orig_validation_data_folder,
+                    num_samples=int(num_validation * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.prediction_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    pred_horiz,
+                    model.scale,
+                    data_dir=self_orig_predictions_folder,
+                    num_samples=int(num_train * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.log_dir = os.path.join(config.INTERMEDIATE_FOLDER,
+                                             obj.key_dimensions() + "log_dir_reverted")
+                model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER,
+                                             obj.key_dimensions() + "validation_reverted.csv")
+
+                model.train(epochs_param=25)
+                print(obj.key_dimensions())
+
+
 
 if __name__ == "__main__":
     # ConvLSTM.test_ConvLSTM()
-    for city in config.city_list_def:
-        for pred_horiz in config.pred_horiz:
-            obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
-                             prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
+    # ConvLSTM.experiment_simple()
 
-            model = ConvLSTM(
-                city,
-                config.i_o_lengths_def[0],
-                pred_horiz,
-                config.scales_def[0],
-                shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
-                validation_csv_file=obj.key_dimensions() + "validation.csv",
-                log_dir=obj.key_dimensions() + "log_dir",
-            )
-            print(model.model.summary())
-            print(model)
-            model.train()
+    # ConvLSTM.experiment_mix_examples()
+    ConvLSTM.experiment_mix_examples_control()
+
+ # First set to run
+                # model.train(epochs_param=50)
 
