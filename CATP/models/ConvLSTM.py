@@ -84,6 +84,7 @@ class ComputeMetrics(Callback):
                 run_pm=True,
                 run_nm=True,
                 run_gb=True,
+                predictions_dir=self.model.predictions_folder,
             )
 
             logs["CSR_MP_sum_y_exceeding_r_x_max"] = cx.CSR_MP_sum_y_exceeding_r_x_max
@@ -414,7 +415,7 @@ class ConvLSTM:
     @staticmethod
     def experiment_mix_examples_control():
         for city in config.city_list_def:
-            for pred_horiz in [1]:
+            for pred_horiz in [1, 7]:
                 obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
                                  prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
 
@@ -456,7 +457,7 @@ class ConvLSTM:
                 # model.train(50)
 
                 HARD_EPOCHS = 15
-                FINAL_EPOCHS = 5
+                FINAL_EPOCHS = 15
                 NEW_PRED_HORIZ = 7
 
                 obj_new = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
@@ -468,7 +469,6 @@ class ConvLSTM:
                 self_orig_validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER,
                                                            orig_name)
                 self_orig_predictions_folder = os.path.join(config.HOME_FOLDER, "predictions_folder_exp", orig_name)
-
 
                 new_name = ProcessRaw.file_prefix(city, config.i_o_lengths_def[0],NEW_PRED_HORIZ, config.scales_def[0])
                 self_new_name_train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, new_name)
@@ -483,6 +483,9 @@ class ConvLSTM:
                         self_new_name_validation_data_folder + "/" + new_name + "*_x.npy")
                 )
                 model.predictions_folder = self_new_name_predictions_folder
+                model.train_data_folder = self_new_name_train_data_folder
+                model.validation_data_folder = self_new_name_validation_data_folder
+                
                 r = config.cl_percentage_of_train_data
                 batch_size = config.cl_batch_size
                 model.train_gen = CustomDataGenerator(
@@ -524,7 +527,9 @@ class ConvLSTM:
                 model.model.validation_gen = model.validation_gen
                 model.model.predict_gen = model.prediction_gen
                 model.model.predictions_folder = model.predictions_folder
-                model.model.prefix = model.prefix
+                model.model.prefix = new_name
+                model.prefix = model.model.prefix
+                model.pred_horiz = NEW_PRED_HORIZ
                 model.model.cityname, model.model.io_length, model.model.pred_horiz, model.model.scale = (
                     model.cityname,
                     model.io_length,
@@ -544,6 +549,8 @@ class ConvLSTM:
                         self_orig_validation_data_folder + "/" + orig_name + "*_x.npy")
                 )
                 model.predictions_folder = self_orig_predictions_folder
+                model.train_data_folder = self_orig_train_data_folder
+                model.validation_data_folder = self_orig_validation_data_folder
                 model.train_gen = CustomDataGenerator(
                     model.cityname,
                     model.io_length,
@@ -584,7 +591,9 @@ class ConvLSTM:
                 model.model.validation_gen = model.validation_gen
                 model.model.predict_gen = model.prediction_gen
                 model.model.predictions_folder = model.predictions_folder
-                model.model.prefix = model.prefix
+                model.model.prefix = orig_name
+                model.prefix = model.model.prefix
+                model.pred_horiz = pred_horiz
                 model.model.cityname, model.model.io_length, model.model.pred_horiz, model.model.scale = (
                     model.cityname,
                     model.io_length,
@@ -604,7 +613,7 @@ if __name__ == "__main__":
     # ConvLSTM.experiment_simple()
 
     # ConvLSTM.experiment_mix_examples()
-    ConvLSTM.experiment_mix_examples_control()
+    ConvLSTM.experiment_mix_examples()
 
  # First set to run
                 # model.train(epochs_param=50)

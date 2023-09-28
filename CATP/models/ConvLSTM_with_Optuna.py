@@ -438,7 +438,7 @@ class ConvLSTM:
         num_validation = len(
             glob.glob(os.path.join(config.HOME_FOLDER, validation_data_folder) + "/" + prefix + "*_x.npy"))
 
-        r = config.cl_percentage_of_train_data  # np.random.rand()
+        r = 0.1  # np.random.rand()
 
         train_gen = CustomDataGenerator(
             cityname,
@@ -481,7 +481,7 @@ class ConvLSTM:
         model.fit(
             train_gen,
             validation_data=validation_gen,
-            epochs=2,
+            epochs=3,
             workers=config.cl_dataloader_workers,
         )
         list_of_errors = []
@@ -528,7 +528,7 @@ if __name__ == "__main__":
                                                                  scale=scale,
                                                                  pred_horiz=pred_horiz,
                                                                  i_o_length=io_len)
-                    study.optimize(custom_objective_partial, n_trials=2)
+                    study.optimize(custom_objective_partial, n_trials=20)
                     results[city, io_len, scale, pred_horiz] = study.best_params
     
     

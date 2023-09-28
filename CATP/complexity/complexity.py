@@ -32,10 +32,12 @@ class Complexity:
         run_pm,
         run_nm,
         run_gb,
+        predictions_dir,
     ):
         """
         self, cityname, i_o_length, prediction_horizon, grid_size
         """
+        self.predictions_dir = predictions_dir
         self.cityname = cityname.lower()
         self.i_o_length = i_o_length
         self.grid_size = grid_size
@@ -56,8 +58,8 @@ class Complexity:
 
         self.CSR_MP_sum_y_exceeding_r_x_max = -1
         self.CSR_PM_sum_y_exceeding_r_x_max = -1
-        self.CSR_NM_sum_y_exceeding_r_x_max = -1
-        self.CSR_GB_sum_y_exceeding_r_x_max = -1
+        self.CSR_NM_sum_y_exceeding_r_x_max = 0
+        self.CSR_GB_sum_y_exceeding_r_x_max = 9999
         self.CSR_MP_std = -1
         self.CSR_PM_std = -1
         
@@ -98,11 +100,9 @@ class Complexity:
         sum_y_more_than_max_x_dataset = []
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
-        frac_sum_dataset = []
 
         sum_y_dataset = []
         sum_x_dataset = []
-        red_by_grey_sum_dataset = []
 
         random.shuffle(file_list)
 
@@ -192,11 +192,6 @@ class Complexity:
                 sum_x_m_predict.extend(dist_x.tolist())
                 sum_y_m_predict.extend(dist_y.tolist())
 
-                frac = dist_y / dist_x
-                frac = frac[~np.isnan(frac)]
-
-                criticality_2.extend(frac.tolist())
-                criticality_2_exp.extend(np.exp(-frac).tolist())
 
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
@@ -207,24 +202,18 @@ class Complexity:
 
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
-            mean_y = np.mean(sum_y_m_predict)
 
-            frac_sum_dataset.append(mean_y / mean_x)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
-
-            criticality_dataset_2.append(np.mean(criticality_2))
-            criticality_dataset_2_exp.append(np.mean(criticality_2_exp))
 
             sum_y_more_than_max_x = sum_y_m_predict[(sum_y_m_predict > max_x)]
             if len(sum_y_more_than_max_x.tolist()) > 0:
                 sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
-            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
-            print ("parsing_for_temporal_criticality:", self.cityname, self.i_o_length, self.prediction_horizon,
-                   self.grid_size,fileindex_orig, sum_y_more_than_max_x_dataset[-1])
+            # print ("parsing_for_temporal_criticality:", self.cityname, self.i_o_length, self.prediction_horizon,
+            #        self.grid_size,fileindex_orig, sum_y_more_than_max_x_dataset[-1])
 
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
@@ -258,9 +247,9 @@ class Complexity:
 
     def cx_whole_dataset_m_predict(self):
         self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
-        predictions_dir = os.path.join(config.HOME_FOLDER, "predictions_folder", self.file_prefix)
 
-        file_list = glob.glob(predictions_dir + "/" + "*_x.npy")
+
+        file_list = glob.glob(self.predictions_dir + "/" + "*_x.npy")
         random.shuffle(file_list)
 
         criticality_dataset_2 = []
@@ -269,11 +258,9 @@ class Complexity:
         sum_y_more_than_max_x_dataset = []
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
-        frac_sum_dataset = []
 
         sum_y_dataset = []
         sum_x_dataset = []
-        red_by_grey_sum_dataset = []
 
         random.shuffle(file_list)
 
@@ -289,7 +276,7 @@ class Complexity:
 
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
-            y = np.load(predictions_dir + "/"  + self.file_prefix + str(fileindex_orig) + "_y.npy")
+            y = np.load(self.predictions_dir + "/"  + self.file_prefix + str(fileindex_orig) + "_y.npy")
 
             neighbour_indexes = []
 
@@ -308,9 +295,9 @@ class Complexity:
 
                     # Test if x_neighbours and y_neighbours both exist;
                     if not os.path.exists(
-                            (os.path.join(config.HOME_FOLDER, "predictions_folder", self.file_prefix) + "/" + self.file_prefix) + str(index_with_offset) + "_x.npy"
+                            self.predictions_dir + "/" + self.file_prefix + str(index_with_offset) + "_x.npy"
                     ) or not os.path.exists(
-                            (os.path.join(config.HOME_FOLDER, "predictions_folder", self.file_prefix) + "/" + self.file_prefix) + str(index_with_offset) + "_y.npy"
+                            self.predictions_dir + "/" + self.file_prefix + str(index_with_offset) + "_y.npy"
                     ) :
                         count_missing += 1
                         # print ("Point ignored; x or y label not found; edge effect")
@@ -360,11 +347,6 @@ class Complexity:
                 sum_x_m_predict.extend(dist_x.tolist())
                 sum_y_m_predict.extend(dist_y.tolist())
 
-                frac = dist_y / dist_x
-                frac = frac[~np.isnan(frac)]
-
-                criticality_2.extend(frac.tolist())
-                criticality_2_exp.extend(np.exp(-frac).tolist())
 
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
@@ -377,7 +359,6 @@ class Complexity:
             mean_x = np.mean(sum_x_m_predict)
             mean_y = np.mean(sum_y_m_predict)
 
-            frac_sum_dataset.append(mean_y / mean_x)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
@@ -390,7 +371,6 @@ class Complexity:
                 sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
-            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x) / np.sum(sum_x_m_predict))
             # print("parsing_for_temporal_criticality:", self.cityname, self.i_o_length, self.prediction_horizon,
             #       self.grid_size, fileindex_orig, sum_y_more_than_max_x_dataset[-1])
 
@@ -424,6 +404,8 @@ class Complexity:
             plt.savefig("plots/MP_more_max/MP_more_max_" + str(round(time.time(), 2)) + ".png")
 
     def cx_whole_dataset_NM_no_thresh(self):
+        return # No need since it is always = 0
+
         self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
@@ -438,11 +420,9 @@ class Complexity:
         sum_y_more_than_max_x_dataset = []
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
-        frac_sum_dataset = []
 
         sum_y_dataset = []
         sum_x_dataset = []
-        red_by_grey_sum_dataset = []
 
         random.shuffle(file_list)
 
@@ -533,12 +513,6 @@ class Complexity:
                 sum_x_m_predict.extend(dist_x.tolist())
                 sum_y_m_predict.extend(dist_y.tolist())
 
-                frac = dist_y / dist_x
-                frac = frac[~np.isnan(frac)]
-
-                criticality_2.extend(frac.tolist())
-                criticality_2_exp.extend(np.exp(-frac).tolist())
-
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
@@ -549,7 +523,6 @@ class Complexity:
             mean_x = np.mean(sum_x_m_predict)
             mean_y = np.mean(sum_y_m_predict)
 
-            frac_sum_dataset.append(mean_y / mean_x)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
@@ -562,7 +535,6 @@ class Complexity:
                 sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
-            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
@@ -592,6 +564,8 @@ class Complexity:
             plt.savefig("plots/NM_more_max/NM_more_max_" + str(round(time.time(), 2)) + ".png")
 
     def cx_whole_dataset_Garbage_predict(self):
+        return # Since it is no longer relevant for our RQ, output is just a high number
+        # as expected
         self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
 
         # we compute this information only using training data; no need for validation data
@@ -606,11 +580,9 @@ class Complexity:
         sum_y_more_than_max_x_dataset = []
         sum_y_more_than_mean_x_dataset = []
         sum_y_more_than_mean_x_exp_dataset = []
-        frac_sum_dataset = []
 
         sum_y_dataset = []
         sum_x_dataset = []
-        red_by_grey_sum_dataset = []
 
 
         random.shuffle(file_list)
@@ -695,12 +667,6 @@ class Complexity:
                 sum_x_m_predict.extend(dist_x.tolist())
                 sum_y_m_predict.extend(dist_y.tolist())
 
-                frac = dist_y / dist_x
-                frac = frac[~np.isnan(frac)]
-
-                criticality_2.extend(frac.tolist())
-                criticality_2_exp.extend(np.exp(-frac).tolist())
-
             sum_x_m_predict = np.array(sum_x_m_predict)
             sum_y_m_predict = np.array(sum_y_m_predict)
 
@@ -710,7 +676,6 @@ class Complexity:
             mean_x = np.mean(sum_x_m_predict)
             mean_y = np.mean(sum_y_m_predict)
 
-            frac_sum_dataset.append(mean_y / mean_x)
 
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
@@ -723,7 +688,6 @@ class Complexity:
                 sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
-            red_by_grey_sum_dataset.append(np.sum(sum_y_more_than_max_x)/np.sum(sum_x_m_predict))
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
@@ -1190,6 +1154,7 @@ if __name__ == "__main__":
                         run_pm=True,
                         run_nm=False,
                         run_gb=False,
+                        predictions_dir=os.path.join(config.HOME_FOLDER, "predictions_folder", obj.key_dimensions())
                     )
 
                     cx.csv_format()
@@ -1207,6 +1172,7 @@ if __name__ == "__main__":
                         run_pm=True,
                         run_nm=False,
                         run_gb=False,
+                        predictions_dir=os.path.join(config.HOME_FOLDER, "predictions_folder", obj.key_dimensions())
                     )
                     # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
 
