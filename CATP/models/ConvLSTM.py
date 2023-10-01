@@ -14,6 +14,7 @@ from complexity.complexity import Complexity
 from smartprint import smartprint as sprint
 from tqdm import tqdm
 
+from slugify import slugify
 
 import numpy as np
 import tensorflow
@@ -38,7 +39,7 @@ class ComputeMetrics(Callback):
             self.model.save(
                 os.path.join(
                     config.INTERMEDIATE_FOLDER,
-                    os.path.basename(os.path.normpath(self.model.prefix)) + "_epoch_" + str(epoch) + ".h5",
+                    os.path.basename(os.path.normpath(self.model.prefix)) + "_epoch_" + slugify(self.model.predictions_folder)  +  "_" + str(epoch) + ".h5",
                 )
             )
 
@@ -431,7 +432,7 @@ class ConvLSTM:
                 print(model.model.summary())
 
                 # We dont train on the easy case
-                model.train(50)
+                model.train(30)
 
 
     @staticmethod
@@ -456,13 +457,14 @@ class ConvLSTM:
                 # We dont train on the easy case
                 # model.train(50)
 
-                HARD_EPOCHS = 15
-                FINAL_EPOCHS = 15
-                NEW_PRED_HORIZ = 7
+                HARD_EPOCHS = 12
+                FINAL_EPOCHS = 12
+                NEW_PRED_HORIZ = 6
 
                 obj_new = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
                                  prediction_horizon=NEW_PRED_HORIZ, grid_size=config.scales_def[0])
-
+                obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                                 prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
                 # Keep track of original paths
                 orig_name = ProcessRaw.file_prefix(city, config.i_o_lengths_def[0],pred_horiz, config.scales_def[0])
                 self_orig_train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, orig_name)
@@ -521,7 +523,7 @@ class ConvLSTM:
                 model.log_dir = os.path.join(config.INTERMEDIATE_FOLDER, obj.key_dimensions() +
                                              "log_dir_exp_switched")
                 model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, obj.key_dimensions() +
-                                                         "validation_exp_switched.csv")
+                                                         "validation_exp_switched_1.csv")
 
                 # Make sure everything is passed correctly to the callback functions before calling model.train()
                 model.model.validation_gen = model.validation_gen
@@ -584,7 +586,153 @@ class ConvLSTM:
                 model.log_dir = os.path.join(config.INTERMEDIATE_FOLDER,
                                              obj.key_dimensions() + "log_dir_reverted")
                 model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER,
-                                             obj.key_dimensions() + "validation_reverted.csv")
+                                             obj.key_dimensions() + "validation_reverted_1.csv")
+                model.model.train_gen = model.train_gen
+
+                # Make sure everything is passed correctly to the callback functions before calling model.train()
+                model.model.validation_gen = model.validation_gen
+                model.model.predict_gen = model.prediction_gen
+                model.model.predictions_folder = model.predictions_folder
+                model.model.prefix = orig_name
+                model.prefix = model.model.prefix
+                model.pred_horiz = pred_horiz
+                model.model.cityname, model.model.io_length, model.model.pred_horiz, model.model.scale = (
+                    model.cityname,
+                    model.io_length,
+                    model.pred_horiz,
+                    model.scale,
+                )
+                
+                model.train(epochs_param=FINAL_EPOCHS)
+                print(obj.key_dimensions())
+
+                obj_new = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                                     prediction_horizon=NEW_PRED_HORIZ, grid_size=config.scales_def[0])
+                obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                                 prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
+                # Keep track of original paths
+                orig_name = ProcessRaw.file_prefix(city, config.i_o_lengths_def[0], pred_horiz, config.scales_def[0])
+                self_orig_train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, orig_name)
+                self_orig_validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER,
+                                                                orig_name)
+                self_orig_predictions_folder = os.path.join(config.HOME_FOLDER, "predictions_folder_exp", orig_name)
+
+                new_name = ProcessRaw.file_prefix(city, config.i_o_lengths_def[0], NEW_PRED_HORIZ, config.scales_def[0])
+                self_new_name_train_data_folder = os.path.join(config.DATA_FOLDER, config.TRAINING_DATA_FOLDER,
+                                                               new_name)
+                self_new_name_validation_data_folder = os.path.join(config.DATA_FOLDER, config.VALIDATION_DATA_FOLDER,
+                                                                    new_name)
+                self_new_name_predictions_folder = os.path.join(config.HOME_FOLDER, "predictions_folder_exp", new_name)
+                num_train = len(
+                    glob.glob(self_new_name_train_data_folder + "/" + new_name + "*_x.npy")
+                )
+                num_validation = len(
+                    glob.glob(
+                        self_new_name_validation_data_folder + "/" + new_name + "*_x.npy")
+                )
+                model.predictions_folder = self_new_name_predictions_folder
+                model.train_data_folder = self_new_name_train_data_folder
+                model.validation_data_folder = self_new_name_validation_data_folder
+
+                r = config.cl_percentage_of_train_data
+                batch_size = config.cl_batch_size
+                model.train_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    NEW_PRED_HORIZ,
+                    model.scale,
+                    data_dir=self_new_name_train_data_folder,
+                    num_samples=int(num_train * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.validation_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    NEW_PRED_HORIZ,
+                    model.scale,
+                    data_dir=self_new_name_validation_data_folder,
+                    num_samples=int(num_validation * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.prediction_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    NEW_PRED_HORIZ,
+                    model.scale,
+                    data_dir=self_new_name_predictions_folder,
+                    num_samples=int(num_train * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.log_dir = os.path.join(config.INTERMEDIATE_FOLDER, obj.key_dimensions() +
+                                             "log_dir_exp_switched")
+                model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, obj.key_dimensions() +
+                                                         "validation_exp_switched_2.csv")
+
+                # Make sure everything is passed correctly to the callback functions before calling model.train()
+                model.model.validation_gen = model.validation_gen
+                model.model.predict_gen = model.prediction_gen
+                model.model.predictions_folder = model.predictions_folder
+                model.model.prefix = new_name
+                model.prefix = model.model.prefix
+                model.pred_horiz = NEW_PRED_HORIZ
+                model.model.cityname, model.model.io_length, model.model.pred_horiz, model.model.scale = (
+                    model.cityname,
+                    model.io_length,
+                    model.pred_horiz,
+                    model.scale,
+                )
+
+                model.train(epochs_param=HARD_EPOCHS)
+                print(obj.key_dimensions())
+
+                # Switch to old paths for the final epochs
+                num_train = len(
+                    glob.glob(self_orig_train_data_folder + "/" + orig_name + "*_x.npy")
+                )
+                num_validation = len(
+                    glob.glob(
+                        self_orig_validation_data_folder + "/" + orig_name + "*_x.npy")
+                )
+                model.predictions_folder = self_orig_predictions_folder
+                model.train_data_folder = self_orig_train_data_folder
+                model.validation_data_folder = self_orig_validation_data_folder
+                model.train_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    pred_horiz,
+                    model.scale,
+                    data_dir=self_orig_train_data_folder,
+                    num_samples=int(num_train * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.validation_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    pred_horiz,
+                    model.scale,
+                    data_dir=self_orig_validation_data_folder,
+                    num_samples=int(num_validation * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.prediction_gen = CustomDataGenerator(
+                    model.cityname,
+                    model.io_length,
+                    pred_horiz,
+                    model.scale,
+                    data_dir=self_orig_predictions_folder,
+                    num_samples=int(num_train * r),
+                    batch_size=batch_size,
+                    shuffle=True,
+                )
+                model.log_dir = os.path.join(config.INTERMEDIATE_FOLDER,
+                                             obj.key_dimensions() + "log_dir_reverted")
+                model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER,
+                                                         obj.key_dimensions() + "validation_reverted_2.csv")
                 model.model.train_gen = model.train_gen
 
                 # Make sure everything is passed correctly to the callback functions before calling model.train()
@@ -602,7 +750,7 @@ class ConvLSTM:
                 )
 
                 model.train(epochs_param=FINAL_EPOCHS)
-                print(obj.key_dimensions())
+
                 # os.system("cat validation_exp_switched.csv > combined.csv")
                 # os.system("cat tail -n +2 validation_reverted.csv >> combined.csv")
 
