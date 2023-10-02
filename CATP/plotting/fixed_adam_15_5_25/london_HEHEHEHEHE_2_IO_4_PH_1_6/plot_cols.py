@@ -71,34 +71,58 @@ for idx, file in enumerate(files):
             # Exclude 'epoch' column from plotting
 
             if col != 'epoch':
-                if "CSR" in col:
-                    # Normalising required only for CX columns, not for validation columns
-                    plt.plot(data['epoch'], np.convolve(data[col], [1/n]*n, "same"),
-                             alpha=alphas[idx], color=color_dict[col], label=col + "_" + str(pred_horiz[idx]),
-                             linestyle=linestyle)
-                else:
-                    plt.plot(data['epoch'], np.convolve(data[col] , [1/n]*n, "same"),  alpha=alphas[idx],
-                             color=color_dict[col], label=col + "_" + str(pred_horiz[idx]),
-                             linestyle=linestyle)
+                plt.plot(data['epoch'], np.convolve(data[col], [1/n]*n, "same"),
+                         alpha=alphas[idx], color=color_dict[col], label=col + "_" + str(pred_horiz[idx]),
+                         linestyle=linestyle)
 
-        if "combined" in file:
-            lower_limit = data["val_loss"]
-        if "london-4-1-55-validation_control" in file:
-            upper_limit = data["val_loss"]
+    if "combined" in file:
+        lower_limit = data["val_loss"]
+        min_epoch_combined = data["epoch"][data["val_loss"].idxmin()]
+        min_epoch_combined_val = data["val_loss"].min()
 
+    if "london-4-1-55-validation_control" in file:
+        upper_limit = data["val_loss"]
+        min_epoch_control = data["epoch"][data["val_loss"].idxmin()]
+        min_epoch_control_val = data["val_loss"].min()
 
+if min_epoch_combined is not None:
+    plt.plot(min_epoch_combined, lower_limit.min(), 'r*', label="Experiment-" + str(round(min_epoch_combined_val,1)))
 
-plt.fill_between(range(20), upper_limit[:20], lower_limit[:20], where=(np.array(upper_limit[:20]) >
-                                                                       np.array(lower_limit[:20])), color="yellow")
+if min_epoch_control is not None:
+    plt.plot(min_epoch_control, upper_limit.min(), 'ro', label="Control-" + str(round(min_epoch_control_val,1)))
+
+import numpy as np
+from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
+
+# Sample data
+x = range(20)
+upper_limit = upper_limit[:20]
+lower_limit = lower_limit[:20]
+
+# Create a denser x-axis by introducing intermediate points
+x_new = np.linspace(min(x), max(x), len(x)*30)  # Upsample by a factor of 10, for example
+
+# Interpolate the y-values onto the new x-axis
+f_upper = interp1d(x, upper_limit, kind='linear')  # You can also use 'cubic' or other methods
+f_lower = interp1d(x, lower_limit, kind='linear')
+
+upper_interp = f_upper(x_new)
+lower_interp = f_lower(x_new)
+
+# Plot and fill
+plt.fill_between(x_new, upper_interp, lower_interp, where=(upper_interp > lower_interp), color="yellow", alpha=0.5)
+
+plt.yscale("log")
+# plt.ylim(0, 2000)
 
 plt.title('Dataset switching experiment and control', fontsize=8)
 plt.xlabel('Epoch')
 plt.ylabel('Value')
-plt.legend(fontsize=8, ncol=2)
+plt.legend(fontsize=6, ncol=2, loc="best")
 plt.xticks(list(range(0, 30, 3)))
 
-# Display the plot
-# plt.yscale("symlog")
-plt.ylim(0, 4000)
-plt.savefig("val_loss.png")
+plt.grid(axis='x')
+
+plt.savefig("val_loss_log.png", dpi=300)
 plt.show()
