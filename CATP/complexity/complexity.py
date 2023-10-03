@@ -314,7 +314,13 @@ class Complexity:
                     print("Skipped file indexed with 0")
                     continue
 
-                x_neighbour, y_neighbour = self.model_predict_gen.__getitem__(fileindices)
+                vals = self.model_predict_gen.__getitem__(fileindices)
+                if len(vals) == 2:
+                    x_neighbour, y_neighbour = vals
+                elif len(vals) == 3:
+                    x_neighbour, y_neighbour, = vals
+                else:
+                    raise Exception("Wrong length of values returned inside the model_predict complexity class")
 
                 assert (config.cx_batch_size == x_neighbour.shape[0]) or (
                         j + config.cx_batch_size >= len(neighbour_indexes)
