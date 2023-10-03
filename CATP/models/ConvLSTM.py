@@ -107,13 +107,39 @@ class ComputeMetrics(Callback):
                 = -1, -1, -1, -1
 
 class CustomModel(tensorflow.keras.models.Model):
-    def test_step(self, data):
-        x, y = data
-        y_pred = (self(x, training=False) + x)/2
-        self.compute_loss(y=y, y_pred=y_pred)
+    # def test_step(self, data):
+    #     x, y = data
+    #     y_pred = (self(x, training=False) + x)/2
+    #     self.compute_loss(y=y, y_pred=y_pred)
+    #     for metric in self.metrics:
+    #         if metric.name != "loss":
+    #             metric.update_state(y, y_pred)
+    #     return {m.name: m.result() for m in self.metrics}
+
+    def train_step(self, data):
+        if len(data) == 3:
+            x, y, sample_weight = data
+        else:
+            sample_weight = None
+            x, y = data
+
+        with tensorflow.GradientTape() as tape:
+            y_pred = self(x, training=True)  # Forward pass
+            loss = self.compute_loss(
+                y=y,
+                y_pred=y_pred,
+                sample_weight=sample_weight,
+            )
+        trainable_vars = self.trainable_variables
+        gradients = tape.gradient(loss, trainable_vars)
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
         for metric in self.metrics:
-            if metric.name != "loss":
-                metric.update_state(y, y_pred)
+            if metric.name == "loss":
+                metric.update_state(loss)
+            else:
+                metric.update_state(y, y_pred, sample_weight=sample_weight)
+
         return {m.name: m.result() for m in self.metrics}
 
 class ConvLSTM:
@@ -134,7 +160,6 @@ class ConvLSTM:
         sprint(validation_csv_file, self.validation_csv_file)
         self.log_dir = os.path.join(config.INTERMEDIATE_FOLDER, log_dir)
         self.model = self.create_model(custom_eval)
-
 
     def create_model(self, custom_eval=False):
         _, a, b, c, d = self.shape
@@ -425,7 +450,7 @@ class ConvLSTM:
     @staticmethod
     def experiment_mix_examples_control():
         for city in config.city_list_def:
-            for pred_horiz in [1, 7]:
+            for pred_horiz in [1]:
                 obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
                                  prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
 
@@ -437,11 +462,35 @@ class ConvLSTM:
                     shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
                     validation_csv_file=obj.key_dimensions() + "validation.csv",
                     log_dir=obj.key_dimensions() + "log_dir",
+                    custom_eval=False
                 )
                 print(model.model.summary())
 
                 # We dont train on the easy case
                 model.train(30)
+
+    @staticmethod
+    def experiment_mix_examples_exp_sampling():
+        for city in config.city_list_def:
+            for pred_horiz in [1]:
+                obj = ProcessRaw(cityname=city, i_o_length=config.i_o_lengths_def[0],
+                                 prediction_horizon=pred_horiz, grid_size=config.scales_def[0])
+
+                model = ConvLSTM(
+                    city,
+                    config.i_o_lengths_def[0],
+                    pred_horiz,
+                    config.scales_def[0],
+                    shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                    validation_csv_file=obj.key_dimensions() + "validation.csv",
+                    log_dir=obj.key_dimensions() + "log_dir",
+                    custom_eval=True
+                )
+                print(model.model.summary())
+
+                # We dont train on the easy case
+                model.train(30)
+
 
     @staticmethod
     def experiment_mix_pred_horiz_2_1():
@@ -464,8 +513,6 @@ class ConvLSTM:
                 print(model.model.summary())
                 # train only on the hard case
                 model.train(30)
-
-
 
     @staticmethod
     def experiment_mix_examples():
@@ -595,9 +642,7 @@ if __name__ == "__main__":
     # ConvLSTM.experiment_simple()
 
     # ConvLSTM.experiment_mix_examples()
-    # ConvLSTM.experiment_mix_examples()
-    ConvLSTM.experiment_mix_pred_horiz_2_1()
-
- # First set to run
-                # model.train(epochs_param=50)
+    # ConvLSTM.experiment_mix_examples_control()
+    ConvLSTM.experiment_mix_examples_exp_sampling()
+    # ConvLSTM.experiment_mix_pred_horiz_2_1()
 

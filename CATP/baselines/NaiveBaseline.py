@@ -32,7 +32,14 @@ class NaiveBaseline:
         val = []
         val_non_zero = []
         # sprint (data_loader)
-        for X, Y in data_loader:
+        for values in data_loader:
+            if len(values) == 3:
+                X, Y, _ = values
+            elif len(values) == 2:
+                X, Y = values
+            else:
+                raise ValueError("Unexpected number of values returned by dataloader")
+
             # sprint(X.shape, Y.shape)
             x = X
             y = Y

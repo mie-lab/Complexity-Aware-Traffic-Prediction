@@ -64,18 +64,33 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
         if config.dg_debug:
             sprint(x_batch[0].shape, y_batch[0].shape)
 
-        assert len(indexes) > 0
+        try:
+            assert len(indexes) > 0
+        except:
+            debug_pitstop = True
 
         # order of dim required: [batch, timedim, X_dim, Y_dim, channels]
         x_batch = np.moveaxis(x_batch, [0, 1, 2, 3], [0, 2, 3, 1])
         y_batch = np.moveaxis(y_batch, [0, 1, 2, 3], [0, 2, 3, 1])
-
+        
+        if config.cx_sampling_enabled:
+            diff_norm = np.abs(y_batch - x_batch) / np.max(y_batch)
+            weights = np.sum(diff_norm.sum(axis=tuple([1, 2, 3])))
+            return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis]), weights  # the last new axis is for channels
+        
+        else:
+            return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis])
         # sprint ((x_batch[..., np.newaxis]).shape, (y_batch[..., np.newaxis]).shape)
-        return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis])  # the last new axis is for channels
-
+        
+        
     def get_item_with_indexes(self, index):
         assert isinstance(index, int)
-        x_batch, y_batch = self.__getitem__(index)
+        batch = self.__getitem__(index)
+        if len(batch) == 3:
+            x_batch, y_batch, _ = batch
+        elif len(batch) == 2:
+            x_batch, y_batch = batch
+
         indexes = self.indexes[index * self.batch_size : (index + 1) * self.batch_size]
         return x_batch, y_batch, indexes
 

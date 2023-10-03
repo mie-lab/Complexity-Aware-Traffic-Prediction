@@ -54,9 +54,11 @@ elif running_on == "maclocal":
     cx_sample_single_point = 40  # no longer being used
     cx_batch_size = 2
 
+
+cx_sampling_enabled = True
 cx_delete_files_after_running = True
 cx_range_day_scan = range(0, 1)
-cx_range_t_band_scan = -1 # range(-1, 2)
+cx_range_t_band_scan = range(-4, 5)
 cx_spatial_cx_PM_dist_enabled = False
 cx_post_model_loading_from_saved_val_error_plots_temporal = False
 cx_post_model_loading_from_saved_val_error_plots_spatial_save_spatial_npy = False
@@ -68,7 +70,7 @@ dg_debug_each_data_sample = False
 ######################## ConvLSTM class params #########################
 cl_model_save_epoch_end = True
 cl_model_save_train_end = True
-cl_early_stopping_patience = 5  # -1 implies no early stopping
+cl_early_stopping_patience = -1  # -1 implies no early stopping
 cl_tensorboard = False
 
 if running_on == "server":
@@ -84,7 +86,7 @@ elif running_on == "maclocal":
 
 cl_loss_func = "mse"  # "mse"
 cl_n_depth = 3
-cl_during_training_CSR_enabled_epoch_end = True
+cl_during_training_CSR_enabled_epoch_end = False
 
 
 ######################### Dimensions for experiments ####################
