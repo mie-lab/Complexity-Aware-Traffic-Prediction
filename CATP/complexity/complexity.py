@@ -315,10 +315,10 @@ class Complexity:
                     continue
 
                 vals = self.model_predict_gen.__getitem__(fileindices)
-                if len(vals) == 2:
+                if len(vals) == 2: 
                     x_neighbour, y_neighbour = vals
                 elif len(vals) == 3:
-                    x_neighbour, y_neighbour, = vals
+                    x_neighbour, y_neighbour, _ = vals
                 else:
                     raise Exception("Wrong length of values returned inside the model_predict complexity class")
 
