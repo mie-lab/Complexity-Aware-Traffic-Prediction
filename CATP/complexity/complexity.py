@@ -94,8 +94,6 @@ class Complexity:
         file_list = glob.glob(self.validation_folder + "/" + self.file_prefix + "*_x.npy")
         random.shuffle(file_list)
 
-        criticality_dataset_2 = []
-        criticality_dataset_2_exp = []
         count_y_more_than_max_x_dataset = []
         sum_y_more_than_max_x_dataset = []
         sum_y_more_than_mean_x_dataset = []
