@@ -13,6 +13,7 @@ from preprocessing.datagen import CustomDataGenerator
 from complexity.complexity import Complexity
 from smartprint import smartprint as sprint
 from tqdm import tqdm
+import inspect
 
 from slugify import slugify
 
@@ -107,14 +108,14 @@ class ComputeMetrics(Callback):
                 = -1, -1, -1, -1
 
 class CustomModel(tensorflow.keras.models.Model):
-    # def test_step(self, data):
-    #     x, y = data
-    #     y_pred = (self(x, training=False) + x)/2
-    #     self.compute_loss(y=y, y_pred=y_pred)
-    #     for metric in self.metrics:
-    #         if metric.name != "loss":
-    #             metric.update_state(y, y_pred)
-    #     return {m.name: m.result() for m in self.metrics}
+    def test_step(self, data):
+        x, y, _ = data
+        y_pred = self(x, training=False)
+        self.compute_loss(y=y, y_pred=y_pred)
+        for metric in self.metrics:
+            if metric.name != "loss":
+                metric.update_state(y, y_pred)
+        return {m.name: m.result() for m in self.metrics}
 
     def train_step(self, data):
         if len(data) == 3:
@@ -210,6 +211,160 @@ class ConvLSTM:
         #     loss=tensorflow.keras.losses.binary_crossentropy,
         #     optimizer=tensorflow.keras.optimizers.Adam(),
         # )
+
+        return model
+
+    def create_model_f_small(self, custom_eval=False):
+        _, a, b, c, d = self.shape
+        inp = layers.Input(shape=(None, b, c, d))
+
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
+
+        return model
+
+    def create_model_f_big(self, custom_eval=False):
+        _, a, b, c, d = self.shape
+        inp = layers.Input(shape=(None, b, c, d))
+
+        x = layers.ConvLSTM2D(
+            filters=256,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        x = layers.ConvLSTM2D(
+            filters=128,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
+
+        return model
+
+    def create_model_f_big_reg_bn(self, custom_eval=False):
+        _, a, b, c, d = self.shape
+        inp = layers.Input(shape=(None, b, c, d))
+
+        x = layers.ConvLSTM2D(
+            filters=256,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        x = layers.ConvLSTM2D(
+            filters=128,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
+
+        return model
+
+    def create_model_f_small_reg_bn(self, custom_eval=False):
+        _, a, b, c, d = self.shape
+        inp = layers.Input(shape=(None, b, c, d))
+
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+
+        x = layers.BatchNormalization()(x)
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
+
+        return model
+
+    def create_model_f_small_reg_bn_drop(self, custom_eval=False):
+        _, a, b, c, d = self.shape
+        inp = layers.Input(shape=(None, b, c, d))
+
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+
+        x = layers.BatchNormalization()(x)
+        x = layers.Dropout(0.5)(x)
+
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
+
+        return model
+
+    def create_model_f_big_reg_bn_drop(self, custom_eval=False):
+        _, a, b, c, d = self.shape
+        inp = layers.Input(shape=(None, b, c, d))
+
+        x = layers.ConvLSTM2D(
+            filters=256,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        x = layers.BatchNormalization()(x)
+        x = layers.Dropout(0.5)(x)
+
+        x = layers.ConvLSTM2D(
+            filters=128,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.Dropout(0.5)(x)
+
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
 
         return model
 
@@ -464,6 +619,7 @@ class ConvLSTM:
                     log_dir=obj.key_dimensions() + "log_dir",
                     custom_eval=False
                 )
+                assert config.cx_sampling_enabled == False
                 print(model.model.summary())
 
                 # We dont train on the easy case
@@ -482,7 +638,7 @@ class ConvLSTM:
                     pred_horiz,
                     config.scales_def[0],
                     shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
-                    validation_csv_file=obj.key_dimensions() + "validation.csv",
+                    validation_csv_file=obj.key_dimensions() + "validation_sampling_case.csv",
                     log_dir=obj.key_dimensions() + "log_dir",
                     custom_eval=True
                 )
@@ -636,6 +792,56 @@ class ConvLSTM:
             model.train(Epochs)
         return model
 
+    @staticmethod
+    def print_all_model_summary():
+        obj = ProcessRaw(cityname="london", i_o_length=4,
+                         prediction_horizon=4, grid_size=55)
+
+        model = ConvLSTM(
+            "london",
+            4,
+            4,
+            55,
+            shape=(2, 4, 55, 55, 1),
+            validation_csv_file=obj.key_dimensions() + "validation_sampling_case.csv",
+            log_dir=obj.key_dimensions() + "log_dir",
+            custom_eval=True
+        )
+        list_of_models = ConvLSTM.get_methods_of_class(ConvLSTM)
+        list_of_models = [x for x in list_of_models if "create_model" in x]
+        for model_type in list_of_models:
+            new_model = getattr(model, model_type)()
+            print (model_type)
+            print (new_model.summary())
+
+    @staticmethod
+    def one_task_different_models():
+        obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
+                         prediction_horizon=config.pred_horiz_def[0], grid_size=config.scales_def[0])
+
+        model = ConvLSTM(
+            config.city_list_def[0],
+            config.i_o_lengths_def[0],
+            config.pred_horiz_def[0],
+            config.scales_def[0],
+            shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+            validation_csv_file=obj.key_dimensions() + "validation.csv",
+            log_dir=obj.key_dimensions() + "log_dir",
+            custom_eval=False
+        )
+        list_of_models = ConvLSTM.get_methods_of_class(ConvLSTM)
+        list_of_models = [x for x in list_of_models if "create_model" in x]
+        for model_type in list_of_models:
+            updated_model = getattr(model, model_type)()
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + model_type + ".csv")
+            print (updated_model. summary())
+
+            model.train(30)
+
+    def get_methods_of_class(cls):
+        return [method for method in dir(cls) if inspect.isfunction(getattr(cls, method))]
+
+
 
 if __name__ == "__main__":
     # ConvLSTM.test_ConvLSTM()
@@ -643,6 +849,9 @@ if __name__ == "__main__":
 
     # ConvLSTM.experiment_mix_examples()
     # ConvLSTM.experiment_mix_examples_control()
-    ConvLSTM.experiment_mix_examples_exp_sampling()
+    # ConvLSTM.experiment_mix_examples_exp_sampling()
     # ConvLSTM.experiment_mix_pred_horiz_2_1()
+
+    # ConvLSTM.print_all_model_summary()
+    ConvLSTM.one_task_different_models()
 
