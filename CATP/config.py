@@ -32,6 +32,8 @@ else:
     raise Exception("HOME_FOLDER and DATA_FOLDER not specified; please check config file")
 
 
+max_norm_value = 10000
+
 INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
 RESULTS_FOLDER = os.path.join(DATA_FOLDER, "intermediate_folder")
 
@@ -55,7 +57,7 @@ elif running_on == "maclocal":
     cx_batch_size = 2
 
 
-cx_sampling_enabled = True
+cx_sampling_enabled = False
 cx_delete_files_after_running = True
 cx_range_day_scan = range(0, 1)
 cx_range_t_band_scan = range(-4, 5)
@@ -86,7 +88,7 @@ elif running_on == "maclocal":
 
 cl_loss_func = "mse"  # "mse"
 cl_n_depth = 3
-cl_during_training_CSR_enabled_epoch_end = False
+cl_during_training_CSR_enabled_epoch_end = True
 
 
 ######################### Dimensions for experiments ####################

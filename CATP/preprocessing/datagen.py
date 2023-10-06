@@ -74,12 +74,16 @@ class CustomDataGenerator(tensorflow.keras.utils.Sequence):
         y_batch = np.moveaxis(y_batch, [0, 1, 2, 3], [0, 2, 3, 1])
         
         if config.cx_sampling_enabled:
-            diff_norm = np.abs(y_batch - x_batch) / np.max(y_batch)
-            weights = np.sum(diff_norm.sum(axis=tuple([1, 2, 3])))
-            return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis]), weights  # the last new axis is for channels
+            diff_norm = np.abs(y_batch - x_batch) / np.max(x_batch)
+            mean_diff = np.mean(diff_norm.sum(axis=tuple([1, 2, 3])))
+            weights = mean_diff / mean_diff.sum()
+
+            return (x_batch[..., np.newaxis])/config.max_norm_value\
+                , (y_batch[..., np.newaxis])/config.max_norm_value, weights  # the last new axis is for channels
         
         else:
-            return (x_batch[..., np.newaxis]), (y_batch[..., np.newaxis])
+            return (x_batch[..., np.newaxis])/config.max_norm_value\
+                , (y_batch[..., np.newaxis])/config.max_norm_value
         # sprint ((x_batch[..., np.newaxis]).shape, (y_batch[..., np.newaxis]).shape)
         
         
