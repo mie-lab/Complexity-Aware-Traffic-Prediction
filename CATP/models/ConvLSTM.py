@@ -57,7 +57,7 @@ class ComputeMetrics(Callback):
             predictions = self.model.predict(x_batch)
 
             for idx, (input_data, pred) in enumerate(zip(x_batch, predictions)):
-                # Save the input data and the prediction into the corect prediction folder
+                # Save the input data and the prediction into the correct prediction folder
                 input_file = os.path.join(predictions_dir,
                                           "{}{}_x.npy".format(self.model.train_gen.prefix, indexes[idx]))
                 temp_input_file_name = str(int(np.random.rand() * 100000000000)) + "_x.npy"
@@ -434,7 +434,7 @@ class ConvLSTM:
 
         return model
 
-    def train(self, epochs_param=-1):
+    def train(self, epochs_param=-1, optim="Adam"):
         # Train the model
         batch_size = config.cl_batch_size
         if epochs_param == -1:
@@ -446,7 +446,12 @@ class ConvLSTM:
         elif config.cl_loss_func == "non-zero-mse":
             loss_fn = non_zero_mse
 
-        optimizer = optimizers.Adam(0.001)
+        if optim=="Adam":
+            optimizer = optimizers.Adam(0.001)
+        elif optim=="SGD":
+            optimizer = optimizers.SGD(0.001)
+        else:
+            raise Exception("Wrong optimiser provided")
 
         # manual reset the model since sometimes it does not reset a new model (not sure why)
         tensorflow.keras.backend.clear_session()
@@ -838,6 +843,67 @@ class ConvLSTM:
 
             model.train(30)
 
+    @staticmethod
+    def one_task_three_models():
+        obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
+                         prediction_horizon=config.pred_horiz_def[0], grid_size=config.scales_def[0])
+
+        model = ConvLSTM(
+            config.city_list_def[0],
+            config.i_o_lengths_def[0],
+            config.pred_horiz_def[0],
+            config.scales_def[0],
+            shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+            validation_csv_file=obj.key_dimensions() + "validation.csv",
+            log_dir=obj.key_dimensions() + "log_dir",
+            custom_eval=False
+        )
+
+
+
+        # keep only three models
+        list_of_models = ["create_model", "create_model_small_epochs", "create_model_f_big"]
+
+        for model_type in list_of_models:
+            updated_model = getattr(model, model_type)()
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + model_type + ".csv")
+            print (updated_model. summary())
+
+            model.train(1)
+
+
+    @staticmethod
+    def one_task_increase_lr_midway():
+        obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
+                         prediction_horizon=config.pred_horiz_def[0], grid_size=config.scales_def[0])
+
+        model = ConvLSTM(
+            config.city_list_def[0],
+            config.i_o_lengths_def[0],
+            config.pred_horiz_def[0],
+            config.scales_def[0],
+            shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+            validation_csv_file=obj.key_dimensions() + "validation.csv",
+            log_dir=obj.key_dimensions() + "log_dir",
+            custom_eval=False
+        )
+        model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + "-15-" + ".csv")
+        model.train(15)
+
+        model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + "-post15-2-" + ".csv")
+        optimizer = optimizers.Adam(0.001)
+        model.model.compile(optimizer=optimizer, loss="mse", metrics=non_zero_mse)
+        model.train(2)
+        model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + "-post15-5-" + ".csv")
+        optimizer = optimizers.Adam(0.001)
+        model.model.compile(optimizer=optimizer, loss="mse", metrics=non_zero_mse)
+        model.train(3)
+        model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + "-post15-10-" + ".csv")
+        optimizer = optimizers.Adam(0.001)
+        model.model.compile(optimizer=optimizer, loss="mse", metrics=non_zero_mse)
+        model.train(10)
+
+
     def get_methods_of_class(cls):
         return [method for method in dir(cls) if inspect.isfunction(getattr(cls, method))]
 
@@ -853,5 +919,7 @@ if __name__ == "__main__":
     # ConvLSTM.experiment_mix_pred_horiz_2_1()
 
     # ConvLSTM.print_all_model_summary()
-    ConvLSTM.one_task_different_models()
+    # ConvLSTM.one_task_different_models()
 
+    # ConvLSTM.one_task_increase_lr_midway()
+    ConvLSTM.one_task_three_models()
