@@ -23,7 +23,7 @@ alphas = [1, 0.3, 0.6]
 columns = [
             'epoch',
              # 'CSR_GB_sum',
-             # 'CSR_MP_count',
+             'CSR_MP_count',
              # 'CSR_MP_std',
              'CSR_MP_sum',
              # 'CSR_NM_sum',
@@ -50,7 +50,7 @@ for idx, file in enumerate(files):
     if idx not in [
         0,
         1,
-        2,
+        # 2,
         # 3,
         # 4,
         # 5,
@@ -68,6 +68,12 @@ for idx, file in enumerate(files):
     if "validation_experiment.csv" in file:
         linestyle = ":"
     for col in columns:
+        if col == "CSR_MP_sum":
+            data[col] = data[col] * data["CSR_MP_count"]
+        if col == "CSR_PM_sum":
+            data[col] = data[col] * data["CSR_PM_count"]
+        if col in ["CSR_MP_count", "CSR_PM_count"]:
+            continue
         if idx >= 0 :
             # Exclude 'epoch' column from plotting
 
@@ -115,13 +121,14 @@ lower_interp = f_lower(x_new)
 plt.fill_between(x_new, upper_interp, lower_interp, where=(upper_interp > lower_interp), color="yellow", alpha=0.5)
 
 plt.yscale("log")
-plt.ylim(1, 5000)
+# plt.ylim(1, 10000)
 
 plt.title('Dataset switching experiment and control', fontsize=8)
 plt.xlabel('Epoch')
 plt.ylabel('Value')
 plt.legend(fontsize=6, ncol=2, loc="best")
 plt.xticks(list(range(0, 30, 3)))
+
 
 plt.grid(axis='x')
 

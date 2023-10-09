@@ -72,7 +72,10 @@ class ComputeMetrics(Callback):
                 os.rename(temp_pred_file_name, predictions_file)
 
         # if epoch % 0 == 0:
-
+        if epoch % 5 == 0:
+            RUN_PM=True
+        else:
+            RUN_PM = False
         if config.cl_during_training_CSR_enabled_epoch_end:
             cx = Complexity(
                 self.model.cityname,
@@ -83,7 +86,7 @@ class ComputeMetrics(Callback):
                 model_func=self.model.predict,
                 model_train_gen=self.model.train_gen,
                 model_predict_gen=self.model.predict_gen,
-                run_pm=True,
+                run_pm=RUN_PM,
                 run_nm=True,
                 run_gb=True,
                 predictions_dir=self.model.predictions_folder,
@@ -214,6 +217,55 @@ class ConvLSTM:
 
         return model
 
+    def create_model_f_def_no_BN(self, custom_eval=False):
+        _, a, b, c, d = self.shape
+        x = np.random.rand(2, a, b, c, d)
+        inp = layers.Input(shape=(None, *x.shape[2:]))
+
+        # We will construct 3 `ConvLSTM2D` layers with batch normalization,
+        # followed by a `Conv3D` layer for the spatiotemporal outputs.
+        x = layers.ConvLSTM2D(
+            filters=128,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        # Next, we will build the complete model and compile it.
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
+        # model.compile(
+        #     loss=tensorflow.keras.losses.binary_crossentropy,
+        #     optimizer=tensorflow.keras.optimizers.Adam(),
+        # )
+
+        return model
+
     def create_model_f_small(self, custom_eval=False):
         _, a, b, c, d = self.shape
         inp = layers.Input(shape=(None, b, c, d))
@@ -236,29 +288,57 @@ class ConvLSTM:
 
     def create_model_f_big(self, custom_eval=False):
         _, a, b, c, d = self.shape
-        inp = layers.Input(shape=(None, b, c, d))
+        x = np.random.rand(2, a, b, c, d)
+        inp = layers.Input(shape=(None, *x.shape[2:]))
 
+        # We will construct 3 `ConvLSTM2D` layers with batch normalization,
+        # followed by a `Conv3D` layer for the spatiotemporal outputs.
+        x = layers.ConvLSTM2D(
+            filters=512,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="tanh",
+        )(inp)
+        x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
             filters=256,
             kernel_size=(3, 3),
             padding="same",
             return_sequences=True,
-            activation="relu",
-        )(inp)
+            activation="tanh",
+        )(x)
+        x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
             filters=128,
             kernel_size=(3, 3),
             padding="same",
             return_sequences=True,
-            activation="relu",
+            activation="tanh",
+        )(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="tanh",
+        )(x)
+        # x = layers.BatchNormalization()(x)
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="tanh",
         )(x)
         x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
 
+        # Next, we will build the complete model and compile it.
         if not custom_eval:
             model = tensorflow.keras.models.Model(inp, x)
         else:
             model = CustomModel(inp, x)
-
         return model
 
     def create_model_f_big_reg_bn(self, custom_eval=False):
@@ -382,7 +462,7 @@ class ConvLSTM:
             return_sequences=True,
             activation="relu",
         )(inp)
-        x = layers.BatchNormalization()(x)
+        # x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
             filters=8,
             kernel_size=(3, 3),
@@ -390,7 +470,7 @@ class ConvLSTM:
             return_sequences=True,
             activation="relu",
         )(x)
-        x = layers.BatchNormalization()(x)
+        # x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
             filters=4,
             kernel_size=(1, 1),
@@ -417,7 +497,7 @@ class ConvLSTM:
         # We will construct 3 `ConvLSTM2D` layers with batch normalization,
         # followed by a `Conv3D` layer for the spatiotemporal outputs.
         x = layers.ConvLSTM2D(
-            filters=4,
+            filters=256,
             kernel_size=(1, 1),
             padding="same",
             return_sequences=True,
@@ -447,9 +527,9 @@ class ConvLSTM:
             loss_fn = non_zero_mse
 
         if optim=="Adam":
-            optimizer = optimizers.Adam(0.001)
+            optimizer = optimizers.Adam(0.0001)
         elif optim=="SGD":
-            optimizer = optimizers.SGD(0.001)
+            optimizer = optimizers.SGD(0.00001)
         else:
             raise Exception("Wrong optimiser provided")
 
@@ -843,6 +923,9 @@ class ConvLSTM:
 
             model.train(30)
 
+
+
+
     @staticmethod
     def one_task_three_models():
         obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
@@ -862,14 +945,14 @@ class ConvLSTM:
 
 
         # keep only three models
-        list_of_models = ["create_model", "create_model_small_epochs", "create_model_f_big"]
+        list_of_models = ["create_model", "create_model_small_epochs"]
 
         for model_type in list_of_models:
             updated_model = getattr(model, model_type)()
-            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + model_type + ".csv")
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + model_type  + "-sgd-0001-85_" + ".csv")
             print (updated_model. summary())
 
-            model.train(1)
+            model.train(epochs_param=100, optim="SGD")
 
 
     @staticmethod
@@ -903,6 +986,92 @@ class ConvLSTM:
         model.model.compile(optimizer=optimizer, loss="mse", metrics=non_zero_mse)
         model.train(10)
 
+    def create_model_def_without_regularisation(self, custom_eval=False):
+        _, a, b, c, d = self.shape
+        x = np.random.rand(2, a, b, c, d)
+        inp = layers.Input(shape=(None, *x.shape[2:]))
+
+        # We will construct 3 `ConvLSTM2D` layers with batch normalization,
+        # followed by a `Conv3D` layer for the spatiotemporal outputs.
+        x = layers.ConvLSTM2D(
+            filters=128,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        # x = layers.BatchNormalization()(x)
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        # x = layers.BatchNormalization()(x)
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        # x = layers.BatchNormalization()(x)
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        # Next, we will build the complete model and compile it.
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
+        # model.compile(
+        #     loss=tensorflow.keras.losses.binary_crossentropy,
+        #     optimizer=tensorflow.keras.optimizers.Adam(),
+        # )
+
+        return model
+
+    def create_model_shallow_less_filt(self, custom_eval=False):
+        _, a, b, c, d = self.shape
+        x = np.random.rand(2, a, b, c, d)
+        inp = layers.Input(shape=(None, *x.shape[2:]))
+
+        # We will construct 3 `ConvLSTM2D` layers with batch normalization,
+        # followed by a `Conv3D` layer for the spatiotemporal outputs.
+        x = layers.ConvLSTM2D(
+            filters=32,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        # x = layers.BatchNormalization()(x)
+        x = layers.ConvLSTM2D(
+            filters=8,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        # Next, we will build the complete model and compile it.
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
+        # model.compile(
+        #     loss=tensorflow.keras.losses.binary_crossentropy,
+        #     optimizer=tensorflow.keras.optimizers.Adam(),
+        # )
+        return model
 
     def get_methods_of_class(cls):
         return [method for method in dir(cls) if inspect.isfunction(getattr(cls, method))]

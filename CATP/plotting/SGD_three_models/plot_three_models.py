@@ -8,16 +8,16 @@ import matplotlib.colors as mcolors
 import numpy as np
 
 # Define the CSV filenames
-files = [
-    "validation-create_model.csv",
-    "validation-create_model_f_big.csv",
-    "validation-create_model_small_epochs.csv"
- ]
-
-pred_horiz = [ "deep_less_filter", "shallow_,more_filter", "deep_less_filter"] # ,"Control-Hard", "Control-Easy-High-LR", "Transfer-Hard-"]
+files = {
+    "validation-create_model_f_big-sgd-0001-25_.csv": "f_big",
+    # "validation-create_model_small_epochs-sgd-0001-25_.csv": "f_small",
+    "validation-create_model_f_def_no_BN-sgd-0001-25_.csv":"f_big_no_reg"
+}
 
 
-alphas = [1, 1, 1] # , 0.1, 0.5]
+
+
+alphas = [1, 0.5, 0.25] # , 0.1, 0.5]
 
 columns = [
             'epoch',
@@ -36,10 +36,11 @@ columns = [
              # 'self.CSR_NM_count',
              # 'self.CSR_PM_count',
              'val_loss',
-             # 'val_non_zero_mse'
+             # 'val_non_zero_mse',
+                "MC",
+                "IC"
             ]
 
-columns = columns + ["MC", "IC"] #["val/train"]
 
 
 
@@ -49,18 +50,7 @@ color_dict["MC"] = 'red'
 color_dict['val_loss'] = 'blue'
 
 # Loop through the CSV files
-for idx, file in enumerate(files):
-
-    if idx not in [
-        0,
-        # 1,
-        # 2,
-        # 3,
-        # 4,
-        # 5,
-        # 6,
-    ]:
-        continue
+for idx, file in enumerate(files.keys()):
 
     # Load the data
     data = pd.read_csv(file)
@@ -83,18 +73,23 @@ for idx, file in enumerate(files):
 
             if col != 'epoch':
 
+                if "validation-create_model.csv" in files:
+                    scale = 10000
+                else:
+                    scale = 5000
+
                 if col in ["MC"]:
-                    data[col] = data[col] * 10 ** 4
+                    data[col] = data[col] * scale
                 if col in ["IC"]:
-                    data[col] = data[col] * 10 ** 0 # Since we don't use any Data loader in IC computation
-                elif col in ["val_loss", "loss"]:
-                    data[col] = data[col] * 10 ** 8
+                    data[col] = data[col] * 1 # Since we don't use any Data loader in IC computation
+                elif col in ["val_loss", "loss", "val_non_zero_mse", "non_zero_mse", "naive-model-mse"]:
+                    data[col] = data[col] * scale * scale
                     # continue
                 # max_ = data[col].max()
                 # data[col] = data[col] / max_
 
                 plt.plot(data['epoch'], np.convolve(data[col], [1/n]*n, "same"),
-                         alpha=alphas[idx], color=color_dict[col], label=col + "_" + str(pred_horiz[idx]),
+                         alpha=alphas[idx], color=color_dict[col], label=col + "_" + str(files[file]),
                          linestyle=linestyle)
 
 
@@ -103,9 +98,11 @@ plt.title('MC evaluation during training', fontsize=8)
 plt.xlabel('Epoch')
 plt.ylabel('Value')
 plt.legend(fontsize=6, ncol=2, loc="upper right")
-plt.xticks(list(range(0, 30, 1)), rotation=90)
-plt.yscale("log")
-plt.grid(axis='x')
+plt.xticks(list(range(0, 50, 1)), rotation=90, fontsize=4)
+# plt.yscale("log")
+plt.grid(axis='x',alpha=0.05)
+# plt.xlim(n, 50-n)
+# plt.ylim(1, 4000)
 
-plt.savefig("three_models_evolution_1.png", dpi=300)
+plt.savefig("three_models_scale_25.png", dpi=300)
 plt.show()
