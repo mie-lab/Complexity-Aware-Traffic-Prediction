@@ -147,8 +147,7 @@ class Complexity:
 
             sum_x_m_predict = []
             sum_y_m_predict = []
-            criticality_2 = []
-            criticality_2_exp = []
+
 
             for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
                 fileindices = neighbour_indexes[j : j + config.cx_batch_size]
@@ -158,7 +157,13 @@ class Complexity:
 
                 # sprint (len(self.model_train_gen.__getitem__(fileindices)))
 
-                x_neighbour, y_neighbour = self.model_train_gen.__getitem__(fileindices)
+                vals = self.model_train_gen.__getitem__(fileindices)
+                if len(vals) == 3:
+                    x_neighbour, y_neighbour, _ = vals
+                elif len(vals) == 2:
+                    x_neighbour, y_neighbour = vals
+                else:
+                    raise Exception("Error in PM compute Cx; wrong values from datagen")
 
                 # Since this is the no thresh case
                 # if np.max(np.abs(y_neighbour - y)) > self.thresh:
@@ -485,7 +490,13 @@ class Complexity:
 
                 # sprint (len(self.model_train_gen.__getitem__(fileindices)))
 
-                x_neighbour, _ = self.model_train_gen.__getitem__(fileindices)
+                vals = self.model_train_gen.__getitem__(fileindices)
+                if len(vals) == 3:
+                    x_neighbour, _1, _2 = vals
+                elif len(vals) == 2:
+                    x_neighbour, _1_2 = vals
+                else:
+                    raise Exception("Error in NM compute Cx; wrong values from datagen")
 
                 y_neighbour = x_neighbour
 
@@ -643,6 +654,12 @@ class Complexity:
                     continue
 
                 x_neighbour, _ = self.model_train_gen.__getitem__(fileindices)
+                if len(vals) == 3:
+                    x_neighbour, y_neighbour, _ = vals
+                elif len(vals) == 2:
+                    x_neighbour, y_neighbour = vals
+                else:
+                    raise Exception("Error in GB compute Cx; wrong values from datagen")
 
                 y_neighbour = np.random.random_sample(x_neighbour.shape) * np.max(x_neighbour.flatten())
 
