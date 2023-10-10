@@ -112,11 +112,13 @@ class Complexity:
 
             filename = file_list[i]
             x = np.load(filename)
+            x = x/config.max_norm_value
 
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
             y = np.load((self.validation_folder + "/" + self.file_prefix) + str(fileindex_orig) + "_y.npy")
-
+            y = y/config.max_norm_value
+            
             neighbour_indexes = []
 
 
@@ -276,11 +278,13 @@ class Complexity:
             filename = file_list[i]
 
             x = np.load(filename)
+            x = x/config.max_norm_value
 
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
             y = np.load(self.predictions_dir + "/"  + self.file_prefix + str(fileindex_orig) + "_y.npy")
-
+            y = y/config.max_norm_value
+        
             neighbour_indexes = []
 
             # Advanced filtering case
@@ -443,6 +447,7 @@ class Complexity:
 
             filename = file_list[i]
             x = np.load(filename)
+            x = x/config.max_norm_value
 
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
@@ -610,6 +615,7 @@ class Complexity:
 
             filename = file_list[i]
             x = np.load(filename)
+            x = x/config.max_norm_value            
 
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
