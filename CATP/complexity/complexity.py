@@ -102,9 +102,9 @@ class Complexity:
         sum_y_dataset = []
         sum_x_dataset = []
 
-        random.shuffle(file_list)
+        file_list = file_list[:config.cx_batch_size]
 
-        for i in tqdm(range(len(file_list)), desc="Iterating through whole/subset of dataset"):
+        for i in tqdm(range(len(file_list)), desc=" Computing IC "):
             sum_y = []
             sum_x = []
 
@@ -267,9 +267,9 @@ class Complexity:
         sum_y_dataset = []
         sum_x_dataset = []
 
-        random.shuffle(file_list)
+        file_list = file_list[:config.cx_batch_size]
 
-        for i in tqdm(range(len(file_list)), desc="Iterating through whole/subset of dataset"):
+        for i in tqdm(range(len(file_list)), desc=" Computing MC "):
             sum_y = []
             sum_x = []
 
@@ -437,9 +437,9 @@ class Complexity:
         sum_y_dataset = []
         sum_x_dataset = []
 
-        random.shuffle(file_list)
+        file_list = file_list[:config.cx_batch_size]
 
-        for i in tqdm(range(len(file_list)), desc="Iterating through whole/subset of dataset"):
+        for i in tqdm(range(len(file_list)), desc=" Computing NM "):
             sum_y = []
             sum_x = []
 
@@ -604,10 +604,9 @@ class Complexity:
         sum_y_dataset = []
         sum_x_dataset = []
 
-
-        random.shuffle(file_list)
-
-        for i in tqdm(range(len(file_list)), desc="Iterating through whole/subset of dataset"):
+        file_list = file_list[:config.cx_batch_size]
+        
+        for i in tqdm(range(len(file_list)), desc=" Computing GB "):
             sum_y = []
             sum_x = []
 
@@ -620,6 +619,7 @@ class Complexity:
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
             y = np.random.random_sample(x.shape) * np.max(x.flatten())
+            y = y/config.max_norm_value
 
             neighbour_indexes = []
 
