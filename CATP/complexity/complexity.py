@@ -102,7 +102,7 @@ class Complexity:
         sum_y_dataset = []
         sum_x_dataset = []
 
-        file_list = file_list[:config.cx_batch_size]
+        file_list = file_list[:config.cx_sample_whole_data]
 
         for i in tqdm(range(len(file_list)), desc=" Computing IC "):
             sum_y = []
@@ -267,7 +267,7 @@ class Complexity:
         sum_y_dataset = []
         sum_x_dataset = []
 
-        file_list = file_list[:config.cx_batch_size]
+        file_list = file_list[:config.cx_sample_whole_data]
 
         for i in tqdm(range(len(file_list)), desc=" Computing MC "):
             sum_y = []
@@ -437,7 +437,7 @@ class Complexity:
         sum_y_dataset = []
         sum_x_dataset = []
 
-        file_list = file_list[:config.cx_batch_size]
+        file_list = file_list[:config.cx_sample_whole_data]
 
         for i in tqdm(range(len(file_list)), desc=" Computing NM "):
             sum_y = []
@@ -604,7 +604,7 @@ class Complexity:
         sum_y_dataset = []
         sum_x_dataset = []
 
-        file_list = file_list[:config.cx_batch_size]
+        file_list = file_list[:config.cx_sample_whole_data]
         
         for i in tqdm(range(len(file_list)), desc=" Computing GB "):
             sum_y = []
