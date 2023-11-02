@@ -9,10 +9,10 @@ import numpy as np
 
 # Define the CSV filenames
 files = {
-    "validation-create_model-madrid--sgd-0001-85_.csv": "f_big_madrid",
-    "validation-create_model_small_epochs-madrid--sgd-0001-85_.csv":"f_small_madrid",
-    # "validation-create_modellondon-sgd-0001-85_.csv": "f_big_london",
-    # "validation-create_model_small_epochslondon-sgd-0001-85_.csv": "f_small_london"
+    "validation-create_model_f_big_reg_NO_bn-sgd-0001-madrid-1-4-85-.csv": "f_BIG_hard",
+    # "validation-create_model_f_big_reg_NO_bn-sgd-0001-madrid-2-4-55-.csv":"f_BIG_easy",
+    "validation-create_model_f_def_no_BN-sgd-0001-madrid-1-4-85-.csv": "f_small_hard",
+    # "validation-create_model_f_def_no_BN-sgd-0001-madrid-2-4-55-.csv": "f_small_easy"
 }
 
 
@@ -29,10 +29,10 @@ columns = [
              # 'CSR_NM_sum',
              # 'CSR_PM_std',
              # 'CSR_PM_sum',
-             # 'loss',
+             'loss',
              # 'naive-model-mse',
              'naive-model-non-zero',
-             'non_zero_mse',
+             # 'non_zero_mse',
              # 'self.CSR_GB_count',
              # 'self.CSR_NM_count',
              # 'self.CSR_PM_count',
@@ -63,11 +63,11 @@ for idx, file in enumerate(files.keys()):
     # Plot each column on the same plot
     n = 1
 
-
     # data["val/train"] = data["val_non_zero_mse"] / data["non_zero_mse"]
     data["MC"] = data["CSR_MP_sum"]
     data["IC"] = data["CSR_PM_sum"].max()
     data["naive-model-mse"] = data["naive-model-mse"].mean()
+    data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
 
     linestyle = '-'
     # if "create_model_f_big" in file:
@@ -83,8 +83,8 @@ for idx, file in enumerate(files.keys()):
 
                 if col in ["MC", "IC"]:
                     data[col] = data[col] * scale
-                if col in ["IC"]:
-                    data[col] = data[col] * 1 # Since we don't use any Data loader in IC computation
+                # if col in ["IC"]:
+                #     data[col] = data[col] * 1 # Since we don't use any Data loader in IC computation
                 elif col in ["val_loss", "loss", "val_non_zero_mse", "non_zero_mse",
                              "naive-model-non-zero", "naive-model-mse"]:
                     data[col] = data[col] * scale * scale
@@ -104,10 +104,11 @@ plt.ylabel('Value')
 # plt.legend(fontsize=6, ncol=2, loc="upper right")
 plt.legend(fontsize=6, ncol=2, loc="best")
 plt.xticks(list(range(0, 100, 1)), rotation=90, fontsize=4)
-plt.yscale("log")
+# plt.yscale("log")
 plt.grid(axis='x',alpha=0.05)
 # plt.xlim(n, 50-n)
 # plt.ylim(1, 4000)
+plt.tight_layout()
 
-plt.savefig("scale_85.png", dpi=300)
+plt.savefig("hard_task_two_models.png", dpi=300)
 plt.show()

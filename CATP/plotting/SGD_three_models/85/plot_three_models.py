@@ -9,9 +9,10 @@ import numpy as np
 
 # Define the CSV filenames
 files = {
-    "validation-create_model_f_big-sgd-0001-25_.csv": "f_big",
-    # "validation-create_model_small_epochs-sgd-0001-25_.csv": "f_small",
-    "validation-create_model_f_def_no_BN-sgd-0001-25_.csv":"f_big_no_reg"
+    "validation-create_model-madrid--sgd-0001-85_.csv": "f_big_madrid",
+    "validation-create_model_small_epochs-madrid--sgd-0001-85_.csv":"f_small_madrid",
+    # "validation-create_modellondon-sgd-0001-85_.csv": "f_big_london",
+    # "validation-create_model_small_epochslondon-sgd-0001-85_.csv": "f_small_london"
 }
 
 
@@ -28,17 +29,17 @@ columns = [
              # 'CSR_NM_sum',
              # 'CSR_PM_std',
              # 'CSR_PM_sum',
-             'loss',
+             # 'loss',
              # 'naive-model-mse',
-             # 'naive-model-non-zero',
-             # 'non_zero_mse',
+             'naive-model-non-zero',
+             'non_zero_mse',
              # 'self.CSR_GB_count',
              # 'self.CSR_NM_count',
              # 'self.CSR_PM_count',
-             'val_loss',
-             # 'val_non_zero_mse',
+             # 'val_loss',
+             'val_non_zero_mse',
                 "MC",
-                "IC"
+                # "IC"
             ]
 
 
@@ -48,6 +49,10 @@ color_dict = {column: mcolors.to_hex([random.random(), random.random(), random.r
 color_dict["IC"] = 'green'
 color_dict["MC"] = 'red'
 color_dict['val_loss'] = 'blue'
+color_dict['val_non_zero_mse'] = 'blue'
+color_dict['loss'] = 'orange'
+color_dict['naive-model-mse'] = 'black'
+color_dict['naive-model-non-zero'] = 'black'
 
 # Loop through the CSV files
 for idx, file in enumerate(files.keys()):
@@ -61,7 +66,9 @@ for idx, file in enumerate(files.keys()):
 
     # data["val/train"] = data["val_non_zero_mse"] / data["non_zero_mse"]
     data["MC"] = data["CSR_MP_sum"]
-    data["IC"] = data["CSR_PM_sum"]
+    data["IC"] = data["CSR_PM_sum"].max()
+    data["naive-model-mse"] = data["naive-model-mse"].mean()
+    data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
 
     linestyle = '-'
     # if "create_model_f_big" in file:
@@ -73,16 +80,14 @@ for idx, file in enumerate(files.keys()):
 
             if col != 'epoch':
 
-                if "validation-create_model.csv" in files:
-                    scale = 10000
-                else:
-                    scale = 5000
+                scale = 5000
 
-                if col in ["MC"]:
+                if col in ["MC", "IC"]:
                     data[col] = data[col] * scale
                 if col in ["IC"]:
                     data[col] = data[col] * 1 # Since we don't use any Data loader in IC computation
-                elif col in ["val_loss", "loss", "val_non_zero_mse", "non_zero_mse", "naive-model-mse"]:
+                elif col in ["val_loss", "loss", "val_non_zero_mse", "non_zero_mse",
+                             "naive-model-non-zero", "naive-model-mse"]:
                     data[col] = data[col] * scale * scale
                     # continue
                 # max_ = data[col].max()
@@ -97,12 +102,13 @@ for idx, file in enumerate(files.keys()):
 plt.title('MC evaluation during training', fontsize=8)
 plt.xlabel('Epoch')
 plt.ylabel('Value')
-plt.legend(fontsize=6, ncol=2, loc="upper right")
-plt.xticks(list(range(0, 50, 1)), rotation=90, fontsize=4)
-# plt.yscale("log")
+# plt.legend(fontsize=6, ncol=2, loc="upper right")
+plt.legend(fontsize=6, ncol=2, loc="best")
+plt.xticks(list(range(0, 100, 1)), rotation=90, fontsize=4)
+plt.yscale("log")
 plt.grid(axis='x',alpha=0.05)
 # plt.xlim(n, 50-n)
 # plt.ylim(1, 4000)
 
-plt.savefig("three_models_scale_25.png", dpi=300)
+plt.savefig("scale_85.png", dpi=300)
 plt.show()

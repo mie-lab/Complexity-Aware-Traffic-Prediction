@@ -1,0 +1,23 @@
+Model: "model_2"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ input_3 (InputLayer)        [(None, None, 55, 55, 1   0         
+                             )]                                  
+                                                                 
+ conv_lstm2d_8 (ConvLSTM2D)  (None, None, 55, 55, 64   150016    
+                             )                                   
+                                                                 
+ conv_lstm2d_9 (ConvLSTM2D)  (None, None, 55, 55, 64   295168    
+                             )                                   
+                                                                 
+ conv_lstm2d_10 (ConvLSTM2D  (None, None, 55, 55, 64   295168    
+ )                           )                                   
+                                                                 
+ conv3d_2 (Conv3D)           (None, None, 55, 55, 1)   1729      
+                                                                 
+=================================================================
+Total params: 742081 (2.83 MB)
+Trainable params: 742081 (2.83 MB)
+Non-trainable params: 0 (0.00 Byte)
+_________________________________________________________________

@@ -345,18 +345,23 @@ for List_of_depths, List_of_filters in [
                 data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
 
                 # argmin = np.argmin(data["val_loss"])
-                plt.scatter(data['MC'][15:], data["val_loss"][15:],
+
+                val_loss = data["val_loss"]
+                argmin = (val_loss).argsort()[:5]
+
+                # plt.scatter(data['MC'][:], data["loss"][:],
+                plt.scatter(data['MC'][argmin], data["val_loss"][argmin],
                 # plt.scatter(data['MC'][:10], data["val_loss"][:10],
-                        alpha=1,
+                        alpha=0.9,
                             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
                             label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
                          + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Val loss",
                          # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
                             )
                 if label_flag and FIL==128:
-                    plt.scatter(data['MC'][15:], data["loss"][15:],
+                    plt.scatter(data['MC'][argmin], data["loss"][argmin],
                                 # plt.scatter(data['MC'][:10], data["val_loss"][:10],
-                                alpha=1,
+                                alpha=0.9,
                                 color=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil],
                                 label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
                                       + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Train loss",
@@ -365,15 +370,16 @@ for List_of_depths, List_of_filters in [
                                 )
                     label_flag = False
                 else:
-                    plt.scatter(data['MC'][15:], data["loss"][15:],
+                    plt.scatter(data['MC'][argmin], data["loss"][argmin],
                                 # plt.scatter(data['MC'][:10], data["val_loss"][:10],
-                                alpha=1,
+                                alpha=0.9,
                                 color=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil],
                                 # label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
                                 #       + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Min",
                                 # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
                                 marker="*"
                                 )
+                sprint (DEP, FIL, data["MC"][20:].mean(), data["MC"][20:].min(), data["MC"][20:].max())
 
                 # confidence_ellipse(data['MC'][15:], data["val_loss"][15:], plt.gca(),
                 #                    edgecolor=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil])
@@ -415,13 +421,13 @@ for List_of_depths, List_of_filters in [
                 #             # s=SIZE_SCATTER
                 #             )
 
-    plt.title('Train and Val loss vs MC\nLondon ' + r'$(i_0=4, p_h=1, s=55)$', fontsize=8)
+    plt.title('Train and Val loss vs MC \n for 5 epochs with lowest Val loss Task: ' + r'$(i_0=4, p_h=1, s=55, city=London)$', fontsize=8)
     plt.xlabel('MC')
     plt.ylabel('MSE')
-    plt.legend(fontsize=6, ncol=3, loc="best")
+    plt.legend(fontsize=7, ncol=3, loc="upper right")
     # plt.xlim(0, 700)
     # plt.ylim(1700, 2500)
-    # plt.ylim(500, 5000)
+    plt.ylim(450, 1350)
     # plt.ylim(620, 1300)
     # plt.xscale("symlog")
     # plt.yscale("symlog")
@@ -429,7 +435,7 @@ for List_of_depths, List_of_filters in [
     plt.savefig("london-IO_LEN_scatter_all_combined_" + IO_len + "-PRED_horiz_" + PRED_HORIZ + "Scale" + SCALE +\
                 "_d_".join([str(x) for x in List_of_depths]) +\
                 "_f_".join([str(x) for x in List_of_filters]) +\
-                "-all-with_train.png", dpi=300)
+                "-best_5_val_loss_with_train.png", dpi=300)
     sprint ("_d_".join([str(x) for x in List_of_depths]), List_of_depths)
 
 

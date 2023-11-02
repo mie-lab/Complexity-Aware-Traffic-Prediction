@@ -9,10 +9,14 @@ import numpy as np
 
 # Define the CSV filenames
 files = {
-    # "validation-create_model_f_big_reg_NO_bn-sgd-0001-madrid-1-4-85-.csv": "f_BIG_hard",
-    "validation-create_model_f_big_reg_NO_bn-sgd-0001-madrid-2-4-55-.csv":"f_BIG_easy",
-    # "validation-create_model_f_def_no_BN-sgd-0001-madrid-1-4-85-.csv": "f_small_hard",
-    "validation-create_model_f_def_no_BN-sgd-0001-madrid-2-4-55-.csv": "f_small_easy"
+    "validation-create_model_f_big_reg_NO_bn-sgd-0p1-madrid-2-4-85-.csv": "f_BIG_hard",
+    # "validation-create_model_f_big_reg_NO_bn-sgd-0p1-madrid-1-1-85-.csv": "f_BIG_easy",
+    "validation-create_model_f_def_no_BN-sgd-0p1-madrid-2-4-85-.csv": "f_small_hard",
+    # "validation-create_model_f_def_no_BN-sgd-0p1-madrid-1-1-85-.csv":"f_small_easy",
+    "validation-create_model_small_epochs_no_BN-sgd-0p1-madrid-2-4-85-.csv": "f_tiny_hard",
+    # "validation-create_model_small_epochs_no_BN-sgd-0p1-madrid-1-1-85-.csv":"f_tiny_easy",
+
+
 }
 
 
@@ -38,8 +42,8 @@ columns = [
              # 'self.CSR_PM_count',
              'val_loss',
              # 'val_non_zero_mse',
-                "MC",
-                # "IC"
+             #    "MC",
+             #    "IC"
             ]
 
 
@@ -81,13 +85,13 @@ for idx, file in enumerate(files.keys()):
 
                 scale = 5000
 
-                if col in ["MC"]:
+                if col in ["MC", "IC"]:
                     data[col] = data[col] * scale
-                if col in ["IC"]:
-                    data[col] = data[col] * 1 # Since we don't use any Data loader in IC computation
+                # if col in ["IC"]:
+                #     data[col] = data[col]  # Since we don't use any Data loader in IC computation
                 elif col in ["val_loss", "loss", "val_non_zero_mse", "non_zero_mse",
                              "naive-model-non-zero", "naive-model-mse"]:
-                    data[col] = data[col] * scale * scale
+                    data[col] = (data[col] * scale * scale)
                     # continue
                 # max_ = data[col].max()
                 # data[col] = data[col] / max_
@@ -102,13 +106,13 @@ plt.title('MC evaluation during training', fontsize=8)
 plt.xlabel('Epoch')
 plt.ylabel('Value')
 # plt.legend(fontsize=6, ncol=2, loc="upper right")
-plt.legend(fontsize=6, ncol=2, loc="best")
-plt.xticks(list(range(0, 100, 1)), rotation=90, fontsize=4)
-# plt.yscale("log")
+plt.legend(fontsize=8, ncol=2, loc="best")
+plt.xticks(list(range(0, 50, 1)), rotation=90, fontsize=4)
+plt.yscale("log")
 plt.grid(axis='x',alpha=0.05)
-# plt.xlim(n, 50-n)
+# plt.xlim(n//2, 50-n)
 # plt.ylim(1, 4000)
 plt.tight_layout()
 
-plt.savefig("scale_85_55_two_models_easy_task_mse.png", dpi=300)
+plt.savefig("scale_85_55_three_models_hard_mse.png", dpi=300)
 plt.show()

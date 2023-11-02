@@ -8,9 +8,9 @@ from slugify import slugify
 from smartprint import smartprint as sprint
 import pandas as pd
 
-IO_len = str(1)
+IO_len = str(4)
 SCALE = str(55)
-PRED_HORIZ = str(1)
+PRED_HORIZ = str(6)
 
 
 dep_colors = [(0.8501191849288735, 0.8501191849288735, 0.8501191849288735, 1.0),
@@ -37,8 +37,8 @@ for List_of_depths, List_of_filters in [
     # ([1, 2, 3, 4], [128]),
     # ([1, 2, 3, 4], [128]),
     # ([2,3,4], [128]),
-    # ([1, 2], [32, 64]),
-    # [2, 3], [32, 64],
+    ([1, 2, 3, 4], [32, 64]),
+    # ([2, 4], [32, 64]),
     # [3, 4], [32, 64],
     # [1, 2], [64, 128],
     # [2, 3], [64, 128],
@@ -48,7 +48,7 @@ for List_of_depths, List_of_filters in [
     # ([3, 4], [128]),
     # ([3, 4], [64]),
     # ([3, 4], [32]),
-    ([3, 4], [32, 64, 128]),
+    # ([3, 4], [32, 64, 128]),
 ]:
     plt.clf()
     NAIVE_BASELINE_PLOTTED = False
@@ -205,6 +205,89 @@ for List_of_depths, List_of_filters in [
                 "_f_".join([str(x) for x in List_of_filters]) +\
                 "min.png", dpi=300)
     sprint ("_d_".join([str(x) for x in List_of_depths]), List_of_depths)
+
+
+    plt.clf()
+
+    for _, DEP in enumerate(List_of_depths):
+        enum_dep = DEP - 1
+        for _, FIL in enumerate(List_of_filters):
+            enum_fil = [32, 64, 128].index(FIL)
+            fname = f"validation-DEP-{DEP}-FIL-{FIL}-adam-0001-london-{IO_len}-{PRED_HORIZ}-{SCALE}-.csv"
+            files = {fname: "f_"}
+
+            columns = [
+                'epoch',
+                'naive-model-mse',
+                'val_loss',
+                'MC'
+            ]
+
+            linestyle = {}
+            linestyle["val_loss"] = "-"
+            linestyle["naive-model-mse"] = ":"
+            linestyle["MC"] = "-."
+            SIZE_SCATTER = 2
+
+            for idx, file in enumerate(files.keys()):
+                data = pd.read_csv(file)
+                n = 1
+                data["MC"] = data["CSR_MP_sum"]
+                data["IC"] = data["CSR_PM_sum"].max()
+                data["naive-model-mse"] = data["naive-model-mse"].mean()
+                data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
+
+                argmin = np.argmin(data["val_loss"])
+                # plt.scatter(data['MC'][argmin], data["val_loss"][argmin],
+                plt.scatter(data['MC'][:], data["val_loss"][:],
+                        alpha=1,
+                            color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
+                            label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                         + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Min",
+                         # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
+                            )
+
+                # argmax = np.argmax(700 - data["val_loss"])
+                # plt.scatter(data['MC'][argmax], data["val_loss"][argmax],
+                # plt.scatter(data['MC'][:argmax], data["val_loss"][:argmax],
+                #         alpha=1, #data["epoch"]/20,
+                #             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
+                            # label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                         # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
+                         #    s=SIZE_SCATTER,
+                         #    )
+
+                # plt.scatter(data['MC'][data.shape[0]-1], data["val_loss"][data.shape[0]-1],
+                #         alpha=1,
+                #             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
+                #             label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                #          + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
+                #             # s=SIZE_SCATTER
+                #             )
+
+                # plt.scatter(data['MC'][20:].median(), data["val_loss"][20:].median(),
+                #         alpha=1,
+                #             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
+                #             label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                #          + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Median",
+                #             # s=SIZE_SCATTER
+                #             )
+
+    plt.title('Val MSE vs MC', fontsize=8)
+    plt.xlabel('MC')
+    plt.ylabel('Val MSE')
+    plt.legend(fontsize=7, ncol=2, loc="best")
+    # plt.xlim(0, 750)
+    # plt.ylim(550, 850)
+    # plt.ylim(0, 2000)
+    # plt.xscale("symlog")
+    # plt.yscale("symlog")
+    plt.savefig("london-IO_LEN_scatter_all_combined_" + IO_len + "-PRED_horiz_" + PRED_HORIZ + "Scale" + SCALE +\
+                "_d_".join([str(x) for x in List_of_depths]) +\
+                "_f_".join([str(x) for x in List_of_filters]) +\
+                "-all.png", dpi=300)
+    sprint ("_d_".join([str(x) for x in List_of_depths]), List_of_depths)
+
 
 
 

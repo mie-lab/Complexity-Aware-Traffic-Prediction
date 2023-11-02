@@ -1,0 +1,220 @@
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,25,100,1500,200,NULL,NULL,785.3031367510782,828.9904138770542,0.1771798751011664,0.1563645461209548,1.1938458169519264,1.1938458169519264,1.2115130966352894,1.0101397993753851,6799,2698055995.6167784,5733.524
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,35,100,1500,200,NULL,NULL,840.7041312328782,870.0584677419355,0.15091738478036,0.13467995221128137,1.1629005808262485,1.1629005808262485,1.1757670871035193,1.0104201383326585,6244,6131749993.64509,5208.18175308642
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,45,100,1500,200,NULL,NULL,978.336095731458,962.3438831405965,0.12247134960224067,0.10692357546642492,1.1302867364455302,1.1302867364455302,1.1386136766409043,1.0055843821262918,6233,11756029804.570814,6122.3405
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-1-55- 9030 9460
+ : 9030 9030
+ : 9460 9460
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,55,100,1500,200,NULL,NULL,1068.3959930888168,1021.1673387096774,0.12065601458481043,0.10583342374435437,1.1282367486234308,1.1282367486234308,1.1366019268386207,1.0056281401145033,6217,16028237455.624294,6878.405333333333
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,65,100,1500,200,NULL,NULL,1208.0608724117747,1126.3225806451615,0.1268044754273331,0.11103728089949459,1.1351950375562876,1.1351950375562876,1.1438032487149445,1.007639933745344,5677,22970505902.60591,7568.270666666666
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,75,100,1500,200,NULL,NULL,1186.0933221274438,1116.467741935484,0.11730352258674001,0.10419831468857066,1.1244606771131718,1.1244606771131718,1.1314557748604994,1.0083870563984516,6103,28909911389.357864,7816.717833333333
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,85,100,1500,200,NULL,NULL,1322.6550678222804,1216.0887096774195,0.12510090299286716,0.11004700470343959,1.1332627969058244,1.1332627969058244,1.1417947710510654,1.005825978462568,5836,35068785714.11653,8250.334333333334
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,95,100,1500,200,NULL,NULL,1272.056229943798,1192.6189516129032,0.11517857054255275,0.09840899856613983,1.122073789008261,1.122073789008261,1.1295538426762008,1.0060229337797455,5974,41526610415.19982,8294.4785
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,105,100,1500,200,NULL,NULL,1320.7361084674355,1261.2016129032259,0.11344908035587734,0.09968796867019288,1.1201348505722468,1.1201348505722468,1.1268474288329504,1.006040536314793,5854,47317492950.411896,8370.084833333332
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-1-1-55- 9660 10120
+ : 9660 9660
+ : 10120 10120
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,1,1,55,100,1500,200,NULL,NULL,865.6012879335657,851.7096774193549,0.1299625369318686,0.11591760866691243,1.1387857201184597,1.1387857201184597,1.149543417571523,1.0107965631804698,4769,3806879995.4799004,4483.559333333334
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-2-1-55- 9450 9900
+ : 9450 9450
+ : 9900 9900
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,2,1,55,100,1500,200,NULL,NULL,951.7964455665066,928.5766129032259,0.12717816433541415,0.11308474227176704,1.1356193266214523,1.1356193266214523,1.1453773670172096,1.006573334229639,4786,7731685703.794877,5091.1755
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-3-1-55- 9240 9680
+ : 9240 9240
+ : 9680 9680
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,3,1,55,100,1500,200,NULL,NULL,1022.7365543396935,983.2016129032259,0.12452043161855725,0.11187031395999159,1.1326051611804726,1.1326051611804726,1.1418905359612421,1.0078789731178204,5645,11879581392.672955,6372.882666666666
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,55,100,1500,200,NULL,NULL,1056.1744964058357,1014.7096774193549,0.12086834874203044,0.10765031339061962,1.1284763372581197,1.1284763372581197,1.136617742853473,1.003192778505337,6157,15719735359.190916,6614.714
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-5-1-55- 8820 9240
+ : 8820 8820
+ : 9240 9240
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,5,1,55,100,1500,200,NULL,NULL,1117.6544836877538,1056.491935483871,0.1250192969106834,0.10963406299456033,1.1331703195422933,1.1331703195422933,1.142166972471683,0.9995323121400874,6932,19999864680.327915,7961.231333333333
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-6-1-55- 8610 9020
+ : 8610 8610
+ : 9020 9020
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,6,1,55,100,1500,200,NULL,NULL,1129.6605458577008,1072.9798387096773,0.12439227375337351,0.10841884960196584,1.1324600182217242,1.1324600182217242,1.1409875592355772,1.0077498045114335,6980,25247818206.411972,7822.957333333334
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-7-1-55- 8400 8800
+ : 8400 8400
+ : 8800 8800
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,7,1,55,100,1500,200,NULL,NULL,1157.4182226118608,1103.4274193548388,0.1237147012110122,0.10779570502557209,1.1316929543081249,1.1316929543081249,1.13996847539916,1.0040008202246766,7969,28529124522.033855,8869.958
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-8-1-55- 8190 8580
+ : 8190 8190
+ : 8580 8580
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,8,1,55,100,1500,200,NULL,NULL,1184.6491286443772,1111.766129032258,0.13049487281384453,0.10895728757370081,1.1393920980031937,1.1393920980031937,1.1486399056978682,1.0035505087817347,9228,33697505545.19027,10269.608666666667
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,1,55,100,1500,200,NULL,NULL,1053.3523879027666,1020.9899193548388,0.12245218714127107,0.1091613541430616,1.1302650775775778,1.1302650775775778,1.1386754540549053,1.0037469543716693,6148,15796159619.569897,6589.754666666667
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-2-55- 8925 9350
+ : 8925 8925
+ : 9350 9350
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,2,55,100,1500,200,NULL,NULL,1050.674763122297,1016.5967741935483,0.12810466124324305,0.11399404602952365,1.1366719619724386,1.1366719619724386,1.1456451684616082,1.0006314752089778,6267,16046973347.144184,6774.163333333333
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-3-55- 8820 9240
+ : 8820 8820
+ : 9240 9240
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,3,55,100,1500,200,NULL,NULL,1042.764070007369,1008.0322580645161,0.13229394929746122,0.11858739107040463,1.1414437965602524,1.1414437965602524,1.1505769023873984,1.0019657310959267,6779,16225095793.13515,7247.192666666667
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-4-55- 8715 9130
+ : 8715 8715
+ : 9130 9130
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,4,55,100,1500,200,NULL,NULL,1054.2442672665218,1016.5947580645161,0.14138700169400692,0.12511953464961717,1.1518703375097734,1.1518703375097734,1.1617117407259259,1.000761225533656,7275,15911029069.738956,8024.498166666666
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-5-55- 8610 9020
+ : 8610 8610
+ : 9020 9020
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,5,55,100,1500,200,NULL,NULL,1072.4385546512756,1034.225806451613,0.1453901059752188,0.12874769865154234,1.1564906361880074,1.1564906361880074,1.1666064226392001,1.0019808790923448,8391,16310002341.996998,9111.390666666666
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-6-55- 8505 8910
+ : 8505 8505
+ : 8910 8910
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,6,55,100,1500,200,NULL,NULL,1068.051123007963,1026.0967741935483,0.15005340540665288,0.13314699548091208,1.1618962926153642,1.1618962926153642,1.172475085030047,1.0030199635312689,9088,16578387321.345884,9674.434
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-7-55- 8400 8800
+ : 8400 8400
+ : 8800 8800
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,7,55,100,1500,200,NULL,NULL,1070.9386086483835,1026.8170821114368,0.15534855945598797,0.13870124504961445,1.1680650302686095,1.1680650302686095,1.1791004943661805,1.0023202049165723,9013,16527841010.077085,9465.394666666667
+###################################################
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+self.key_dimensions(), tcount, vcount : london-4-8-55- 8295 8690
+ : 8295 8295
+ : 8690 8690
+start_date, end_date : 2020-02-01 2020-01-31
+"Reached end of dates, skipping....Total #dates processed=", len(dates) : Reached end of dates, skipping....Total #dates processed= 215
+###################################################
+for_parser:,london,4,8,55,100,1500,200,NULL,NULL,1077.22735759528,1018.7096774193549,0.1607381788614398,0.14300240432367184,1.1743774517168821,1.1743774517168821,1.1862584284184856,1.0027386763874995,9915,17182417907.960617,10504.224666666667
+###################################################

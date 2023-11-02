@@ -17,7 +17,7 @@ files = {
     "validation-create_model_f_big_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_deep_high_filters",
     "validation-create_model_f_shallow_1_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_shallow_1",
     "validation-create_model_f_shallow_2_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_shallow_2",
-    "validation-create_model_f_shallow_3_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_shallow_3",
+    # "validation-create_model_f_shallow_3_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_shallow_3",
     "validation-create_model_small_epochs_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_deep_low_filters"
 }
 
@@ -167,8 +167,17 @@ for idx, file in enumerate(files.keys()):
                 # data[col] = data[col] / max_
 
                 plt.scatter(data['MC'], data["val_loss"],
-                         alpha=0.7, #(data["epoch"]/np.max(data["epoch"])).tolist(),
+                         alpha=(data["epoch"]/np.max(data["epoch"])).tolist(),
                             color=[colors_for_file[file]] * data["MC"].shape[0],
+                            edgecolors=(1,1,1,0),
+                            linewidths=0.1,
+                            # label=slugify(str(files[file])),
+                            # s=11
+                            )
+
+                plt.scatter(data['MC'][data.shape[0]-1], data["val_loss"][data.shape[0]-1],
+                         alpha=(data["epoch"]/np.max(data["epoch"])).tolist()[data.shape[0]-1],
+                            color=[colors_for_file[file]] * 1,
                             edgecolors=(1,1,1,0),
                             linewidths=0.1,
                             label=slugify(str(files[file])),
@@ -200,10 +209,10 @@ plt.legend(fontsize=10, loc="upper right")
 # plt.yscale("log")
 # plt.xscale("log")
 # plt.gca().set_aspect(0.003)
-plt.ylim(1350, 2500)
+plt.ylim(1350, 2450)
 # plt.ylim(1350, 1500)
 # plt.ylim(1, 2)
-plt.xlim(40, 350)
+# plt.xlim(40, 350)
 plt.title("Val loss vs Model Complexity")
 plt.ylabel("Validation loss (MSE)")
 plt.xlabel("Model Complexity (MC|f) at various epochs")

@@ -345,7 +345,8 @@ for List_of_depths, List_of_filters in [
                 data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
 
                 argmin = np.argmin(data["val_loss"])
-                plt.scatter(data['MC'][15:].mean(), data["val_loss"][15:].mean(),
+                # plt.scatter(data['MC'][15:].mean(), data["val_loss"][15:].mean(),
+                plt.scatter(data['MC'][argmin], data["val_loss"][argmin],
                 # plt.scatter(data['MC'][:10], data["val_loss"][:10],
                         alpha=1,
                             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
@@ -354,8 +355,8 @@ for List_of_depths, List_of_filters in [
                          # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
                             )
 
-                confidence_ellipse(data['MC'][15:], data["val_loss"][15:], plt.gca(),
-                                   edgecolor=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil])
+                # confidence_ellipse(data['MC'][15:], data["val_loss"][15:], plt.gca(),
+                #                    edgecolor=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil])
                 from scipy.spatial import ConvexHull
 
                 points = np.array([data['MC'][:], data["val_loss"][:]]).T  # Create an array of points
@@ -398,6 +399,7 @@ for List_of_depths, List_of_filters in [
     plt.xlabel('MC')
     plt.ylabel('Val MSE')
     plt.legend(fontsize=7, ncol=3, loc="best")
+    
     # plt.xlim(0, 700)
     # plt.ylim(1700, 2500)
     # plt.ylim(500, 5000)
@@ -407,7 +409,7 @@ for List_of_depths, List_of_filters in [
     plt.savefig("london-IO_LEN_scatter_all_combined_" + IO_len + "-PRED_horiz_" + PRED_HORIZ + "Scale" + SCALE +\
                 "_d_".join([str(x) for x in List_of_depths]) +\
                 "_f_".join([str(x) for x in List_of_filters]) +\
-                "-all-epoch-15onwards_ellipse.png", dpi=300)
+                "-all-_min.png", dpi=300)
     sprint ("_d_".join([str(x) for x in List_of_depths]), List_of_depths)
 
 

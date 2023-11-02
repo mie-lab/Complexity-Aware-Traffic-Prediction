@@ -16,6 +16,7 @@ from tqdm import tqdm
 import tensorflow
 import matplotlib.pyplot as plt
 import time
+import csv
 
 
 class Complexity:
@@ -150,7 +151,6 @@ class Complexity:
             sum_x_m_predict = []
             sum_y_m_predict = []
 
-
             for j in range(0, len(neighbour_indexes), config.cx_batch_size):  # config.cl_batch_size
                 fileindices = neighbour_indexes[j : j + config.cx_batch_size]
                 if 0 in fileindices:
@@ -208,7 +208,6 @@ class Complexity:
             max_x = np.max(sum_x_m_predict)
             mean_x = np.mean(sum_x_m_predict)
 
-
             count_y_more_than_max_x = (sum_y_m_predict > max_x).sum()
             count_y_more_than_max_x_dataset.append(count_y_more_than_max_x)
 
@@ -217,9 +216,8 @@ class Complexity:
                 sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
-            # print ("parsing_for_temporal_criticality:", self.cityname, self.i_o_length, self.prediction_horizon,
-            #        self.grid_size,fileindex_orig, sum_y_more_than_max_x_dataset[-1])
-
+            print ("parsing_for_temporal_criticality:", self.cityname, self.i_o_length, self.prediction_horizon,
+                   self.grid_size, fileindex_orig, sum_y_more_than_max_x_dataset[-1])
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
@@ -250,8 +248,13 @@ class Complexity:
             plt.xlim(0, 3000)
             plt.savefig("plots/PM_more_max/PM_more_max_" + str(round(time.time(), 2)) + ".png")
 
+
+        with open("record_distribution.csv", "a") as f:
+            csvwrtiter = csv.writer(f)
+            csvwrtiter.writerow(["PM"] + [str(x) for x in sum_y_more_than_max_x_dataset])
+
     def cx_whole_dataset_m_predict(self):
-        self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
+        self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
 
 
         file_list = glob.glob(self.predictions_dir + "/" + "*_x.npy")
@@ -283,8 +286,19 @@ class Complexity:
             # get corresponding y
             fileindex_orig = int(file_list[i].split("_x.npy")[-2].split("-")[-1])
             y = np.load(self.predictions_dir + "/"  + self.file_prefix + str(fileindex_orig) + "_y.npy")
-            y = y/config.max_norm_value
-        
+            y = y/config.max_norm_value  # y is the predicted value for x; i.e. f(x) # Ground truth is not needed for computing
+                                                                    # model complexity
+
+            # But if we want to compute val-MSE we need the ground truth, we can just look into the validation data folder
+            # the same x should also exist in the validation folder (which is in fact the training folder;
+            # the name needs to be changed)
+            assert os.path.exists ((self.validation_folder + "/" + self.file_prefix + str(fileindex_orig) + "_x.npy"))
+            y_gt = np.load(self.validation_folder + "/"  + self.file_prefix + str(fileindex_orig) + "_y.npy")
+
+            print("parsing_model_predict_for_temporal_errors:", self.cityname, self.i_o_length,
+                  self.prediction_horizon,
+                  self.grid_size, fileindex_orig, np.mean((y - y_gt) ** 2))
+
             neighbour_indexes = []
 
             # Advanced filtering case
@@ -384,8 +398,7 @@ class Complexity:
                 sum_y_more_than_max_x_dataset.append(np.sum(sum_y_more_than_max_x))
             else:
                 sum_y_more_than_max_x_dataset.append(0)
-            # print("parsing_for_temporal_criticality:", self.cityname, self.i_o_length, self.prediction_horizon,
-            #       self.grid_size, fileindex_orig, sum_y_more_than_max_x_dataset[-1])
+
 
             sum_y_more_than_mean_x = sum_y_m_predict[(sum_y_m_predict > mean_x)]
             if len(sum_y_more_than_mean_x.tolist()) > 0:
@@ -415,6 +428,10 @@ class Complexity:
             plt.hist(sum_y_more_than_max_x_dataset, bins=100)
             plt.xlim(0, 3000)
             plt.savefig("plots/MP_more_max/MP_more_max_" + str(round(time.time(), 2)) + ".png")
+
+        with open("record_distribution.csv", "a") as f:
+            csvwrtiter = csv.writer(f)
+            csvwrtiter.writerow(["MP"] + [str(x) for x in sum_y_more_than_max_x_dataset])
 
     def cx_whole_dataset_NM_no_thresh(self):
         return # No need since it is always = 0
@@ -764,6 +781,53 @@ class Complexity:
             sep=",",
         )
         print("###################################################")
+
+    def write_to_csv(self):
+        if not os.path.exists("IC_file.csv"):
+            with open("IC_file.csv", "w") as f:
+                csvwriter = csv.writer(f)
+                csvwriter.writerow(
+                    [
+                        "cityname",
+                        "i_o_length",
+                        "prediction_horizon",
+                        "grid_size",
+                        "cx_sample_whole_data",
+                        "CSR_MP_sum_y_exceeding_r_x_max",
+                        "CSR_PM_sum_y_exceeding_r_x_max",
+                        "CSR_NM_sum_y_exceeding_r_x_max",
+                        "CSR_GB_sum_y_exceeding_r_x_max",
+                        "CSR_PM_std",
+                        "CSR_MP_std",
+                        "CSR_MP_count",
+                        "CSR_PM_count",
+                        "CSR_NM_count",
+                        "CSR_GB_count",
+                    ]
+                )
+
+        with open("IC_file.csv", "a") as f:
+            csvwriter = csv.writer(f)
+            csvwriter.writerow(
+                [
+                self.cityname,
+                self.i_o_length,
+                self.prediction_horizon,
+                self.grid_size,
+                config.cx_sample_whole_data,
+                self.CSR_MP_sum_y_exceeding_r_x_max,
+                self.CSR_PM_sum_y_exceeding_r_x_max,
+                self.CSR_NM_sum_y_exceeding_r_x_max,
+                self.CSR_GB_sum_y_exceeding_r_x_max,
+                self.CSR_PM_std,
+                self.CSR_MP_std,
+                self.CSR_MP_count,
+                self.CSR_PM_count,
+                self.CSR_NM_count,
+                self.CSR_GB_count,
+                ]
+            )
+
 
 # def cx_whole_dataset_PM_no_thresh_spatial(self):
 #     self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
@@ -1129,8 +1193,82 @@ class Complexity:
 
 if __name__ == "__main__":
     # io_lengths
-    for scale in config.scales_def:  # [25, 35, 45, 55, 65, 75, 85, 105]:
-        for city in config.city_list_def:
+    for city in config.city_list:
+        for scale in config.scales_def:  # [25, 35, 45, 55, 65, 75, 85, 105]:
+            for i_o_length in config.i_o_lengths:
+                for pred_horiz in config.pred_horiz_def:
+                    obj = ProcessRaw(
+                        cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
+                    )
+                    train_data_folder = os.path.join(
+                        config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+                    )
+                    num_train = len(
+                        glob.glob(
+                            os.path.join(config.HOME_FOLDER, train_data_folder)
+                            + "/"
+                            + obj.key_dimensions()
+                            + "*_x.npy"
+                        )
+                    )
+                    train_gen = CustomDataGenerator(
+                        city,
+                        i_o_length,
+                        pred_horiz,
+                        scale,
+                        data_dir=train_data_folder,
+                        num_samples=num_train,
+                        batch_size=config.cl_batch_size,
+                        shuffle=True,
+                    )
+
+                    predict_gen = CustomDataGenerator(
+                        city,
+                        i_o_length,
+                        pred_horiz,
+                        scale,
+                        data_dir=os.path.join(config.HOME_FOLDER, "predictions_folder", obj.key_dimensions()),
+                        num_samples=num_train,
+                        batch_size=config.cl_batch_size,
+                        shuffle=True,
+                    )
+
+                    cx = Complexity(
+                        city,
+                        i_o_length=i_o_length,
+                        prediction_horizon=pred_horiz,
+                        grid_size=scale,
+                        perfect_model=True,
+                        model_func=None,
+                        model_train_gen=train_gen,
+                        model_predict_gen=predict_gen,
+                        run_pm=True,
+                        run_nm=False,
+                        run_gb=False,
+                        predictions_dir=os.path.join(config.HOME_FOLDER, "predictions_folder", obj.key_dimensions())
+                    )
+
+                    cx.csv_format()
+                    cx.write_to_csv()
+
+                    # print ("Now computing cx using M_predict")
+                    # cx = Complexity(
+                    #     city,
+                    #     i_o_length=i_o_length,
+                    #     prediction_horizon=pred_horiz,
+                    #     grid_size=scale,
+                    #     perfect_model=False,
+                    #     model_func="Some model",
+                    #     model_train_gen=train_gen,
+                    #     model_predict_gen=predict_gen,
+                    #     run_pm=True,
+                    #     run_nm=False,
+                    #     run_gb=False,
+                    #     predictions_dir=os.path.join(config.HOME_FOLDER, "predictions_folder", obj.key_dimensions())
+                    # )
+                    # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
+
+        for scale in config.scales:  # [25, 35, 45, 55, 65, 75, 85, 105]:
             for i_o_length in config.i_o_lengths_def:
                 for pred_horiz in config.pred_horiz_def:
                     obj = ProcessRaw(
@@ -1185,15 +1323,72 @@ if __name__ == "__main__":
                     )
 
                     cx.csv_format()
+                    cx.write_to_csv()
 
-                    print ("Now computing cx using M_predict")
+                    # print ("Now computing cx using M_predict")
+                    # cx = Complexity(
+                    #     city,
+                    #     i_o_length=i_o_length,
+                    #     prediction_horizon=pred_horiz,
+                    #     grid_size=scale,
+                    #     perfect_model=False,
+                    #     model_func="Some model",
+                    #     model_train_gen=train_gen,
+                    #     model_predict_gen=predict_gen,
+                    #     run_pm=True,
+                    #     run_nm=False,
+                    #     run_gb=False,
+                    #     predictions_dir=os.path.join(config.HOME_FOLDER, "predictions_folder", obj.key_dimensions())
+                    # )
+                    # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
+
+
+        for scale in config.scales_def:  # [25, 35, 45, 55, 65, 75, 85, 105]:
+            for i_o_length in config.i_o_lengths_def:
+                for pred_horiz in config.pred_horiz:
+                    obj = ProcessRaw(
+                        cityname=city, i_o_length=i_o_length, prediction_horizon=pred_horiz, grid_size=scale
+                    )
+                    train_data_folder = os.path.join(
+                        config.DATA_FOLDER, config.TRAINING_DATA_FOLDER, obj.key_dimensions()
+                    )
+                    num_train = len(
+                        glob.glob(
+                            os.path.join(config.HOME_FOLDER, train_data_folder)
+                            + "/"
+                            + obj.key_dimensions()
+                            + "*_x.npy"
+                        )
+                    )
+                    train_gen = CustomDataGenerator(
+                        city,
+                        i_o_length,
+                        pred_horiz,
+                        scale,
+                        data_dir=train_data_folder,
+                        num_samples=num_train,
+                        batch_size=config.cl_batch_size,
+                        shuffle=True,
+                    )
+
+                    predict_gen = CustomDataGenerator(
+                        city,
+                        i_o_length,
+                        pred_horiz,
+                        scale,
+                        data_dir=os.path.join(config.HOME_FOLDER, "predictions_folder", obj.key_dimensions()),
+                        num_samples=num_train,
+                        batch_size=config.cl_batch_size,
+                        shuffle=True,
+                    )
+
                     cx = Complexity(
                         city,
                         i_o_length=i_o_length,
                         prediction_horizon=pred_horiz,
                         grid_size=scale,
-                        perfect_model=False,
-                        model_func="Some model",
+                        perfect_model=True,
+                        model_func=None,
                         model_train_gen=train_gen,
                         model_predict_gen=predict_gen,
                         run_pm=True,
@@ -1201,8 +1396,26 @@ if __name__ == "__main__":
                         run_gb=False,
                         predictions_dir=os.path.join(config.HOME_FOLDER, "predictions_folder", obj.key_dimensions())
                     )
-                    # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
 
+                    cx.csv_format()
+                    cx.write_to_csv()
+
+                    # print ("Now computing cx using M_predict")
+                    # cx = Complexity(
+                    #     city,
+                    #     i_o_length=i_o_length,
+                    #     prediction_horizon=pred_horiz,
+                    #     grid_size=scale,
+                    #     perfect_model=False,
+                    #     model_func="Some model",
+                    #     model_train_gen=train_gen,
+                    #     model_predict_gen=predict_gen,
+                    #     run_pm=True,
+                    #     run_nm=False,
+                    #     run_gb=False,
+                    #     predictions_dir=os.path.join(config.HOME_FOLDER, "predictions_folder", obj.key_dimensions())
+                    # )
+                    # ProcessRaw.clean_intermediate_files(city, i_o_length, pred_horiz, scale)
         # To parse the results into a csv:
         # grep 'for_parser:' complexity_PM.txt | sed 's/for_parser:,//g' | sed '1 i\cityname,i_o_length,prediction_horizon,grid_size,thresh,cx_sample_whole_data,cx_sample_single_point,CSR_PM_frac,CSR_PM_count,CSR_PM_no_thresh_median,CSR_PM_no_thresh_mean,CSR_PM_no_thresh_frac_median,CSR_PM_no_thresh_frac_mean'
 # mkdir MP_more_max MP_sum_y MP_mean MP_mean_exp_ MP_frac_2_ MP_frac_2_exp_ PM_more_max PM_sum_y PM_mean PM_mean_exp_ PM_frac_2_ PM_frac_2_exp_ GB_more_max GB_sum_y GB_mean GB_mean_exp_ GB_frac_2_ GB_frac_2_exp_ NM_more_max NM_sum_y NM_mean NM_mean_exp_ NM_frac_2_ NM_frac_2_exp_

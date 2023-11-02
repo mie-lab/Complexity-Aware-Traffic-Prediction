@@ -7,7 +7,7 @@ import config
 
 from validation_metrics.custom_losses import non_zero_mape, non_zero_mse
 
-from tensorflow.keras import layers, optimizers
+from tensorflow.keras import layers, optimizers, regularizers
 from tensorflow.keras.callbacks import EarlyStopping, CSVLogger
 from preprocessing.datagen import CustomDataGenerator
 from complexity.complexity import Complexity
@@ -52,31 +52,39 @@ class ComputeMetrics(Callback):
         if not os.path.exists(predictions_dir):
             os.makedirs(predictions_dir)
 
-        for index in range(len(self.model.train_gen)):
-            x_batch, _, indexes = self.model.train_gen.get_item_with_indexes(index)
+
+        for index in range(len(self.model.validation_gen)): # train_gen to be replaced with pred_gen when  running spatial or temporal
+            x_batch, _, indexes = self.model.validation_gen.get_item_with_indexes(index) # train_gen to be replaced with pred_gen when  running spatial or temporal
             predictions = self.model.predict(x_batch)
+
 
             for idx, (input_data, pred) in enumerate(zip(x_batch, predictions)):
                 # Save the input data and the prediction into the correct prediction folder
                 input_file = os.path.join(predictions_dir,
-                                          "{}{}_x.npy".format(self.model.train_gen.prefix, indexes[idx]))
-                temp_input_file_name = str(int(np.random.rand() * 100000000000)) + "_x.npy"
+                                          "{}{}_x.npy".format(self.model.validation_gen.prefix, indexes[idx])) #  # train_gen to be replaced with pred_gen when  running spatial or temporal
+                temp_input_file_name = str(int(np.random.rand() * 100000000000)) + "_x.npy"                 # since in that case we need the val MSE per sample
+                                                                                                            # hence the predicitons should be using the valdation data
                 np.save(temp_input_file_name, input_data)
                 os.rename(temp_input_file_name, input_file)
 
                 # Save the prediction
                 predictions_file = os.path.join(predictions_dir,
-                                                "{}{}_y.npy".format(self.model.train_gen.prefix, indexes[idx]))
+                                                "{}{}_y.npy".format(self.model.validation_gen.prefix, indexes[idx]))  # train_gen to be replaced with pred_gen when  running spatial or temporal
                 temp_pred_file_name = str(int(np.random.rand() * 100000000000)) + "_y.npy"
                 np.save(temp_pred_file_name, pred)
                 os.rename(temp_pred_file_name, predictions_file)
 
         # if epoch % 0 == 0:
-        if epoch % 5 == 0:
+        # if epoch % 5 == 0: # To be used when running spatial or temporal
+        if epoch == 1:
             RUN_PM=True
         else:
             RUN_PM = False
-        if config.cl_during_training_CSR_enabled_epoch_end:
+
+        if RUN_PM and config.cl_during_training_CSR_enabled_epoch_end: # To be used when running spatial or temporal
+                                                                        # experiment, since we want to print the Val-MSE
+                                                                        # just once
+        # if config.cl_during_training_CSR_enabled_epoch_end:    # for all other cases
             cx = Complexity(
                 self.model.cityname,
                 i_o_length=self.model.io_length,
@@ -217,6 +225,45 @@ class ConvLSTM:
 
         return model
 
+    def create_model_flexible(self, depth, num_filters, custom_eval=False, BN=False, KR=False):
+        _, a, b, c, d = self.shape
+        x_input_shape = np.random.rand(2, a, b, c, d).shape
+        inp = layers.Input(shape=(None, *x_input_shape[2:]))
+
+        x = inp
+        for _ in range(depth):
+            if KR:
+                reg = regularizers.l1_l2(l1=1e-5, l2=1e-4)  # L1L2 regularization
+                x = layers.ConvLSTM2D(
+                    filters=num_filters,
+                    kernel_size=(3, 3),
+                    padding="same",
+                    return_sequences=True,
+                    activation="relu",
+                    kernel_regularizer=reg,
+                    bias_regularizer=reg
+                )(x)
+            else:
+                x = layers.ConvLSTM2D(
+                    filters=num_filters,
+                    kernel_size=(3, 3),
+                    padding="same",
+                    return_sequences=True,
+                    activation="relu",
+                )(x)
+                if BN:
+                    x = layers.BatchNormalization()(x)
+
+
+        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+
+        if not custom_eval:
+            model = tensorflow.keras.models.Model(inp, x)
+        else:
+            model = CustomModel(inp, x)
+
+        return model
+
     def create_model_f_def_no_BN(self, custom_eval=False):
         _, a, b, c, d = self.shape
         x = np.random.rand(2, a, b, c, d)
@@ -252,6 +299,7 @@ class ConvLSTM:
             return_sequences=True,
             activation="relu",
         )(x)
+        # x = layers.BatchNormalization()(x)
         x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
 
         # Next, we will build the complete model and compile it.
@@ -266,101 +314,41 @@ class ConvLSTM:
 
         return model
 
-    def create_model_f_small(self, custom_eval=False):
+    def create_model_f_big_no_BN(self, custom_eval=False):
         _, a, b, c, d = self.shape
         inp = layers.Input(shape=(None, b, c, d))
 
-        x = layers.ConvLSTM2D(
-            filters=64,
-            kernel_size=(3, 3),
-            padding="same",
-            return_sequences=True,
-            activation="relu",
-        )(inp)
-        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
-
-        if not custom_eval:
-            model = tensorflow.keras.models.Model(inp, x)
-        else:
-            model = CustomModel(inp, x)
-
-        return model
-
-    def create_model_f_big(self, custom_eval=False):
-        _, a, b, c, d = self.shape
-        x = np.random.rand(2, a, b, c, d)
-        inp = layers.Input(shape=(None, *x.shape[2:]))
-
-        # We will construct 3 `ConvLSTM2D` layers with batch normalization,
-        # followed by a `Conv3D` layer for the spatiotemporal outputs.
         x = layers.ConvLSTM2D(
             filters=512,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(inp)
+        x = layers.ConvLSTM2D(
+            filters=256,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.ConvLSTM2D(
+            filters=256,
             kernel_size=(1, 1),
             padding="same",
             return_sequences=True,
-            activation="tanh",
-        )(inp)
-        x = layers.BatchNormalization()(x)
+            activation="relu",
+        )(x)
         x = layers.ConvLSTM2D(
             filters=256,
-            kernel_size=(3, 3),
-            padding="same",
-            return_sequences=True,
-            activation="tanh",
-        )(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.ConvLSTM2D(
-            filters=128,
-            kernel_size=(3, 3),
-            padding="same",
-            return_sequences=True,
-            activation="tanh",
-        )(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.ConvLSTM2D(
-            filters=64,
-            kernel_size=(3, 3),
-            padding="same",
-            return_sequences=True,
-            activation="tanh",
-        )(x)
-        # x = layers.BatchNormalization()(x)
-        x = layers.ConvLSTM2D(
-            filters=64,
             kernel_size=(1, 1),
             padding="same",
             return_sequences=True,
-            activation="tanh",
-        )(x)
-        x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
-
-        # Next, we will build the complete model and compile it.
-        if not custom_eval:
-            model = tensorflow.keras.models.Model(inp, x)
-        else:
-            model = CustomModel(inp, x)
-        return model
-
-    def create_model_f_big_reg_bn(self, custom_eval=False):
-        _, a, b, c, d = self.shape
-        inp = layers.Input(shape=(None, b, c, d))
-
-        x = layers.ConvLSTM2D(
-            filters=256,
-            kernel_size=(3, 3),
-            padding="same",
-            return_sequences=True,
-            activation="relu",
-        )(inp)
-        x = layers.ConvLSTM2D(
-            filters=128,
-            kernel_size=(3, 3),
-            padding="same",
-            return_sequences=True,
             activation="relu",
         )(x)
-        x = layers.BatchNormalization()(x)
         x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
+        # x = layers.Conv3D(filters=128, kernel_size=(1, 1, 1), activation="relu", padding="same")(x)
+
 
         if not custom_eval:
             model = tensorflow.keras.models.Model(inp, x)
@@ -369,7 +357,7 @@ class ConvLSTM:
 
         return model
 
-    def create_model_f_small_reg_bn(self, custom_eval=False):
+    def create_model_f_shallow_1_no_BN(self, custom_eval=False):
         _, a, b, c, d = self.shape
         inp = layers.Input(shape=(None, b, c, d))
 
@@ -380,8 +368,6 @@ class ConvLSTM:
             return_sequences=True,
             activation="relu",
         )(inp)
-
-        x = layers.BatchNormalization()(x)
         x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
 
         if not custom_eval:
@@ -391,7 +377,7 @@ class ConvLSTM:
 
         return model
 
-    def create_model_f_small_reg_bn_drop(self, custom_eval=False):
+    def create_model_f_shallow_2_no_BN(self, custom_eval=False):
         _, a, b, c, d = self.shape
         inp = layers.Input(shape=(None, b, c, d))
 
@@ -402,10 +388,13 @@ class ConvLSTM:
             return_sequences=True,
             activation="relu",
         )(inp)
-
-        x = layers.BatchNormalization()(x)
-        x = layers.Dropout(0.5)(x)
-
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
         x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
 
         if not custom_eval:
@@ -415,30 +404,31 @@ class ConvLSTM:
 
         return model
 
-    def create_model_f_big_reg_bn_drop(self, custom_eval=False):
+    def create_model_f_shallow_3_no_BN(self, custom_eval=False):
         _, a, b, c, d = self.shape
         inp = layers.Input(shape=(None, b, c, d))
 
         x = layers.ConvLSTM2D(
-            filters=256,
+            filters=64,
             kernel_size=(3, 3),
             padding="same",
             return_sequences=True,
             activation="relu",
         )(inp)
-        x = layers.BatchNormalization()(x)
-        x = layers.Dropout(0.5)(x)
-
         x = layers.ConvLSTM2D(
-            filters=128,
+            filters=64,
             kernel_size=(3, 3),
             padding="same",
             return_sequences=True,
             activation="relu",
         )(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Dropout(0.5)(x)
-
+        x = layers.ConvLSTM2D(
+            filters=64,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
         x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
 
         if not custom_eval:
@@ -462,7 +452,7 @@ class ConvLSTM:
             return_sequences=True,
             activation="relu",
         )(inp)
-        # x = layers.BatchNormalization()(x)
+        x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
             filters=8,
             kernel_size=(3, 3),
@@ -470,7 +460,7 @@ class ConvLSTM:
             return_sequences=True,
             activation="relu",
         )(x)
-        # x = layers.BatchNormalization()(x)
+        x = layers.BatchNormalization()(x)
         x = layers.ConvLSTM2D(
             filters=4,
             kernel_size=(1, 1),
@@ -489,7 +479,7 @@ class ConvLSTM:
 
         return model
 
-    def create_model_dummy_single_layer(self):
+    def create_model_small_epochs_no_BN(self):
         _, a, b, c, d = self.shape
         x = np.random.rand(2, a, b, c, d)
         inp = layers.Input(shape=(None, *x.shape[2:]))
@@ -497,12 +487,33 @@ class ConvLSTM:
         # We will construct 3 `ConvLSTM2D` layers with batch normalization,
         # followed by a `Conv3D` layer for the spatiotemporal outputs.
         x = layers.ConvLSTM2D(
-            filters=256,
+            filters=16,
             kernel_size=(1, 1),
             padding="same",
             return_sequences=True,
             activation="relu",
         )(inp)
+        x = layers.ConvLSTM2D(
+            filters=8,
+            kernel_size=(3, 3),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.ConvLSTM2D(
+            filters=8,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
+        x = layers.ConvLSTM2D(
+            filters=8,
+            kernel_size=(1, 1),
+            padding="same",
+            return_sequences=True,
+            activation="relu",
+        )(x)
         x = layers.Conv3D(filters=1, kernel_size=(3, 3, 3), activation="relu", padding="same")(x)
 
         # Next, we will build the complete model and compile it.
@@ -513,6 +524,7 @@ class ConvLSTM:
         # )
 
         return model
+
 
     def train(self, epochs_param=-1, optim="Adam"):
         # Train the model
@@ -527,9 +539,9 @@ class ConvLSTM:
             loss_fn = non_zero_mse
 
         if optim=="Adam":
-            optimizer = optimizers.Adam(0.0001)
+            optimizer = optimizers.Adam(0.001) #, 0.6, 0.9)
         elif optim=="SGD":
-            optimizer = optimizers.SGD(0.00001)
+            optimizer = optimizers.SGD(0.1)
         else:
             raise Exception("Wrong optimiser provided")
 
@@ -573,7 +585,7 @@ class ConvLSTM:
             self.scale,
             data_dir=self.predictions_folder,
             num_samples=int(num_train * r),
-            batch_size=batch_size,
+            batch_size=config.cl_prediction_batch_size,
             shuffle=True,
         )
 
@@ -899,6 +911,7 @@ class ConvLSTM:
             print (model_type)
             print (new_model.summary())
 
+
     @staticmethod
     def one_task_different_models():
         obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
@@ -914,16 +927,247 @@ class ConvLSTM:
             log_dir=obj.key_dimensions() + "log_dir",
             custom_eval=False
         )
-        list_of_models = ConvLSTM.get_methods_of_class(ConvLSTM)
-        list_of_models = [x for x in list_of_models if "create_model" in x]
-        for model_type in list_of_models:
-            updated_model = getattr(model, model_type)()
-            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + model_type + ".csv")
-            print (updated_model. summary())
 
-            model.train(30)
+        for filters in [32, 64, 128]:
+            for depth in [1, 2, 4]:
+                model.model = model.create_model_flexible(depth=depth, num_filters=filters,
+                                                          custom_eval=False, BN=True)
+
+                model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-DEP-" + str(depth)
+                                                         + "-FIL-" + str(filters) +
+                                                         "-adam-01-" + slugify("one_task_different_models") +
+                                                         obj.key_dimensions() + ".csv")
+                # print (updated_model.summary())
+
+                from contextlib import redirect_stdout
+
+                with open('modelsummary.txt', 'w') as f:
+                    with redirect_stdout(f):
+                        model.model.summary()
+
+                print ("======================================")
+                sprint (obj.key_dimensions(), "DEP-" + str(depth) + "-FIL-" + str(filters))
+                os.system("grep \'Trainable params:\' modelsummary.txt")
+
+                # print (model.model.summary())
+                # model.train(epochs_param=30, optim="Adam")
+
+    @staticmethod
+    def one_task_one_model_with_and_without_lr():
+        for PRED_HORIZ in range(1, 2):
+            obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
+                             prediction_horizon=PRED_HORIZ, grid_size=config.scales_def[0])
+
+            model = ConvLSTM(
+                config.city_list_def[0],
+                config.i_o_lengths_def[0],
+                PRED_HORIZ,
+                config.scales_def[0],
+                shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model()
+
+            # BN_True
+            model.model = model.create_model_flexible(depth=3, num_filters=64,
+                                                              custom_eval=False, BN=True, KR=True)
 
 
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                             "-adam-001-" + slugify("-one-task-one-model-L1l2-reg-") + obj.key_dimensions() + ".csv")
+            # print (updated_model.summary())
+
+            from contextlib import redirect_stdout
+
+            with open('modelsummary.txt', 'w') as f:
+                with redirect_stdout(f):
+                    model.model.summary()
+
+            print("======================================")
+            os.system("grep \'Trainable params:\' modelsummary.txt")
+
+            # print (model.model.summary())
+            model.train(epochs_param=30, optim="Adam")
+
+
+            model = ConvLSTM(
+                config.city_list_def[0],
+                config.i_o_lengths_def[0],
+                PRED_HORIZ,
+                config.scales_def[0],
+                shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model()
+
+            # BN_True
+            model.model = model.create_model_flexible(depth=3, num_filters=64,
+                                                              custom_eval=False, BN=True, KR=False)
+
+
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                             "-adam-001-" + slugify("-one-task-one-model-no-L1l2-reg-") + obj.key_dimensions() + ".csv")
+            # print (updated_model.summary())
+
+            from contextlib import redirect_stdout
+
+            with open('modelsummary.txt', 'w') as f:
+                with redirect_stdout(f):
+                    model.model.summary()
+
+            print("======================================")
+            os.system("grep \'Trainable params:\' modelsummary.txt")
+
+            # print (model.model.summary())
+            model.train(epochs_param=30, optim="Adam")
+
+
+    @staticmethod
+    def one_task_one_model_different_BN_no_BN():
+        for PRED_HORIZ in range(2, 5):
+            obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
+                             prediction_horizon=PRED_HORIZ, grid_size=config.scales_def[0])
+
+            model = ConvLSTM(
+                config.city_list_def[0],
+                config.i_o_lengths_def[0],
+                PRED_HORIZ,
+                config.scales_def[0],
+                shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model()
+
+            # BN_True
+            model.model = model.create_model_flexible(depth=3, num_filters=64,
+                                                              custom_eval=False, BN=True)
+
+
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                             "-adam-0p001-" + slugify("-one-task-one-model-BN-") + obj.key_dimensions() + ".csv")
+            # print (updated_model.summary())
+
+            from contextlib import redirect_stdout
+
+            with open('modelsummary.txt', 'w') as f:
+                with redirect_stdout(f):
+                    model.model.summary()
+
+            print("======================================")
+            os.system("grep \'Trainable params:\' modelsummary.txt")
+
+            # print (model.model.summary())
+            model.train(epochs_param=30, optim="Adam")
+
+            model = ConvLSTM(
+                config.city_list_def[0],
+                config.i_o_lengths_def[0],
+                PRED_HORIZ,
+                config.scales_def[0],
+                shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model()
+
+            # BN_True
+            model.model = model.create_model_flexible(depth=3, num_filters=64,
+                                                      custom_eval=False, BN=False)
+
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                     "-adam-0p001-" + slugify(
+                "-one-task-one-model-no-BN-") + obj.key_dimensions() + ".csv")
+            # print (updated_model.summary())
+
+            from contextlib import redirect_stdout
+
+            with open('modelsummary.txt', 'w') as f:
+                with redirect_stdout(f):
+                    model.model.summary()
+
+            print("======================================")
+            os.system("grep \'Trainable params:\' modelsummary.txt")
+
+            # print (model.model.summary())
+            model.train(epochs_param=30, optim="Adam")
+
+
+
+    @staticmethod
+    def one_task_all_cities_temporal_experiment():
+        for city in ["london", "madrid", "melbourne"]:
+
+            obj = ProcessRaw(cityname=city, i_o_length=4,
+                             prediction_horizon=1, grid_size=55)
+
+            model = ConvLSTM(
+                cityname=city,
+                io_length=4,
+                pred_horiz=1,
+                scale=55,
+                shape=(2, 4, 55, 55, 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model()
+
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                             "-adam-0p001-" + slugify("-temporal-experiment-") + obj.key_dimensions() + ".csv")
+            # print (model.model.summary())
+            model.train(epochs_param=2, optim="Adam")
+
+
+    @staticmethod
+    def different_tasks_one_model():
+        for PRED_HORIZ in range(1, 9):
+            obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
+                             prediction_horizon=PRED_HORIZ, grid_size=config.scales_def[0])
+
+            model = ConvLSTM(
+                config.city_list_def[0],
+                config.i_o_lengths_def[0],
+                PRED_HORIZ,
+                config.scales_def[0],
+                shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model()
+
+            model.model = model.create_model_flexible(depth=3, num_filters=64,
+                                                              custom_eval=False, BN=False)
+
+
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                             "-adam-0p1-" + slugify("different_tasks_one_model") + obj.key_dimensions() + ".csv")
+            # print (updated_model.summary())
+
+            from contextlib import redirect_stdout
+
+            with open('modelsummary.txt', 'w') as f:
+                with redirect_stdout(f):
+                    model.model.summary()
+
+            print("======================================")
+            os.system("grep \'Trainable params:\' modelsummary.txt")
+
+            # print (model.model.summary())
+            model.train(epochs_param=30, optim="Adam")
 
 
     @staticmethod
@@ -945,15 +1189,35 @@ class ConvLSTM:
 
 
         # keep only three models
-        list_of_models = ["create_model", "create_model_small_epochs"]
+        list_of_models = [
+            "create_model_f_def_no_BN",""
+            "create_model_small_epochs_no_BN",
+            "create_model_f_big_no_BN",
+            "create_model_f_shallow_2_no_BN",
+            "create_model_f_shallow_1_no_BN",
+            "create_model_f_shallow_3_no_BN",
+        ]
+        # ["create_model_f_def_BN_begin", "create_model_less_filters_BN_begin","create_model_f_shallow_BN_begin", ]
+        #  ["create_model_f_big_reg_NO_bn", "create_model_f_def_no_BN", "create_model_small_epochs_no_BN"]
 
         for model_type in list_of_models:
             updated_model = getattr(model, model_type)()
-            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + model_type  + "-sgd-0001-85_" + ".csv")
-            print (updated_model. summary())
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-" + model_type  + 
+                                                     "-adam-0001-" + obj.key_dimensions() + ".csv")
+            # print (updated_model.summary())
 
-            model.train(epochs_param=100, optim="SGD")
+            from contextlib import redirect_stdout
 
+            with open('modelsummary.txt', 'w') as f:
+                with redirect_stdout(f):
+                    updated_model.summary()
+
+            print ("======================================")
+            sprint (obj.key_dimensions(), model_type)
+            os.system("grep \'Trainable params:\' modelsummary.txt")
+
+            print (updated_model.summary())
+            model.train(epochs_param=1, optim="Adam")
 
     @staticmethod
     def one_task_increase_lr_midway():
@@ -1091,4 +1355,10 @@ if __name__ == "__main__":
     # ConvLSTM.one_task_different_models()
 
     # ConvLSTM.one_task_increase_lr_midway()
-    ConvLSTM.one_task_three_models()
+    # ConvLSTM.one_task_three_models()
+    # ConvLSTM.different_tasks_one_model()
+    # ConvLSTM.one_task_different_models()
+    # ConvLSTM.one_task_one_model_different_BN_no_BN()
+    # ConvLSTM.one_task_one_model_with_and_without_lr()
+    ConvLSTM.one_task_all_cities_temporal_experiment()
+

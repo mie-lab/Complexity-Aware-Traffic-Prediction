@@ -1,0 +1,5 @@
+batch: 128
+IO: 1
+val: 1 month
+band: 1 hour +/- only the current day range(-4, 5)
+adam: 0.0001

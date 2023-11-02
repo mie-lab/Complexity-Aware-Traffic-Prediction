@@ -20,9 +20,9 @@ files = [
     "london-4-8-55-validation.csv"
 ]
 
-if os.path.exists("images"):
-    os.system("rm -rf images")
-os.mkdir("images")
+# if os.path.exists("images"):
+#     os.system("rm -rf images")
+# os.mkdir("images")
 
 plt.figure(figsize=(12, 8))
 
@@ -73,5 +73,5 @@ plt.yscale("log")  # Logarithmic scale for y-axis
 plt.legend(ncol=2, loc="upper left")
 plt.tight_layout()
 
-plt.savefig("images/combined_plot.png")  # Save the plot as an image
+plt.savefig("images/combined_plot_val_loss_.png")  # Save the plot as an image
 plt.show()

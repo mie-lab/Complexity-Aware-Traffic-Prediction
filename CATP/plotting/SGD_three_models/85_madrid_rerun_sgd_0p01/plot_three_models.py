@@ -9,10 +9,12 @@ import numpy as np
 
 # Define the CSV filenames
 files = {
-    "validation-create_model_f_big_reg_NO_bn-sgd-0001-madrid-1-4-85-.csv": "f_BIG_hard",
-    # "validation-create_model_f_big_reg_NO_bn-sgd-0001-madrid-2-4-55-.csv":"f_BIG_easy",
-    "validation-create_model_f_def_no_BN-sgd-0001-madrid-1-4-85-.csv": "f_small_hard",
-    # "validation-create_model_f_def_no_BN-sgd-0001-madrid-2-4-55-.csv": "f_small_easy"
+    # "validation-create_model_f_def_no_BN-sgd-0p1-madrid-1-1-55-.csv": "f_def_easy",
+    # "validation-create_model_f_shallow_no_BN-sgd-0p1-madrid-1-1-55-.csv":"f_shallow_easy",
+    # "validation-create_model_less_filters_no_BN-sgd-0p1-madrid-1-1-55-.csv":"f_light_easy",
+    "validation-create_model_f_def_no_BN-sgd-0p1-madrid-1-4-85-.csv": "f_def_hard",
+    "validation-create_model_f_shallow_no_BN-sgd-0p1-madrid-1-4-85-.csv":"f_shallow_hard",
+    "validation-create_model_less_filters_no_BN-sgd-0p1-madrid-1-4-85-.csv":"f_light_hard",
 }
 
 
@@ -81,13 +83,13 @@ for idx, file in enumerate(files.keys()):
 
                 scale = 5000
 
-                if col in ["MC", "IC"]:
+                if col in ["MC"]:
                     data[col] = data[col] * scale
-                # if col in ["IC"]:
-                #     data[col] = data[col] * 1 # Since we don't use any Data loader in IC computation
+                if col in ["IC"]:
+                    data[col] = data[col] * 1 # Since we don't use any Data loader in IC computation
                 elif col in ["val_loss", "loss", "val_non_zero_mse", "non_zero_mse",
                              "naive-model-non-zero", "naive-model-mse"]:
-                    data[col] = data[col] * scale * scale
+                    data[col] = data[col] * scale # * scale
                     # continue
                 # max_ = data[col].max()
                 # data[col] = data[col] / max_
@@ -104,7 +106,7 @@ plt.ylabel('Value')
 # plt.legend(fontsize=6, ncol=2, loc="upper right")
 plt.legend(fontsize=6, ncol=2, loc="best")
 plt.xticks(list(range(0, 100, 1)), rotation=90, fontsize=4)
-# plt.yscale("log")
+plt.yscale("log")
 plt.grid(axis='x',alpha=0.05)
 # plt.xlim(n, 50-n)
 # plt.ylim(1, 4000)

@@ -176,8 +176,8 @@ for List_of_depths, List_of_filters in [
                 data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
 
                 val_loss = data["val_loss"]
-                argmin = (val_loss).argsort()[:5]
-                #
+                # argmin = (val_loss).argsort()[:5]
+                argmin = np.argmin(val_loss)
                 # argmin = np.argmax(700 - data["val_loss"])
                 # argmin = np.where(data["val_loss"] < data["naive-model-mse"])
 
@@ -187,7 +187,7 @@ for List_of_depths, List_of_filters in [
 
                 # plt.scatter(data['MC'][16:].median(), data["val_loss"][16:].median(),
 
-                plt.scatter(data['MC'][argmin].mean(), data["val_loss"][argmin].mean(),
+                plt.scatter(data['MC'][argmin], data["val_loss"][argmin],
                         alpha=1,
                             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
                             label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
@@ -195,8 +195,8 @@ for List_of_depths, List_of_filters in [
                          # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
                             )
 
-                line_plot_x[DEP, FIL] = data["MC"][argmin].mean()
-                line_plot_y[DEP, FIL] = data["val_loss"][argmin].mean()
+                line_plot_x[DEP, FIL] = data["MC"][argmin]# .mean()
+                line_plot_y[DEP, FIL] = data["val_loss"][argmin]# .mean()
 
                 # line_plot_x[DEP, FIL] = np.median(data["MC"].to_numpy()[argmin].flatten())  # [16:].median()
                 # line_plot_y[DEP, FIL] = np.median(data["val_loss"].to_numpy()[argmin].flatten())  # [16:].median()
@@ -246,9 +246,9 @@ for List_of_depths, List_of_filters in [
     #          color="blue",
     #          alpha=0.9)
 
-    plt.title('Val MSE vs MC', fontsize=8)
+    plt.title('Min Val MSE vs MC', fontsize=8)
     plt.xlabel('MC')
-    plt.ylabel('Val MSE')
+    plt.ylabel('Min Val MSE')
     plt.legend(fontsize=7, ncol=3, loc="upper right")
     # plt.xlim(0, 750)
     # plt.ylim(550, 850)
@@ -259,6 +259,6 @@ for List_of_depths, List_of_filters in [
     plt.savefig("london-IO_LEN_scatter_all_combined_" + IO_len + "-PRED_horiz_" + PRED_HORIZ + "Scale" + SCALE +\
                 "_d_".join([str(x) for x in List_of_depths]) +\
                 "_f_".join([str(x) for x in List_of_filters]) +\
-                "best_5_mean.png", dpi=300)
+                "min_lines.png", dpi=300)
     sprint ("_d_".join([str(x) for x in List_of_depths]), List_of_depths)
 

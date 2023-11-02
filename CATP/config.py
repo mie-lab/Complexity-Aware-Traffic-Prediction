@@ -32,7 +32,7 @@ else:
     raise Exception("HOME_FOLDER and DATA_FOLDER not specified; please check config file")
 
 
-max_norm_value = 10000
+max_norm_value = 1
 
 INTERMEDIATE_FOLDER = os.path.join(HOME_FOLDER, "intermediate_folder")
 RESULTS_FOLDER = os.path.join(DATA_FOLDER, "intermediate_folder")
@@ -47,19 +47,19 @@ RESULTS_FOLDER = os.path.join(DATA_FOLDER, "intermediate_folder")
 #     cx_N = 5
 cx_debug = True
 if running_on == "server":
-    cx_sample_whole_data = 1500
+    cx_sample_whole_data = -1 # 1500
     cx_sample_single_point = 200  # no longer being used
-    cx_batch_size = 14
+    cx_batch_size = 32
 
 elif running_on == "maclocal":
-    cx_sample_whole_data = 20
+    cx_sample_whole_data = -1
     cx_sample_single_point = 40  # no longer being used
-    cx_batch_size = 2
+    cx_batch_size = 32
 
 
 cx_sampling_enabled = False
 cx_delete_files_after_running = True
-cx_range_day_scan = range(0, 1)
+cx_range_day_scan = range(-3, 4)
 cx_range_t_band_scan = range(-4, 5)
 cx_spatial_cx_PM_dist_enabled = False
 cx_post_model_loading_from_saved_val_error_plots_temporal = False
@@ -78,12 +78,14 @@ cl_tensorboard = False
 if running_on == "server":
     cl_percentage_of_train_data = 1  # can be reduced for fast tryouts
     cl_batch_size = 32
+    cl_prediction_batch_size = 32 
     cl_dataloader_workers = 32
     cl_epochs = 30
 elif running_on == "maclocal":
     cl_percentage_of_train_data = 0.002  # can be reduced for fast tryouts
     cl_batch_size = 3
-    cl_dataloader_workers = 4
+    cl_prediction_batch_size = 32
+    cl_dataloader_workers = 8
     cl_epochs = 2
 
 cl_loss_func = "mse"  # "mse"
@@ -126,7 +128,7 @@ elif running_on == "maclocal":
     i_o_lengths = list(range(1, 9))
     pred_horiz = list(range(1, 9))
 
-    city_list_def = ["melbourne"]
+    city_list_def = ["madrid"]
     scales_def = [55]
     i_o_lengths_def = [4]
     pred_horiz_def = [1]
@@ -153,7 +155,6 @@ DATA_END_DATE = {
 
 val_folder_name = "val_data_all_cities"
 train_folder_name = "train_data_all_cities"
-
 
 if not os.path.exists(os.path.join(DATA_FOLDER, train_folder_name)):
     os.mkdir(os.path.join(DATA_FOLDER, train_folder_name))

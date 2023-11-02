@@ -8,16 +8,20 @@ import matplotlib.colors as mcolors
 import numpy as np
 from slugify import slugify
 
-
+IO_len = str(4)
+SCALE = str(55)
+PRED_HORIZ = str(6)
 # Define the CSV filenames
 files = {
-    "validation-create_model_f_def_no_BN-adam-0001-london-1-4-85-.csv": "f_deep_medium_filters",
-    "validation-create_model_f_big_no_BN-adam-0001-london-1-4-85-.csv": "f_deep_high_filters",
-    "validation-create_model_f_shallow_1_no_BN-adam-0001-london-1-4-85-.csv": "f_shallow_1",
-    "validation-create_model_f_shallow_2_no_BN-adam-0001-london-1-4-85-.csv": "f_shallow_2",
-    "validation-create_model_f_shallow_3_no_BN-adam-0001-london-1-4-85-.csv": "f_shallow_3",
-    "validation-create_model_small_epochs_no_BN-adam-0001-london-1-4-85-.csv": "f_deep_low_filters"
+    "validation-create_model_f_def_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_depth_4_filters_128",
+    "validation-create_model_f_big_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_depth_4_filters_256",
+    "validation-create_model_f_shallow_1_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_depth_1_filters_64",
+    "validation-create_model_f_shallow_2_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_depth_2_filters_64",
+    "validation-create_model_f_shallow_3_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_depth_3_filters_64",
+    "validation-create_model_small_epochs_no_BN-adam-0001-london-" + IO_len + "-" + PRED_HORIZ + "-" + SCALE + "-.csv": "f_depth_4_filters_16"
 }
+
+
 colors = [
     "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
     "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
@@ -28,6 +32,7 @@ colors_for_file = {file: colors[i % len(colors)] for i, file in enumerate(files)
 
 # alphas = [0.1, 0.2,  0.4, 0.8, 0.9, 1] # , 0.1, 0.5]
 alphas = np.array([1,2,3,4,5,6])/6
+# alphas = [0.3, 0.45, 0.2]
 columns = [
             'epoch',
              # 'CSR_GB_sum',
@@ -38,16 +43,16 @@ columns = [
              # 'CSR_PM_std',
              # 'CSR_PM_sum',
              # 'loss',
-             # 'naive-model-mse',
+             'naive-model-mse',
              # 'naive-model-non-zero',
              # 'non_zero_mse',
              # 'self.CSR_GB_count',
              # 'self.CSR_NM_count',
              # 'self.CSR_PM_count',
-             # 'val_loss',
+             'val_loss',
              # 'val_non_zero_mse',
                 "MC",
-                "IC"
+                # "IC"
             ]
 
 
@@ -76,6 +81,7 @@ for idx, file in enumerate(files.keys()):
     data["IC"] = data["CSR_PM_sum"].max()
     data["naive-model-mse"] = data["naive-model-mse"].mean()
     data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
+    
 
     linestyle = '-'
     # if "create_model_f_big" in file:
@@ -84,17 +90,20 @@ for idx, file in enumerate(files.keys()):
 
         if idx >= 0 :
             # Exclude 'epoch' column from plotting
+            if idx > 0 and "naive" in col:
+                continue
 
             if col not in ['epoch']: #, "MC", "IC"]:
 
-                # scale = 1
-                # if "validation-create_model_f_def_no_BN-sgd-0p1-madrid-1-4-85" in file:
-
                 # max_ = data[col].max()
                 # data[col] = data[col] / max_
-
+                alpha_computed = alphas[idx]
+                if "naive" in col:
+                    alpha_computed = 1
                 plt.plot(data['epoch'], np.convolve(data[col], [1/n]*n, "same"),
-                         alpha=alphas[idx], color=color_dict[col], label=col + "_" + str(files[file]),
+                         alpha=alpha_computed,
+                         color=color_dict[col],
+                         label=slugify( col + "_" + str(files[file])).replace("mc-", "MC-"),
                          linestyle=linestyle)
 
 
@@ -108,12 +117,12 @@ plt.xticks(list(range(0, 30, 1)), rotation=90, fontsize=4)
 plt.yscale("log")
 
 plt.grid(axis='x',alpha=0.05)
-plt.xlim(3//2, 30-n)
+# plt.xlim(3//2, 30-n)
 # plt.xlim(0, 10)
 # plt.ylim(1, 3000)
 plt.tight_layout()
 
-plt.savefig("london.png", dpi=300)
+plt.savefig("london-IO_LEN" + IO_len  + "-PRED_horiz_" + PRED_HORIZ + "Scale" + SCALE + ".png", dpi=300)
 plt.show()
 
 alphas = [1] * 100
@@ -133,6 +142,7 @@ for idx, file in enumerate(files.keys()):
     data["IC"] = data["CSR_PM_sum"].max()
     data["naive-model-mse"] = data["naive-model-mse"].mean()
     data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
+    # data["val_loss"] = (data["val_loss"] / np.min(data["val_loss"]))
 
     linestyle = '-'
     # if "create_model_f_big" in file:
@@ -144,9 +154,6 @@ for idx, file in enumerate(files.keys()):
 
             if col in ["epoch"]: # ["IC"]
 
-
-                # scale = 1
-                # if "validation-create_model_f_def_no_BN-sgd-0p1-madrid-1-4-85" in file:
                 scale = 1
 
                 if col in ["MC", "IC"]:
@@ -167,6 +174,24 @@ for idx, file in enumerate(files.keys()):
                             label=slugify(str(files[file])),
                             # s=11
                             )
+
+                # plt.scatter(data['MC'], data["val_loss"],
+                #          alpha=(data["epoch"]/np.max(data["epoch"])).tolist(),
+                #             color=[colors_for_file[file]] * data["MC"].shape[0],
+                #             edgecolors=(1,1,1,0),
+                #             linewidths=0.1,
+                #             # label=slugify(str(files[file])),
+                #             # s=11
+                #             )
+                #
+                # plt.scatter(data['MC'][data.shape[0]-1], data["val_loss"][data.shape[0]-1],
+                #          alpha=(data["epoch"]/np.max(data["epoch"])).tolist()[data.shape[0]-1],
+                #             color=[colors_for_file[file]] * 1,
+                #             edgecolors=(1,1,1,0),
+                #             linewidths=0.1,
+                #             label=slugify(str(files[file])),
+                #             # s=11
+                #             )
                 # plt.scatter(np.mean(data['MC']) , np.mean(data["val_loss"]),
                 #             label=slugify(str(files[file])) + " mean",
                 #             marker="*",
@@ -193,13 +218,15 @@ plt.legend(fontsize=10, loc="upper right")
 # plt.yscale("log")
 # plt.xscale("log")
 # plt.gca().set_aspect(0.003)
-plt.ylim(1150, 1400)
-plt.xlim(0, 130)
+plt.ylim(1350, 2500)
+# plt.ylim(1350, 1500)
+# plt.ylim(1, 2)
+plt.xlim(40, 365)
 plt.title("Val loss vs Model Complexity")
 plt.ylabel("Validation loss (MSE)")
 plt.xlabel("Model Complexity (MC|f) at various epochs")
 plt.tight_layout()
-plt.savefig("london_scatter_Val_vs_MC.png", dpi=300)
+plt.savefig("london_scatter_Val_vs_MC-IO_LEN" + IO_len  + "-PRED_horiz_" + PRED_HORIZ + "Scale" + SCALE + ".png", dpi=300)
 
 
 
@@ -232,8 +259,6 @@ for idx, file in enumerate(files.keys()):
             if col in ["epoch"]: # ["IC"]
 
 
-                # scale = 1
-                # if "validation-create_model_f_def_no_BN-sgd-0p1-madrid-1-4-85" in file:
                 scale = 1
 
                 if col in ["MC", "IC"]:
@@ -246,23 +271,23 @@ for idx, file in enumerate(files.keys()):
                 # max_ = data[col].max()
                 # data[col] = data[col] / max_
 
-                plt.scatter(data['IC'].mean() - data['MC'], data["val_loss"],
-                         alpha=(data["epoch"]/np.max(data["epoch"])).tolist(),
+                plt.scatter(data['IC'].mean() - data['MC'], data["val_loss"] ** 0.5,
+                         alpha=0.7, #(data["epoch"]/np.max(data["epoch"])).tolist(),
                             color=[colors_for_file[file]] * data["MC"].shape[0],
-                            edgecolors=(1,1,1,0),
-                            linewidths=0.1,
-                            # label=slugify(str(files[file])),
-                            # s=11
-                            )
-
-                plt.scatter(data['IC'].mean() - data['MC'][29], data["val_loss"][29],
-                         alpha=(data["epoch"]/np.max(data["epoch"])).tolist()[29],
-                            color=[colors_for_file[file]] * 1,
                             edgecolors=(1,1,1,0),
                             linewidths=0.1,
                             label=slugify(str(files[file])),
                             # s=11
                             )
+
+                # plt.scatter(data['IC'].mean() - data['MC'][data.shape[0]-1], data["val_loss"][data.shape[0]-1],
+                #          alpha=(data["epoch"]/np.max(data["epoch"])).tolist()[data.shape[0]-1],
+                #             color=[colors_for_file[file]] * 1,
+                #             edgecolors=(1,1,1,0),
+                #             linewidths=0.1,
+                #             label=slugify(str(files[file])),
+                #             # s=11
+                #             )
 
                 # plt.scatter(np.mean(data['MC']) , np.mean(data["val_loss"]),
                 #             label=slugify(str(files[file])) + " mean",
@@ -290,10 +315,115 @@ plt.legend(fontsize=10, loc="upper right")
 # plt.yscale("log")
 # plt.xscale("log")
 # plt.gca().set_aspect(0.003)
-plt.ylim(1150, 1400)
+# plt.ylim(1150, 1400)
+
+plt.ylim(1350, 2500)
+
+
+# plt.ylim(1150, 4000)
 # plt.xlim(0, 130)
 plt.title("Val loss vs Model and Intrinsic Complexity")
 plt.ylabel("Validation loss (MSE)")
 plt.xlabel("|IC(Task)-MC(f|Task)| at various epochs")
 plt.tight_layout()
-plt.savefig("london_scatter_Val_vs_IC-MC.png", dpi=300)
+plt.savefig("london_scatter_Val_vs_IC-MC-IO_LEN" + IO_len  + "-PRED_horiz_" + PRED_HORIZ + "Scale" + SCALE + ".png", dpi=300)
+
+
+
+
+alphas = [1] * 100
+
+plt.clf()
+# Loop through the CSV files
+for idx, file in enumerate(files.keys()):
+
+    # Load the data
+    data = pd.read_csv(file)
+
+    # Plot each column on the same plot
+    n = 1
+
+    # data["val/train"] = data["val_non_zero_mse"] / data["non_zero_mse"]
+    data["MC"] = data["CSR_MP_sum"]
+    data["IC"] = data["CSR_PM_sum"].max()
+    data["naive-model-mse"] = data["naive-model-mse"].mean()
+    data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
+
+    linestyle = '-'
+    # if "create_model_f_big" in file:
+    #     linestyle = ":"
+    for col in columns[:1]:
+
+        if idx >= 0 :
+            # Exclude 'epoch' column from plotting
+
+            if col in ["epoch"]: # ["IC"]
+
+
+                scale = 1
+
+                if col in ["MC", "IC"]:
+                    data[col] = data[col] * scale
+
+                elif col in ["val_loss", "loss", "val_non_zero_mse", "non_zero_mse",
+                             "naive-model-non-zero", "naive-model-mse"]:
+                    data[col] = (data[col] * scale * scale)
+                    # continue
+                # max_ = data[col].max()
+                # data[col] = data[col] / max_
+
+                plt.scatter(data['MC'], data["IC"],
+                         alpha=0.7, #(data["epoch"]/np.max(data["epoch"])).tolist(),
+                            color=[colors_for_file[file]] * data["MC"].shape[0],
+                            edgecolors=(1,1,1,0),
+                            linewidths=0.1,
+                            label=slugify(str(files[file])),
+                            # s=11
+                            )
+
+                # plt.scatter(data['IC'].mean() - data['MC'][data.shape[0]-1], data["val_loss"][data.shape[0]-1],
+                #          alpha=(data["epoch"]/np.max(data["epoch"])).tolist()[data.shape[0]-1],
+                #             color=[colors_for_file[file]] * 1,
+                #             edgecolors=(1,1,1,0),
+                #             linewidths=0.1,
+                #             label=slugify(str(files[file])),
+                #             # s=11
+                #             )
+
+                # plt.scatter(np.mean(data['MC']) , np.mean(data["val_loss"]),
+                #             label=slugify(str(files[file])) + " mean",
+                #             marker="*",
+                #             color=colors_for_file[file],
+                #             alpha=1,
+                #             s=70)
+                # plt.scatter(data['IC'].mean() - np.mean(data['MC'][10:]) , np.min(data["val_loss"]),
+                #             label=slugify(str(files[file])) + " mean",
+                #             marker="*",
+                #             color=colors_for_file[file],
+                #             alpha=1,
+                #             s=70)
+                # if idx == 0 :
+                #     plt.scatter([data['IC'].mean()] * (1450-1150) , list (range(1150, 1450)),
+                #                 label=" IC",
+                #                 marker="o",
+                #                 color=colors_for_file[file],
+                #                 alpha=1,
+                #                 s=1)
+
+
+
+plt.legend(fontsize=10, loc="upper right")
+# plt.yscale("log")
+# plt.xscale("log")
+# plt.gca().set_aspect(0.003)
+# plt.ylim(1150, 1400)
+
+# plt.ylim(1350, 2500)
+
+# plt.ylim(1150, 4000)
+# plt.xlim(0, 130)
+plt.title("Val loss vs Model and Intrinsic Complexity")
+plt.ylabel("Validation loss (MSE)")
+plt.xlabel("|IC(Task)-MC(f|Task)| at various epochs")
+plt.tight_layout()
+plt.savefig("london_scatter_MC_vs_IC" + IO_len  + "-PRED_horiz_" + PRED_HORIZ + "Scale" + SCALE + ".png", dpi=300)
