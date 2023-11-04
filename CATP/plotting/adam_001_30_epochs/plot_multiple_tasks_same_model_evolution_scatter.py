@@ -1,41 +1,32 @@
 import pandas as pd
 import matplotlib
-
 matplotlib.use('Agg')  # Use the Agg backend
+
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 # Directory containing the csv files
 directory = "."
 
 # List of files
 files = [
-    "validation-default_model--adam-0p1-different-tasks-one-modelmadrid-4-1-55-.csv",
-    "validation-default_model--adam-0p1-different-tasks-one-modelmadrid-4-2-55-.csv",
-    "validation-default_model--adam-0p1-different-tasks-one-modelmadrid-4-3-55-.csv",
-    "validation-default_model--adam-0p1-different-tasks-one-modelmadrid-4-4-55-.csv",
-    "validation-default_model--adam-0p1-different-tasks-one-modelmadrid-4-5-55-.csv",
-    "validation-default_model--adam-0p1-different-tasks-one-modelmadrid-4-6-55-.csv",
-    "validation-default_model--adam-0p1-different-tasks-one-modelmadrid-4-7-55-.csv",
-    "validation-default_model--adam-0p1-different-tasks-one-modelmadrid-4-8-55-.csv",
+    "validation-default_model--adam-0p1-different-tasks-one-modellondon-4-1-55-.csv",
+    "validation-default_model--adam-0p1-different-tasks-one-modellondon-4-2-55-.csv",
+    "validation-default_model--adam-0p1-different-tasks-one-modellondon-4-3-55-.csv",
+    "validation-default_model--adam-0p1-different-tasks-one-modellondon-4-4-55-.csv",
+    "validation-default_model--adam-0p1-different-tasks-one-modellondon-4-5-55-.csv",
+    "validation-default_model--adam-0p1-different-tasks-one-modellondon-4-6-55-.csv",
+    "validation-default_model--adam-0p1-different-tasks-one-modellondon-4-7-55-.csv",
+    "validation-default_model--adam-0p1-different-tasks-one-modellondon-4-8-55-.csv",
 ]
 
-# if os.path.exists("images"):
-#     os.system("rm -rf images")
-# os.mkdir("images")
-
-# plt.figure(figsize=(12, 8))
-
-# Set line styles to differentiate between `val_loss` and other columns
-linestyles = {
-    "MC": "-",
-    "IC": "-",
-    "val-MSE * 0.1": "--",
-}
-
-color_map = {file: plt.cm.jet(i/len(files)) for i, file in enumerate(files)}
-
-handled_labels = []
+# Initialize empty lists to store data
+ph = np.arange(1, 9)
+IC = []
+IC_MC = []
+MC = []
+Val_MSE = []
 
 # Iterate through each file
 for file in files:
@@ -43,39 +34,54 @@ for file in files:
 
     # Read the CSV
     df = pd.read_csv(filepath)
-    df["IC"] = df["CSR_PM_sum"][df["CSR_PM_sum"] > 0].mean()
-    df["MC"] = df["CSR_MP_sum"]
-    df["val-MSE * 0.1"] = df["val_loss"] / 10
-    # Adjust the 'epoch' column
-    df['epoch'] = df['epoch'] + 1
+    # Find the epoch with the minimum val_loss
+    min_val_loss_epoch = df.loc[df['val_loss'].idxmin()]
+    argmin = np.argmin(df["val_loss"])
 
-    # Selecting columns of interest. Adjust if necessary
-    columns = [
-        # "IC",
-        "MC",
-        # "val-MSE * 0.1",
-    ]
-    for col in columns:
+    # Compute the required metrics
+    ic = df["CSR_PM_sum"][df["CSR_PM_sum"] > 0].mean()
+    mc = df["CSR_MP_sum"][argmin]
+    val_mse = df["val_loss"][argmin]
+    ic_mc = ic - mc
 
-        plt.scatter(df[col][10:], df['val-MSE * 0.1'][10:], linestyle=linestyles[col], color=color_map[file],
-                    label=file.replace("validation-default_model--adam-0p1-different-tasks-one-model",
-                                                     "").replace(".csv",""))
+    # Append the metrics to the lists
+    IC.append(ic)
+    IC_MC.append(ic_mc)
+    MC.append(mc)
+    Val_MSE.append(val_mse)
 
+# Create a scatter plot
+# plt.figure(figsize=(12, 8))
+SS = 62
+plt.scatter(ph, IC, label='IC', color='blue',s=SS)
+plt.scatter(ph, IC_MC, label='IC-MC', color='red',s=SS)
+plt.scatter(ph, MC, label='MC', color='green',s=SS)
+plt.scatter(ph, Val_MSE, label='Val-MSE', color='purple',s=SS)
 
+# Create a line plot on top of the scatter plot
+plt.plot(ph, IC, color='blue', alpha=0.5, linewidth=3)
+plt.plot(ph, IC_MC, color='red', alpha=0.5, linewidth=3)
+plt.plot(ph, MC, color='green', alpha=0.5, linewidth=3)
+plt.plot(ph, Val_MSE, color='purple', alpha=0.5, linewidth=3)
+variable_names = ["IC", "IC-MC", "MC", "Val-MSE"]
 
-# # Add dummy lines for legend
-# for col, ls in linestyles.items():
-#     plt.plot([], [], color='black', linestyle=ls, label=col)
-# for file, color in color_map.items():
-#     plt.plot([], [], color=color, label=file.replace("validation-default_model--adam-0p1-different-tasks-one-model",
-#                                                      "").replace(".csv",""))
+from scipy.stats import pearsonr
 
-plt.xlabel("MC")
-plt.ylabel("Val MSE * 0.1")
-plt.title(r"Combined Plot for Madrid: $(i_0=4, p_h\in(1,8), s=55)$")
-# plt.yscale("log")  # Logarithmic scale for y-axis
-plt.legend(ncol=2, loc="best", fontsize=9)
+variables = [IC, IC_MC, MC, Val_MSE]
+variable_names = ["IC", "IC-MC", "MC", "Val-MSE"]
+
+for i in range(len(variables)):
+    for j in range(i+1, len(variables)):
+        corr_coeff, _ = pearsonr(variables[i], variables[j])
+        print(f'Correlation between {variable_names[i]} and {variable_names[j]}: {corr_coeff:.2f}')
+
+# Label the axes
+plt.xlabel('Prediction Horizon', fontsize=11)
+plt.ylabel('Value', fontsize=11)
+
+# Add a legend
+plt.legend(loc='best')
 plt.tight_layout()
-
-plt.savefig("evolution_multiple_tasks_scatter_2.png")  # Save the plot as an image
+plt.savefig("London_scatter_IO4_ph_1-8_scale_55_UP_plot.png", dpi=300)
+# Display the plot
 plt.show()
