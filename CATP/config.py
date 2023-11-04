@@ -4,6 +4,8 @@ import os
 from tqdm import tqdm
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+RUNNING_IC_TEMP = False
+
 
 DEBUG = False
 
@@ -55,7 +57,6 @@ elif running_on == "maclocal":
     cx_sample_whole_data = -1
     cx_sample_single_point = 40  # no longer being used
     cx_batch_size = 32
-
 
 cx_sampling_enabled = False
 cx_delete_files_after_running = True

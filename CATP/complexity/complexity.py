@@ -254,8 +254,16 @@ class Complexity:
             csvwrtiter.writerow(["PM"] + [str(x) for x in sum_y_more_than_max_x_dataset])
 
     def cx_whole_dataset_m_predict(self):
-        self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
-
+        
+        # To be set to config.VALIDATION_DATA_FOLDER if running the IC_temp case where 
+        # we need to esimate the validation errors using validation data
+        # For all other cases, it is automatically taken care of using the 
+        # validation datagen; and we do not compute the val-MSE in those cases, rather we need the IC
+        # values using the training data for those (non-IC_temp) cases
+        if config.RUNNING_IC_TEMP:
+            self.validation_folder = os.path.join(config.VALIDATION_DATA_FOLDER, self.file_prefix)
+        else:
+            self.validation_folder = os.path.join(config.TRAINING_DATA_FOLDER, self.file_prefix)
 
         file_list = glob.glob(self.predictions_dir + "/" + "*_x.npy")
         random.shuffle(file_list)
@@ -290,8 +298,8 @@ class Complexity:
                                                                     # model complexity
 
             # But if we want to compute val-MSE we need the ground truth, we can just look into the validation data folder
-            # the same x should also exist in the validation folder (which is in fact the training folder;
-            # the name needs to be changed)
+            # the same x should also exist in the validation folder (which is in fact the training folder for all other 
+            # (non-IC_temp) cases;
             assert os.path.exists ((self.validation_folder + "/" + self.file_prefix + str(fileindex_orig) + "_x.npy"))
             y_gt = np.load(self.validation_folder + "/"  + self.file_prefix + str(fileindex_orig) + "_y.npy")
 

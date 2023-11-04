@@ -53,15 +53,21 @@ class ComputeMetrics(Callback):
             os.makedirs(predictions_dir)
 
 
-        for index in range(len(self.model.validation_gen)): # train_gen to be replaced with pred_gen when  running spatial or temporal
-            x_batch, _, indexes = self.model.validation_gen.get_item_with_indexes(index) # train_gen to be replaced with pred_gen when  running spatial or temporal
+        if config.RUNNING_IC_TEMP:
+            model_gen = self.model.validation_gen
+        else:
+            model_gen = self.model.train_gen
+
+        for index in range(len(model_gen)): # train_gen to be replaced with validation_gen when  running spatial or temporal
+            # Total changes in 4 places
+            x_batch, _, indexes = model_gen.get_item_with_indexes(index) # train_gen to be replaced with validation_gen when  running spatial or temporal
             predictions = self.model.predict(x_batch)
 
 
             for idx, (input_data, pred) in enumerate(zip(x_batch, predictions)):
                 # Save the input data and the prediction into the correct prediction folder
                 input_file = os.path.join(predictions_dir,
-                                          "{}{}_x.npy".format(self.model.validation_gen.prefix, indexes[idx])) #  # train_gen to be replaced with pred_gen when  running spatial or temporal
+                                          "{}{}_x.npy".format(model_gen.prefix, indexes[idx])) #  # train_gen to be replaced with validation_gen when  running spatial or temporal
                 temp_input_file_name = str(int(np.random.rand() * 100000000000)) + "_x.npy"                 # since in that case we need the val MSE per sample
                                                                                                             # hence the predicitons should be using the valdation data
                 np.save(temp_input_file_name, input_data)
@@ -69,22 +75,28 @@ class ComputeMetrics(Callback):
 
                 # Save the prediction
                 predictions_file = os.path.join(predictions_dir,
-                                                "{}{}_y.npy".format(self.model.validation_gen.prefix, indexes[idx]))  # train_gen to be replaced with pred_gen when  running spatial or temporal
+                                                "{}{}_y.npy".format(model_gen.prefix, indexes[idx]))  # train_gen to be replaced with pred_gen when  running spatial or temporal
                 temp_pred_file_name = str(int(np.random.rand() * 100000000000)) + "_y.npy"
                 np.save(temp_pred_file_name, pred)
                 os.rename(temp_pred_file_name, predictions_file)
 
         # if epoch % 0 == 0:
         # if epoch % 5 == 0: # To be used when running spatial or temporal
-        if epoch == 1:
+        if epoch == 1: # To ensure that we compute the ValMSE only for the last epoch when running the IC_temp
             RUN_PM=True
         else:
             RUN_PM = False
 
-        if RUN_PM and config.cl_during_training_CSR_enabled_epoch_end: # To be used when running spatial or temporal
-                                                                        # experiment, since we want to print the Val-MSE
-                                                                        # just once
-        # if config.cl_during_training_CSR_enabled_epoch_end:    # for all other cases
+        compute_CX = False
+        if config.RUNNING_IC_TEMP:
+            if RUN_PM and config.cl_during_training_CSR_enabled_epoch_end: # To be used when running spatial or temporal
+                                                                        # experiment, since we want to compute the Val-MSE
+                compute_CX = True
+        elif not config.RUNNING_IC_TEMP:
+            if config.cl_during_training_CSR_enabled_epoch_end:    # for all other cases
+                compute_CX = True
+
+        if compute_CX:
             cx = Complexity(
                 self.model.cityname,
                 i_o_length=self.model.io_length,
@@ -1129,6 +1141,56 @@ class ConvLSTM:
             # print (model.model.summary())
             model.train(epochs_param=2, optim="Adam")
 
+    @staticmethod
+    def one_task_all_cities_temporal_experiment_bigger_model():
+        for city in ["london", "madrid", "melbourne"]:
+
+            obj = ProcessRaw(cityname=city, i_o_length=4,
+                             prediction_horizon=1, grid_size=55)
+
+            model = ConvLSTM(
+                cityname=city,
+                io_length=4,
+                pred_horiz=1,
+                scale=55,
+                shape=(2, 4, 55, 55, 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model_flexible(depth=4, num_filters=128,
+                                                              custom_eval=False, BN=True)
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                             "-adam-0p001-" + slugify("-temporal-experiment-val-error-big-model") + obj.key_dimensions() + ".csv")
+            # print (model.model.summary())
+            model.train(epochs_param=15, optim="Adam")
+
+    @staticmethod
+    def one_task_all_cities_temporal_experiment_smaller_model(epochs_param=15):
+        for city in ["london", "madrid", "melbourne"]:
+
+            obj = ProcessRaw(cityname=city, i_o_length=4,
+                             prediction_horizon=1, grid_size=55)
+
+            model = ConvLSTM(
+                cityname=city,
+                io_length=4,
+                pred_horiz=1,
+                scale=55,
+                shape=(2, 4, 55, 55, 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model_flexible(depth=2, num_filters=64,
+                                                              custom_eval=False, BN=True)
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                             "-adam-0p001-" + slugify("-temporal-experiment-val-error-small-model") + obj.key_dimensions() + ".csv")
+            # print (model.model.summary())
+            model.train(epochs_param=epochs_param, optim="Adam")
+
 
     @staticmethod
     def different_tasks_one_model():
@@ -1360,5 +1422,7 @@ if __name__ == "__main__":
     # ConvLSTM.one_task_different_models()
     # ConvLSTM.one_task_one_model_different_BN_no_BN()
     # ConvLSTM.one_task_one_model_with_and_without_lr()
-    ConvLSTM.one_task_all_cities_temporal_experiment()
+    # ConvLSTM.one_task_all_cities_temporal_experiment()
+    # ConvLSTM.one_task_all_cities_temporal_experiment_bigger_model()
+    ConvLSTM.one_task_all_cities_temporal_experiment_smaller_model(epochs_param=2)
 
