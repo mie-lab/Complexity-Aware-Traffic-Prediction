@@ -76,7 +76,7 @@ for PRED_HORIZ in ["1", "2", "3", "4"]:
                     # 'naïve-model-mse',
                     'val_loss',
                     'MC',
-                    "train_loss",
+                    # "train_loss",
                 ]
 
                 linestyle = {}
@@ -112,10 +112,20 @@ for PRED_HORIZ in ["1", "2", "3", "4"]:
                             data_y = np.convolve(data[col][:], [1 / n] * n, "same")
                             data_y = np.convolve(data_y, [1 / n] * n, "same")
 
-                            if col == 'MC':
-                                data_y = data[col].cummax()
-                            elif col == 'val_loss' or col=="loss":
+                            # if col == 'MC':
+                            #     data_y = data[col].cummax()
+                            # elif col == 'val_loss' or col=="loss":
+                            #     data_y = data[col].cummin()
+                            if col == 'val_loss':
+                                # Calculate the cumulative minimum for 'val_loss'
                                 data_y = data[col].cummin()
+
+                                # Create a boolean mask where True corresponds to the cumulative minimum
+                                is_cummin = data[col] == data_y
+
+                                # Use 'where' to retain the last 'MC' value when the cumulative minimum condition is met
+                                data['MC'] = data['MC'].where(is_cummin).ffill()
+
                             else:
                                 data_y = np.convolve(data[col][:], [1 / n] * n, "same")
 
@@ -147,7 +157,7 @@ for PRED_HORIZ in ["1", "2", "3", "4"]:
                                     # label=(col_label + slugify( "_" + str(files[file])).replace("mc", " MC ")
                                     # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL)).replace("MCf", "MC-f").replace("loss-f", "MSE-f").replace("lossf","loss f").replace("sf","s f").replace("_", " ") + " BN",
                                      label=r"$p_h$: " + PRED_HORIZ + " " + slugify(col_label).replace("mc",
-                                                                                                      "MC") + " With BN",                                    # label=f'Simple Label - {col}',
+                                                                                                      "MC").replace("val-loss", "Val MSE") + " With BN",                                    # label=f'Simple Label - {col}',
                                     linestyle=linestyle[col],
                                     linewidth=3)
 
@@ -160,7 +170,7 @@ for PRED_HORIZ in ["1", "2", "3", "4"]:
                     # 'naïve-model-mse',
                     'val_loss',
                     'MC',
-                    "train_loss",
+                    # "train_loss",
                 ]
 
                 linestyle = {}
@@ -196,13 +206,26 @@ for PRED_HORIZ in ["1", "2", "3", "4"]:
                             SCALING_LOSS_FACTOR = 1  # Set scaling factor to 1
                             data_y = np.convolve(data[col][:], [1 / n] * n, "same")
 
-                            if col == 'MC':
-                                data_y = data[col].cummax()
-                            elif col == 'val_loss' or col == "loss":
+                            # if col == 'MC':
+                            #     data_y = data[col].cummax()
+                            # elif col == 'val_loss' or col == "loss":
+                            #     data_y = data[col].cummin()
+                            # else:
+                            #     data_y = np.convolve(data[col][:], [1 / n] * n, "same")
+
+                            if col == 'val_loss':
+                                # Calculate the cumulative minimum for 'val_loss'
                                 data_y = data[col].cummin()
+
+                                # Create a boolean mask where True corresponds to the cumulative minimum
+                                is_cummin = data[col] == data_y
+
+                                # Use 'where' to retain the last 'MC' value when the cumulative minimum condition is met
+                                data['MC'] = data['MC'].where(is_cummin).ffill()
+
+
                             else:
                                 data_y = np.convolve(data[col][:], [1 / n] * n, "same")
-
 
                             col_label = col
                             if "loss" in col or "mse" in col:
@@ -220,12 +243,12 @@ for PRED_HORIZ in ["1", "2", "3", "4"]:
 
                             print (r"$p_h$: " + PRED_HORIZ + " " + slugify( col_label ))
                             axx.plot(data['epoch'][:], data_y,
-                                    alpha=1,
+                                    alpha=0.8,
                                     color=color_computed,
                                     # label=(col_label + slugify( "_" + str(files[file])).replace("mc", " MC ")
                                     # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL)).replace("MCf", "MC-f").replace("loss-f", "MSE-f").replace("lossf","loss f").replace("sf","s f").replace("_", " ") + " No-BN",
                                     # label=f'Simple Label - {col}',
-                                    label=r"$p_h$: " + PRED_HORIZ + " " + slugify( col_label ).replace("mc", "MC") + " No-BN",
+                                    label=r"$p_h$: " + PRED_HORIZ + " " + slugify( col_label ).replace("mc", "MC").replace("val-loss", "Val MSE") + " No-BN",
                                      linestyle=linestyle[col],
                                     linewidth=1.5)
 
@@ -248,7 +271,7 @@ lines, labels = ax1.get_legend_handles_labels()
 lines2, labels2 = ax2.get_legend_handles_labels()
 all_lines = lines2 + lines
 all_labels = labels2 + labels
-ax1.legend(all_lines, all_labels, loc='center right', ncol=2, fontsize=8)
+ax1.legend(all_lines, all_labels, loc='center right', ncol=2, fontsize=7.5)
 
 # plt.legend()
 
@@ -262,5 +285,5 @@ plt.savefig("london-IO_LEN" + IO_len + "-PRED_horiz_" + PRED_HORIZ + "Scale" + S
             "_d_".join([str(x) for x in List_of_depths]) + \
             "_f_".join([str(x) for x in List_of_filters]) \
          +"_ph_".join(["1234"])  \
-            +"_BN_compare_multiple_Tasks__all_4_with_loss.png", dpi=300)
+            +"_BN_compare_multiple_Tasks__all_4_without_training_loss.png", dpi=300)
 plt.show()
