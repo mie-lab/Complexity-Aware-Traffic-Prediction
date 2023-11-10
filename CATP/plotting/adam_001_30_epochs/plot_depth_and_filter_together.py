@@ -7,6 +7,9 @@ import numpy as np
 from slugify import slugify
 from smartprint import smartprint as sprint
 import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+
 
 IO_len = str(4)
 SCALE = str(55)
@@ -83,7 +86,7 @@ for List_of_depths, List_of_filters in [
                 data = pd.read_csv(file)
                 n = 1
                 data["MC"] = data["CSR_MP_sum"]
-                data["IC"] = data["CSR_PM_sum"].max()
+                data["IC"] =  data["CSR_PM_sum"][data["CSR_PM_sum"] > 0].mean()
                 data["naive-model-mse"] = data["naive-model-mse"].mean()
                 data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
 
@@ -171,7 +174,7 @@ for List_of_depths, List_of_filters in [
                 data = pd.read_csv(file)
                 n = 1
                 data["MC"] = data["CSR_MP_sum"]
-                data["IC"] = data["CSR_PM_sum"].max()
+                data["IC"] =  data["CSR_PM_sum"][data["CSR_PM_sum"] > 0].mean()
                 data["naive-model-mse"] = data["naive-model-mse"].mean()
                 data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
 
@@ -340,13 +343,16 @@ for List_of_depths, List_of_filters in [
                 data = pd.read_csv(file)
                 n = 1
                 data["MC"] = data["CSR_MP_sum"]
-                data["IC"] = data["CSR_PM_sum"].max()
+                data["IC"] =  data["CSR_PM_sum"][data["CSR_PM_sum"] > 0].mean()
                 data["naive-model-mse"] = data["naive-model-mse"].mean()
                 data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
 
                 argmin = np.argmin(data["val_loss"])
+                # argmin = [:]
+
                 # plt.scatter(data['MC'][15:].mean(), data["val_loss"][15:].mean(),
-                plt.scatter(data['MC'][argmin], data["val_loss"][argmin],
+                # plt.scatter(data['MC'][argmin], data["val_loss"][argmin],
+                plt.scatter(data['MC'][:], data["val_loss"][:],
                 # plt.scatter(data['MC'][:10], data["val_loss"][:10],
                         alpha=1,
                             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
@@ -412,6 +418,178 @@ for List_of_depths, List_of_filters in [
                 "-all-_min.png", dpi=300)
     sprint ("_d_".join([str(x) for x in List_of_depths]), List_of_depths)
 
+    plt.clf()
+
+    X = []
+    Y = []
+    from matplotlib.patches import Ellipse
+    import matplotlib.transforms as transforms
+
+
+    def confidence_ellipse(x, y, ax, n_std=1, facecolor='none', **kwargs):
+        """
+        Create a plot of the covariance confidence ellipse of `x` and `y`
+
+        Parameters
+        ----------
+        x, y : array-like, shape (n, )
+            Input data.
+        ax : matplotlib.axes.Axes
+            The axes object to draw the ellipse into.
+        n_std : float
+            The number of standard deviations to determine the ellipse's radiuses.
+        Returns
+        -------
+        matplotlib.patches.Ellipse
+        """
+        if x.size != y.size:
+            raise ValueError("x and y must be the same size")
+
+        cov = np.cov(x, y)
+        pearson = cov[0, 1] / np.sqrt(cov[0, 0] * cov[1, 1])
+        # Using a special case to obtain the eigenvalues of this
+        # two-dimensionl dataset.
+        ell_radius_x = np.sqrt(1 + pearson)
+        ell_radius_y = np.sqrt(1 - pearson)
+        ellipse = Ellipse((0, 0),
+                          width=ell_radius_x * 2,
+                          height=ell_radius_y * 2,
+                          facecolor=facecolor,
+                          **kwargs)
+
+        # Calculating the standard deviation of x from
+        # the squareroot of the variance and multiplying
+        # with the given number of standard deviations.
+        scale_x = np.sqrt(cov[0, 0]) * n_std
+        mean_x = np.mean(x)
+
+        # calculating the standard deviation of y ...
+        scale_y = np.sqrt(cov[1, 1]) * n_std
+        mean_y = np.mean(y)
+
+        transf = transforms.Affine2D() \
+            .rotate_deg(45) \
+            .scale(scale_x, scale_y) \
+            .translate(mean_x, mean_y)
+
+        ellipse.set_transform(transf + ax.transData)
+        return ax.add_patch(ellipse)
+
+
+    for _, DEP in enumerate(List_of_depths):
+        enum_dep = DEP - 1
+        for _, FIL in enumerate(List_of_filters):
+            enum_fil = [16, 64, 128].index(FIL)
+            fname = f"validation-DEP-{DEP}-FIL-{FIL}-adam-01-one-task-different-modelslondon-{IO_len}-{PRED_HORIZ}-{SCALE}-.csv"
+            files = {fname: "f_"}
+
+            columns = [
+                'epoch',
+                'naive-model-mse',
+                'val_loss',
+                'MC'
+            ]
+
+            linestyle = {}
+            linestyle["val_loss"] = "-"
+            linestyle["naive-model-mse"] = ":"
+            linestyle["MC"] = "-."
+            SIZE_SCATTER = 2
+
+            for idx, file in enumerate(files.keys()):
+                data = pd.read_csv(file)
+                n = 1
+                data["MC"] = data["CSR_MP_sum"]
+                data["IC"] =  data["CSR_PM_sum"][data["CSR_PM_sum"] > 0].mean()
+                data["naive-model-mse"] = data["naive-model-mse"].mean()
+                data["naive-model-non-zero"] = data["naive-model-non-zero"].mean()
+                data["|IC-MC|"] = data["IC"] - data["MC"]
+
+                argmin = np.argmin(data["val_loss"])
+                argmin = np.argsort(data["val_loss"])[:1]
+
+                # argmin = [:]
+
+                # plt.scatter(data['MC'][15:].mean(), data["val_loss"][15:].mean(),
+                plt.scatter(data['|IC-MC|'][argmin], data["val_loss"][argmin],
+                # plt.scatter(data['|IC-MC|'][15:], data["loss"][15:],
+                # plt.scatter(data['|IC-MC|'][:], data["loss"][:],
+                            # plt.scatter(data['MC'][:10], data["val_loss"][:10],
+                            alpha=1,
+                            color=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil],
+                            label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                                  + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) , #+ " Min",
+                            # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
+                            s=72
+                            )
+                X.append(data['|IC-MC|'][argmin])
+                Y.append(data["val_loss"][argmin])
+
+                # confidence_ellipse(data['MC'][15:], data["val_loss"][15:], plt.gca(),
+                #                    edgecolor=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil])
+                from scipy.spatial import ConvexHull
+
+                points = np.array([data['MC'][:], data["val_loss"][:]]).T  # Create an array of points
+                hull = ConvexHull(points)
+
+                # Plotting the convex hull
+                # plt.plot(points[hull.vertices, 0], points[hull.vertices, 1],
+                #          color=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil],
+                #          linestyle='-', linewidth=1.5)
+                # plt.fill(points[hull.vertices, 0], points[hull.vertices, 1],
+                #          alpha=0.6, color=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil])
+
+                # argmax = np.argmax(700 - data["val_loss"])
+                # plt.scatter(data['MC'][argmax], data["val_loss"][argmax],
+                # plt.scatter(data['MC'][:argmax], data["val_loss"][:argmax],
+                #         alpha=1, #data["epoch"]/20,
+                #             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
+                # label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
+                #    s=SIZE_SCATTER,
+                #    )
+
+                # plt.scatter(data['MC'][data.shape[0]-1], data["val_loss"][data.shape[0]-1],
+                #         alpha=1,
+                #             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
+                #             label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                #          + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
+                #             # s=SIZE_SCATTER
+                #             )
+
+                # plt.scatter(data['MC'][20:].median(), data["val_loss"][20:].median(),
+                #         alpha=1,
+                #             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
+                #             label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                #          + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Median",
+                #             )
+
+    plt.title(r'Lowest Validation MSE vs ${|IC-MC|}$; Task: $(i_0=4, p_h=1, s=55, city=London)$', fontsize=10.5)
+    plt.xlabel(r' ${|IC-MC|}$', fontsize=11)
+    plt.ylabel('Val MSE', fontsize=11)
+    plt.legend(fontsize=8.5, ncol=3, loc="upper left")
+
+    # plt.xlim(0, 700)
+    # plt.ylim(1700, 2500)
+    plt.ylim(550, 1070)
+    # plt.ylim(620, 1300)
+    # plt.xscale("symlog")
+    # plt.yscale("symlog")
+    sprint (X)
+    sprint (Y)
+    plt.plot(X, LinearRegression().fit(X, Y).predict(X), '-')
+    from scipy.stats import pearsonr
+    correlation_coef, p_value = pearsonr(np.array(X).flatten(), np.array(Y).flatten())
+
+    print(f"Pearson Correlation Coefficient: {correlation_coef}")
+    print(f"P-value: {p_value}")
+
+    plt.tight_layout()
+    plt.savefig("london-IO_LEN_scatter_all_combined_" + IO_len + "-PRED_horiz_" + PRED_HORIZ + "Scale" + SCALE + \
+                "_d_".join([str(x) for x in List_of_depths]) + \
+                "_f_".join([str(x) for x in List_of_filters]) + \
+                "-all-_min-with_IC-MC-valloss.png", dpi=300)
+    sprint("_d_".join([str(x) for x in List_of_depths]), List_of_depths)
 
 
 

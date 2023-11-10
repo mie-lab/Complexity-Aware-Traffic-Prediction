@@ -81,8 +81,12 @@ class ComputeMetrics(Callback):
                 os.rename(temp_pred_file_name, predictions_file)
 
         # if epoch % 0 == 0:
-        # if epoch % 5 == 0: # To be used when running spatial or temporal
-        if epoch == 1: # To ensure that we compute the ValMSE only for the last epoch when running the IC_temp
+        if epoch % 5 == 0: # To be used when running spatial or temporal
+
+
+        # if epoch == 1: # To ensure that we compute the ValMSE only for the last epoch when running the IC_temp
+                        # this value should be equal to the last epoch;
+
             RUN_PM=True
         else:
             RUN_PM = False
@@ -1165,6 +1169,33 @@ class ConvLSTM:
                                                              "-adam-0p001-" + slugify("-temporal-experiment-val-error-big-model") + obj.key_dimensions() + ".csv")
             # print (model.model.summary())
             model.train(epochs_param=15, optim="Adam")
+            
+    @staticmethod
+    def one_task_all_cities_temporal_experiment_bigger_model_use_IC_VAL_DATA():
+        for city in ["london", "madrid", "melbourne"]:
+
+            obj = ProcessRaw(cityname=city, i_o_length=4,
+                             prediction_horizon=1, grid_size=55)
+
+            model = ConvLSTM(
+                cityname=city,
+                io_length=4,
+                pred_horiz=1,
+                scale=55,
+                shape=(2, 4, 55, 55, 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model_flexible(depth=4, num_filters=128,
+                                                              custom_eval=False, BN=True)
+            
+            # The easiest way to achieve IC_train data for this function is to change the             
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                             "-adam-0p001-" + slugify("-temporal-experiment-val-error-big-model-use-validation-data-for-IC") + obj.key_dimensions() + ".csv")
+            # print (model.model.summary())
+            model.train(epochs_param=1, optim="Adam")
 
     @staticmethod
     def one_task_all_cities_temporal_experiment_smaller_model(epochs_param=15):
@@ -1280,6 +1311,48 @@ class ConvLSTM:
 
             print (updated_model.summary())
             model.train(epochs_param=1, optim="Adam")
+
+    @staticmethod
+    def print_various_models_summary():
+        obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
+                         prediction_horizon=config.pred_horiz_def[0], grid_size=config.scales_def[0])
+
+        model = ConvLSTM(
+            config.city_list_def[0],
+            config.i_o_lengths_def[0],
+            config.pred_horiz_def[0],
+            config.scales_def[0],
+            shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+            validation_csv_file=obj.key_dimensions() + "validation.csv",
+            log_dir=obj.key_dimensions() + "log_dir",
+            custom_eval=False
+        )
+        print ("Base model: ")
+        print (model.model.summary())
+        print ("\n\n\n")
+        for filters in [32, 64, 128]:
+            for depth in [1, 2, 4]:
+                model.model = model.create_model_flexible(depth=depth, num_filters=filters,
+                                                          custom_eval=False, BN=True)
+
+                model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-DEP-" + str(depth)
+                                                         + "-FIL-" + str(filters) +
+                                                         "-adam-01-" + slugify("one_task_different_models") +
+                                                         obj.key_dimensions() + ".csv")
+                # print (updated_model.summary())
+
+                from contextlib import redirect_stdout
+
+                with open('modelsummary.txt', 'w') as f:
+                    with redirect_stdout(f):
+                        model.model.summary()
+
+                print("======================================")
+                sprint(obj.key_dimensions(), "DEP-" + str(depth) + "-FIL-" + str(filters))
+                os.system("grep \'Trainable params:\' modelsummary.txt")
+
+                print (model.model.summary())
+                # model.train(epochs_param=30, optim="Adam")
 
     @staticmethod
     def one_task_increase_lr_midway():
@@ -1424,5 +1497,6 @@ if __name__ == "__main__":
     # ConvLSTM.one_task_one_model_with_and_without_lr()
     # ConvLSTM.one_task_all_cities_temporal_experiment()
     # ConvLSTM.one_task_all_cities_temporal_experiment_bigger_model()
-    ConvLSTM.one_task_all_cities_temporal_experiment_smaller_model(epochs_param=2)
-
+    ConvLSTM.one_task_all_cities_temporal_experiment_bigger_model_use_IC_VAL_DATA()
+    # ConvLSTM.one_task_all_cities_temporal_experiment_smaller_model(epochs_param=2)
+    # ConvLSTM.print_various_models_summary()

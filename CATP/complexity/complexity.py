@@ -1,6 +1,5 @@
 import os
 import sys
-
 # import tensorflow
 from smartprint import smartprint as sprint
 
@@ -79,14 +78,15 @@ class Complexity:
             assert model_func != None
             self.model_predict = model_func
 
-            self.cx_whole_dataset_m_predict()
-
             if run_pm:
                 self.cx_whole_dataset_PM_no_thresh()
             if run_nm:
                 self.cx_whole_dataset_NM_no_thresh()
             if run_gb:
                 self.cx_whole_dataset_Garbage_predict()
+
+            self.cx_whole_dataset_m_predict()
+
             self.csv_format()
 
     def cx_whole_dataset_PM_no_thresh(self):
