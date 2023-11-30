@@ -347,28 +347,48 @@ for List_of_depths, List_of_filters in [
                 # argmin = np.argmin(data["val_loss"])
 
                 val_loss = data["val_loss"]
-                argmin = (val_loss).argsort()[:5]
+                argmin = (val_loss).argsort()[:1]
 
                 # plt.scatter(data['MC'][:], data["loss"][:],
                 plt.scatter(data['MC'][argmin], data["val_loss"][argmin],
                 # plt.scatter(data['MC'][:10], data["val_loss"][:10],
                         alpha=0.9,
                             color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
-                            label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
-                         + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Val loss",
+                         #    label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                         # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Val loss",
+                         #    label=slugify(col + "_" + str(files[file])).replace("mc-", "")
+                         #          + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
                          # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
+                            s=69,
+                            marker='o'
                             )
+
+                # Dummy for legend
+                plt.scatter([], [],
+                        alpha=1,
+                            color=dep_colors[enum_dep * len([1,2,3]) + enum_fil ],
+                            label=slugify(col + "_" + str(files[file])).replace("mc-", "")
+                                  + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
+                            s=94,
+                            marker='s'
+                            )
+
                 if label_flag and FIL==128:
                     plt.scatter(data['MC'][argmin], data["loss"][argmin],
                                 # plt.scatter(data['MC'][:10], data["val_loss"][:10],
                                 alpha=0.9,
                                 color=dep_colors[enum_dep * len([1, 2, 3]) + enum_fil],
-                                label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
-                                      + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Train loss",
+                                # label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
+                                #       + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Train loss",
+                                # label=slugify(col + "_" + str(files[file])).replace("mc-", "")
+                                #       + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Train loss",
                                 # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
-                                marker="*"
+                                marker="*",
+                                s=94
                                 )
                     label_flag = False
+
+
                 else:
                     plt.scatter(data['MC'][argmin], data["loss"][argmin],
                                 # plt.scatter(data['MC'][:10], data["val_loss"][:10],
@@ -377,7 +397,8 @@ for List_of_depths, List_of_filters in [
                                 # label=slugify(col + "_" + str(files[file])).replace("mc-", "MC-")
                                 #       + "-DEP-" + str(DEP) + "-FIL-" + str(FIL) + " Min",
                                 # + "-DEP-" + str(DEP) + "-FIL-" + str(FIL),
-                                marker="*"
+                                marker="*",
+                                s=94
                                 )
                 sprint (DEP, FIL, data["MC"][20:].mean(), data["MC"][20:].min(), data["MC"][20:].max())
 
@@ -421,10 +442,24 @@ for List_of_depths, List_of_filters in [
                 #             # s=SIZE_SCATTER
                 #             )
 
-    plt.title('Train and Val loss vs MC \n for 5 epochs with lowest Val loss Task: ' + r'$(i_0=4, p_h=1, s=55, city=London)$', fontsize=8)
-    plt.xlabel('MC')
-    plt.ylabel('MSE')
-    plt.legend(fontsize=7, ncol=3, loc="upper right")
+    # dummy markers for Train and validation and style
+    plt.scatter([], [], alpha=1,
+                color="black",
+                label="Training MSE @ best epoch",
+                marker="*",
+                s=78
+                )
+    plt.scatter([], [], alpha=1,
+                color="black",
+                label="Validation MSE @ best epoch",
+                marker="o",
+                s=78
+                )
+
+    plt.title('Task: ' + r'$(i_0=4, p_h=1, s=55, city=London)$', fontsize=13)
+    plt.xlabel(r'Model Complexity ($MC$) for best epoch', fontsize=13)
+    plt.ylabel('MSE', fontsize=13)
+    plt.legend(fontsize=9.7, ncol=2, loc="upper right")
     # plt.xlim(0, 700)
     # plt.ylim(1700, 2500)
     plt.ylim(450, 1350)

@@ -1046,7 +1046,7 @@ class ConvLSTM:
 
     @staticmethod
     def one_task_one_model_different_BN_no_BN():
-        for PRED_HORIZ in range(2, 5):
+        for PRED_HORIZ in range(1, 5, 1):
             obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
                              prediction_horizon=PRED_HORIZ, grid_size=config.scales_def[0])
 
@@ -1104,6 +1104,47 @@ class ConvLSTM:
             model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
                                                      "-adam-0p001-" + slugify(
                 "-one-task-one-model-no-BN-") + obj.key_dimensions() + ".csv")
+            # print (updated_model.summary())
+
+            from contextlib import redirect_stdout
+
+            with open('modelsummary.txt', 'w') as f:
+                with redirect_stdout(f):
+                    model.model.summary()
+
+            print("======================================")
+            os.system("grep \'Trainable params:\' modelsummary.txt")
+
+            # print (model.model.summary())
+            model.train(epochs_param=30, optim="Adam")
+
+
+    @staticmethod
+    def one_task_one_model_MC_validation():
+        for PRED_HORIZ in [4]:
+            obj = ProcessRaw(cityname=config.city_list_def[0], i_o_length=config.i_o_lengths_def[0],
+                             prediction_horizon=PRED_HORIZ, grid_size=config.scales_def[0])
+
+            model = ConvLSTM(
+                config.city_list_def[0],
+                config.i_o_lengths_def[0],
+                PRED_HORIZ,
+                config.scales_def[0],
+                shape=(2, config.i_o_lengths_def[0], config.scales_def[0], config.scales_def[0], 1),
+                validation_csv_file=obj.key_dimensions() + "validation.csv",
+                log_dir=obj.key_dimensions() + "log_dir",
+                custom_eval=False
+            )
+
+            model.model = model.create_model()
+
+            # BN_True
+            model.model = model.create_model_flexible(depth=4, num_filters=64,
+                                                              custom_eval=False, BN=True)
+
+
+            model.validation_csv_file = os.path.join(config.INTERMEDIATE_FOLDER, "validation-default_model-" +
+                                                             "-adam-0p001-" + slugify("-one-task-one-model-MC_validation-") + obj.key_dimensions() + ".csv")
             # print (updated_model.summary())
 
             from contextlib import redirect_stdout
@@ -1493,10 +1534,11 @@ if __name__ == "__main__":
     # ConvLSTM.one_task_three_models()
     # ConvLSTM.different_tasks_one_model()
     # ConvLSTM.one_task_different_models()
-    # ConvLSTM.one_task_one_model_different_BN_no_BN()
+    ConvLSTM.one_task_one_model_different_BN_no_BN()
     # ConvLSTM.one_task_one_model_with_and_without_lr()
     # ConvLSTM.one_task_all_cities_temporal_experiment()
     # ConvLSTM.one_task_all_cities_temporal_experiment_bigger_model()
-    ConvLSTM.one_task_all_cities_temporal_experiment_bigger_model_use_IC_VAL_DATA()
+    # ConvLSTM.one_task_all_cities_temporal_experiment_bigger_model_use_IC_VAL_DATA()
     # ConvLSTM.one_task_all_cities_temporal_experiment_smaller_model(epochs_param=2)
     # ConvLSTM.print_various_models_summary()
+    # ConvLSTM.one_task_one_model_MC_validation()
