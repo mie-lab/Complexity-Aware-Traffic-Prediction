@@ -123,31 +123,37 @@ for List_of_depths, List_of_filters in [
 
                         # Plot the data on the first y-axis
 
-
+                        LABEL = (col_label + slugify( "_" + str(files[file])).replace("mc", " MC ")
+                                + "-DEP-" + str(DEP) + "-FIL-" + str(FIL)).replace("MCf", "MC-f").replace("loss-f", "MSE-f").replace("lossf","loss f").replace("sf","s f").replace("_", " ")
+                        LABEL = LABEL.replace("mse", "MSE")
+                        if "naïve-model-MSE" in LABEL:
+                            LABEL = "baseline"# "naïve-model-MSE"
                         axx.plot(data['epoch'][:], data_y,
                                 alpha=alpha_computed,
                                 color=color_computed,
-                                label=(col_label + slugify( "_" + str(files[file])).replace("mc", " MC ")
-                                + "-DEP-" + str(DEP) + "-FIL-" + str(FIL)).replace("MCf", "MC-f").replace("loss-f", "MSE-f").replace("lossf","loss f").replace("sf","s f").replace("_", " "),
+                                label=LABEL,
                                 # label=f'Simple Label - {col}',
                                 linestyle=linestyle[col],
                                 linewidth=3)
 
 
 
-    plt.title('Evaluation of Model Complexity during training', fontsize=8)
+    # plt.title('Evaluation of Model Complexity during training', fontsize=8)
+    plt.title(r'$Task(i_o=4, p_h=1, s=55, city=London)$', fontsize=13)
     # plt.xlabel('Epoch')
     # ax1.set_yticks(range(0, 1000, 100))
     # ax2.set_yticks(range(0, 1000, 100))
-    ax1.set_xlabel('Epochs', fontsize=11)
-    ax2.set_ylabel('Losses', color='black', fontsize=11)
-    ax1.set_ylabel('MC', color='black', fontsize=11)
+    ax1.set_xlabel('Epochs', fontsize=13)
+    ax2.set_ylabel('Train and Val Losses', color='black', fontsize=13)
+    ax1.set_ylabel('MC', color='black', fontsize=13)
     ax1.set_ylim(0, 700)
     ax2.set_ylim(0, 2000)
 
+    lines, labels = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax2.legend(lines + lines2, labels + labels2, loc='best', fontsize=13)
 
-
-    plt.legend()
+    # plt.legend()
 
     # plt.xticks(list(range(0, 30, 1)), rotation=90, fontsize=6)
     ax1.set_xticks(list(range(0, 30, 2)))#, fontsize=11)
