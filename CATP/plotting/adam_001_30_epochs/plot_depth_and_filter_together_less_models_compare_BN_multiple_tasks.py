@@ -972,7 +972,7 @@ Line_STYLE_BN = '-'
 plt.clf()
 
 IC_not_plotted = True
-for PRED_HORIZ in ["4"]:#["1", "2", "3", "4"]: #
+for PRED_HORIZ in ["1", "2", "3", "4"]: #
 
     dep_colors = [(0.8501191849288735, 0.8501191849288735, 0.8501191849288735, 1.0),
      (0.586082276047674, 0.586082276047674, 0.586082276047674, 1.0),
@@ -1991,6 +1991,11 @@ for PRED_HORIZ in ["1", "2", "3", "4"]:
 
                             # Plot the data on the first y-axis
 
+                            # plt.plot(data['epoch'][:], data["naïve-model-mse"][:], color=color_computed,
+                            #             alpha=1,
+                            #             marker=SCATTER_style_no_BN,
+                            #          label=r"$p_h$: " + PRED_HORIZ + " " + " baseline",
+                            #             )
 
                             print (r"$p_h$: " + PRED_HORIZ + " " + slugify( col_label ))
                             plt.scatter(data['epoch'][is_cummin], data_y[is_cummin], color=color_computed,
@@ -2078,7 +2083,7 @@ plt.ylabel('Validation MSE', color='black', fontsize=13)
 # plt.grid(axis='x', alpha=0.05)
 plt.ylim(650, 2400)
 plt.legend(loc="upper right", ncol=2, fontsize=10.6)
-# plt.yscale("log")
+plt.yscale("log")
 plt.tight_layout()
 plt.savefig("BN_plot_revised_using_all_N_scatter_part_Val_MSE.png", dpi=300)
 plt.show()
@@ -3204,15 +3209,16 @@ for PRED_HORIZ in list_of_PRED_HORIZ:  #["1", "2", "3", "4"]:
                     bin_dict_with_BN_all[PRED_HORIZ] = {f"{int(bin_edges[i])}-{int(bin_edges[i + 1])}": hist[i] for i in range(len(hist))}
                     # sprint (bin_dict_with_BN)
 
+                    baseline = data[data["naïve-model-mse"] > data["val_loss"]].index[0]
                     if not os.path.exists("record_MC_evolution.csv"):
                         with open("record_MC_evolution.csv", "a") as f:
-                            f.write("BN/noBN, ph, mu, np.std[:], np.min[:], np.max(:)\n")
+                            f.write("BN/noBN, ph, mu[>baseline:], np.std[>baseline:], np.min[>baseline:], np.max[>baseline:]\n")
                     with open("record_MC_evolution.csv","a") as f:
                         f.write("BN," + PRED_HORIZ + "," + 
-                                str(np.mean(data["MC"][:])) + "," +
-                                str(np.std(data["MC"][:])) + "," + 
-                                str(np.min(data["MC"][:])) + "," +
-                                str(np.max(data["MC"][:])) + "," +
+                                str(round(np.mean(data["MC"][baseline:]),2)) + "," +
+                                str(round(np.std(data["MC"][baseline:]),2)) + "," +
+                                str(round(np.min(data["MC"][baseline:]),2)) + "," +
+                                str(round(np.max(data["MC"][baseline:]),2)) + "," +
                                 "\n")
 
                     for col in columns:
@@ -3317,12 +3323,13 @@ for PRED_HORIZ in list_of_PRED_HORIZ:  #["1", "2", "3", "4"]:
                     hist, bin_edges = np.histogram(values, bins)
                     bin_dict_with_no_BN_all[PRED_HORIZ] = {f"{int(bin_edges[i])}-{int(bin_edges[i + 1])}": hist[i] for i in range(len(hist))}
 
+                    baseline = data[data["naïve-model-mse"] > data["val_loss"]].index[0]
                     with open("record_MC_evolution.csv","a") as f:
-                        f.write("No-BN," + PRED_HORIZ + "," + 
-                                str(np.mean(data["MC"][:])) + "," +
-                                str(np.std(data["MC"][:])) + "," + 
-                                str(np.min(data["MC"][:])) + "," +
-                                str(np.max(data["MC"][:])) + "," +
+                        f.write("No-BN," + PRED_HORIZ + "," +
+                                str(round(np.mean(data["MC"][baseline:]),2)) + "," +
+                                str(round(np.std(data["MC"][baseline:]),2)) + "," +
+                                str(round(np.min(data["MC"][baseline:]),2)) + "," +
+                                str(round(np.max(data["MC"][baseline:]),2)) + "," +
                                 "\n")
 
                     for col in columns:
