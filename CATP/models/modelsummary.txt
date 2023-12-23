@@ -1,38 +1,38 @@
-Model: "model_9"
+Model: "model_3"
 _________________________________________________________________
  Layer (type)                Output Shape              Param #   
 =================================================================
- input_10 (InputLayer)       [(None, None, 55, 55, 1   0         
+ input_4 (InputLayer)        [(None, None, 55, 55, 1   0         
                              )]                                  
                                                                  
- conv_lstm2d_21 (ConvLSTM2D  (None, None, 55, 55, 12   594944    
- )                           8)                                  
+ conv_lstm2d_7 (ConvLSTM2D)  (None, None, 55, 55, 64   150016    
+                             )                                   
                                                                  
- batch_normalization_19 (Ba  (None, None, 55, 55, 12   512       
- tchNormalization)           8)                                  
+ batch_normalization_5 (Bat  (None, None, 55, 55, 64   256       
+ chNormalization)            )                                   
                                                                  
- conv_lstm2d_22 (ConvLSTM2D  (None, None, 55, 55, 12   1180160   
- )                           8)                                  
+ conv_lstm2d_8 (ConvLSTM2D)  (None, None, 55, 55, 64   295168    
+                             )                                   
                                                                  
- batch_normalization_20 (Ba  (None, None, 55, 55, 12   512       
- tchNormalization)           8)                                  
+ batch_normalization_6 (Bat  (None, None, 55, 55, 64   256       
+ chNormalization)            )                                   
                                                                  
- conv_lstm2d_23 (ConvLSTM2D  (None, None, 55, 55, 12   1180160   
- )                           8)                                  
+ conv_lstm2d_9 (ConvLSTM2D)  (None, None, 55, 55, 64   295168    
+                             )                                   
                                                                  
- batch_normalization_21 (Ba  (None, None, 55, 55, 12   512       
- tchNormalization)           8)                                  
+ batch_normalization_7 (Bat  (None, None, 55, 55, 64   256       
+ chNormalization)            )                                   
                                                                  
- conv_lstm2d_24 (ConvLSTM2D  (None, None, 55, 55, 12   1180160   
- )                           8)                                  
+ conv_lstm2d_10 (ConvLSTM2D  (None, None, 55, 55, 64   295168    
+ )                           )                                   
                                                                  
- batch_normalization_22 (Ba  (None, None, 55, 55, 12   512       
- tchNormalization)           8)                                  
+ batch_normalization_8 (Bat  (None, None, 55, 55, 64   256       
+ chNormalization)            )                                   
                                                                  
- conv3d_9 (Conv3D)           (None, None, 55, 55, 1)   3457      
+ conv3d_3 (Conv3D)           (None, None, 55, 55, 1)   1729      
                                                                  
 =================================================================
-Total params: 4140929 (15.80 MB)
-Trainable params: 4139905 (15.79 MB)
-Non-trainable params: 1024 (4.00 KB)
+Total params: 1038273 (3.96 MB)
+Trainable params: 1037761 (3.96 MB)
+Non-trainable params: 512 (2.00 KB)
 _________________________________________________________________

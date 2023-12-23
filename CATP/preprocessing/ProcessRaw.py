@@ -155,6 +155,9 @@ class ProcessRaw:
         x_bin_edges = np.linspace(df["x"].min(), df["x"].max(), n)
         y_bin_edges = np.linspace(df["y"].min(), df["y"].max(), n)
 
+        if np.random.rand() < 0.5:
+            print (self.cityname, self.i_o_length, self.grid_size, "max_lon, max_lat",df["x"].max(), df["y"].max(), "min_lon, min_lat", df["x"].min(), df["y"].min())
+
         # compute the x and y bin indices for each point
         x_bins = np.digitize(df["x"], x_bin_edges) - 1
         y_bins = np.digitize(df["y"], y_bin_edges) - 1

@@ -1371,7 +1371,7 @@ class ConvLSTM:
         print ("Base model: ")
         print (model.model.summary())
         print ("\n\n\n")
-        for filters in [32, 64, 128]:
+        for filters in [16, 64, 128]:
             for depth in [1, 2, 4]:
                 model.model = model.create_model_flexible(depth=depth, num_filters=filters,
                                                           custom_eval=False, BN=True)
@@ -1392,7 +1392,7 @@ class ConvLSTM:
                 sprint(obj.key_dimensions(), "DEP-" + str(depth) + "-FIL-" + str(filters))
                 os.system("grep \'Trainable params:\' modelsummary.txt")
 
-                print (model.model.summary())
+                # print (model.model.summary())
                 # model.train(epochs_param=30, optim="Adam")
 
     @staticmethod

@@ -57,10 +57,10 @@ class Experiment_Epoch:
 
 
 if __name__ == "__main__":
-    for io_length in [1]:  # config.i_o_lengths_def:
-        for pred_horiz in [1]:  # config.pred_horiz_def:
-            for scale in [55]:  # config.scales_def:
-                for cityname in config.city_list:
+    for io_length in config.i_o_lengths_def:
+        for pred_horiz in config.pred_horiz_def:
+            for scale in config.scales_def:
+                for cityname in config.city_list_def:
                     sprint(cityname, io_length, pred_horiz, scale)
 
                     # for a in [
