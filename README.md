@@ -29,4 +29,4 @@ use `nvidia-smi` instead
 Commit id for reproducing results from the paper: 
 1c7c302e68276a5c8a61be7bbefca5d36b871ec6
 
-For instructions on how to use the proposed metrics for a new dataset, please follow the detailed documentation using demo data at [Demo_CATP.ipynb](sds)
+For instructions on how to use the proposed metrics for a new dataset, please follow the detailed documentation using demo data at [Demo_CATP.ipynb](https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/main/CATP/Demo_CATP.ipynb)
