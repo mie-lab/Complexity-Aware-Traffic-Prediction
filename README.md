@@ -2,8 +2,8 @@
 # Complexity-Aware Traffic Prediction 
 
 
-This is the code accompanying the paper _Intrinsic Complexity of Deep Learning-based City-wide Traffic Prediction_
-
+This is the code accompanying the paper _Intrinsic Complexity of Deep Learning-based City-wide Traffic Prediction_  
+The paper is available as a pre-print ([link to pre-print](http://dx.doi.org/10.13140/RG.2.2.29917.18405/1))
 ## Dependencies
 
 Ubuntu: 
@@ -29,4 +29,20 @@ use `nvidia-smi` instead
 Commit id for reproducing results from the paper: 
 1c7c302e68276a5c8a61be7bbefca5d36b871ec6
 
+
+## Demo 
 For instructions on how to use the proposed metrics for a new dataset, please follow the detailed documentation using demo data at [Demo_CATP.ipynb](https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/main/CATP/Demo_CATP.ipynb)
+
+
+## Citing
+If you find this code useful in your research, please consider citing:
+```
+@unknown{unknown,
+author = {Kumar, Nishant and Martin, Henry and Martin, Raubal},
+year = {2023},
+month = {12},
+pages = {},
+title = {Intrinsic Complexity: Quantifying Task Complexity For Deep Learning-Based City-Wide Traffic Prediction},
+doi = {10.13140/RG.2.2.29917.18405/1}
+}
+```
