@@ -31,7 +31,15 @@ Commit id for reproducing results from the paper:
 
 
 ## Demo 
-For instructions on how to use the proposed metrics for a new dataset, please follow the detailed documentation using demo data at [Demo_CATP.ipynb](https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/main/CATP/Demo_CATP.ipynb)
+- For instructions on how to use the proposed metrics for a new dataset, please follow the detailed documentation using demo data at [Demo_CATP.ipynb](https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/main/CATP/Demo_CATP.ipynb)
+- Sometimes, the github preview is slow and it might not load the Demo Jupyter notebook correctly due to figures in the outputs. If that happens, the Demo notebook with outputs removed can be viewed at [Demo_CATP_without_images.ipynb](https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/main/CATP/Demo_CATP_outputs_deleted.ipynb)
+- A quick preview of the demo in `.html` format can be downloaded from [Demo_CATP_html_format.ipynb](https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/main/CATP/Demo_CATP_html_format.ipynb) and viewed using firefox.
+- The demo script runs well on [google colab](https://colab.research.google.com) and and colab tensorflow version for the demo script that has been tested as of December 2023 is as shown below:
+  ```python
+  import tensorflow as tf
+  tf.__version__
+  # 2.15.0
+  ```
 
 
 ## Citing
