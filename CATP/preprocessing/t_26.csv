@@ -1,3 +1,0 @@
-log_city_matrix_run.txt:london 4 26 max_lon, max_lat 0.0670603 51.69845774391412 min_lon, min_lat -0.3688872 51.25631772160935
-log_city_matrix_run.txt:melbourne 4 26 max_lon, max_lat 145.1928566 -37.6119873 min_lon, min_lat 144.7571961 -38.1034605
-log_city_matrix_run.txt:madrid 4 26 max_lon, max_lat -3.5806081 40.515610660745345 min_lon, min_lat -3.836937105036116 40.3323645
