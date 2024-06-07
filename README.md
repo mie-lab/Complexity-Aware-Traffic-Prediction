@@ -12,7 +12,7 @@ conda create --name pyenv python=3.11
 conda activate pyenv
 pip install -r requirements_frozen.txt
 ```
-If GPU not available, comment out these lines:
+If GPU is not available, comment out these lines:
 ```bash
 # #######################
 # nvidia-cublas-cu11==11.11.3.6
@@ -44,7 +44,7 @@ Commit id for reproducing results from the paper:
 ## Citing
 If you find this code useful in your research, please consider citing:
 ```
-@unknown{unknown,
+@unknown{kumar2024complexityb,
 author = {Kumar, Nishant and Martin, Henry and Martin, Raubal},
 year = {2023},
 month = {12},
