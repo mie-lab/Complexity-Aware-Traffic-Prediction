@@ -3,7 +3,7 @@
 
 
 This is the code accompanying the paper _Enhancing deep learning-based city-wide traffic prediction pipelines through complexity analysis_  
-The paper is available as a pre-print ([link to pre-print](https://github.com/mie-lab/Complexity-Aware-Traffic-Prediction/blob/main/PRE_PRINT.pdf))
+
 ## Dependencies
 
 Ubuntu: 
