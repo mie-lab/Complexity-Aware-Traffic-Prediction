@@ -3,6 +3,7 @@
 
 
 This is the code accompanying the paper _Enhancing deep learning-based city-wide traffic prediction pipelines through complexity analysis_  
+ ([Link to preprint](https://doi.org/10.21203/rs.3.rs-4683600/v1))
 
 ## Dependencies
 
@@ -84,6 +85,20 @@ MC(f| \mathcal{D}) = \frac{1}{N}\sum_{k=1}^{N} SC({X}_k|f, \mathcal{D})
 ```math
         IC (Task) = \frac{1}{N}\sum_{k=1}^{N} ISC({X}_k|{D})
 ```
- 
+
+
+If you find the codes in this repository useful for computing the complexity of your traffic prediction models, please consider citing our paper: 
+```bash
+@article{Kumar2023Enhancing,
+  title={Enhancing deep learning-based city-wide traffic prediction pipelines through complexity analysis},
+  author={Kumar, Nishant and Martin, Henry and Raubal, Martin},
+  journal={Preprint Research Square},
+  year={2023},
+  volume={1},
+  number={v1},
+  doi={10.21203/rs.3.rs-4683600/v1},
+}
+
+```
 
 
