@@ -2,8 +2,8 @@
 # Complexity-Aware Traffic Prediction 
 
 
-This is the code accompanying the paper _Enhancing deep learning-based city-wide traffic prediction pipelines through complexity analysis_  
- ([Link to preprint](https://doi.org/10.21203/rs.3.rs-4683600/v1))
+This is the code accompanying the paper [_Enhancing deep learning-based city-wide traffic prediction pipelines through complexity analysis_](https://link.springer.com/article/10.1007/s42421-024-00109-x)  
+
 
 ## Dependencies
 
@@ -89,15 +89,17 @@ MC(f| \mathcal{D}) = \frac{1}{N}\sum_{k=1}^{N} SC({X}_k|f, \mathcal{D})
 
 If you find the codes in this repository useful for computing the complexity of your traffic prediction models, please consider citing our paper: 
 ```bash
-@article{Kumar2023Enhancing,
-  title={Enhancing deep learning-based city-wide traffic prediction pipelines through complexity analysis},
+@article{kumar2024enhancing,
+  title={Enhancing Deep Learning-Based City-Wide Traffic Prediction Pipelines Through Complexity Analysis},
   author={Kumar, Nishant and Martin, Henry and Raubal, Martin},
-  journal={Preprint Research Square},
-  year={2023},
-  volume={1},
-  number={v1},
-  doi={10.21203/rs.3.rs-4683600/v1},
+  journal={Data Science for Transportation},
+  volume={6},
+  number={3},
+  pages={24},
+  year={2024},
+  publisher={Springer}
 }
+
 
 ```
 
